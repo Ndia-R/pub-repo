@@ -1,0 +1,1048 @@
+●components/layout/
+
+----------------------------------------
+drawer
+
+import { cn } from '@/lib/utils';
+import { HTMLAttributes } from 'react';
+
+interface DrawerProps extends HTMLAttributes<HTMLDivElement> {
+  open?: boolean;
+  onOpenChange?: () => void;
+}
+export default function Drawer({
+  open,
+  onOpenChange,
+  className,
+  children,
+  ...props
+}: DrawerProps) {
+  return (
+    <div
+      className={cn(
+        open ? 'absolute left-0 top-0 z-50 h-screen w-screen bg-black/70' : 'hidden',
+        className
+      )}
+      onClick={onOpenChange}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+----------------------------------------
+footer
+
+import Button from '@/components/ui/button';
+import { FacebookIcon, InstagramIcon, TwitterIcon, YoutubeIcon } from 'lucide-react';
+
+type Props = {
+  className: string;
+};
+
+export default function Footer({ className }: Props) {
+  return (
+    <footer className={className}>
+      <div className="mx-auto max-w-7xl bg-secondary/60 px-3 sm:px-6">
+        <div className="grid items-center justify-center py-2 sm:grid-cols-3">
+          <div>
+            <Button className="rounded-full" variant="ghost" size="icon">
+              <YoutubeIcon className="size-5" />
+            </Button>
+            <Button className="rounded-full" variant="ghost" size="icon">
+              <TwitterIcon className="size-5" />
+            </Button>
+            <Button className="rounded-full" variant="ghost" size="icon">
+              <InstagramIcon className="size-5" />
+            </Button>
+            <Button className="rounded-full" variant="ghost" size="icon">
+              <FacebookIcon className="size-5" />
+            </Button>
+          </div>
+          <p className="text-center text-sm">© 2024 Xxxxx, Inc.</p>
+          <h1 className="text-center text-xl tracking-tighter sm:text-end">My Books</h1>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+----------------------------------------
+header
+
+import NavList from '@/components/layout/nav-list';
+import ThemeToggleButton from '@/components/layout/theme-toggle-button';
+import SearchBar from '@/components/search-bar';
+
+export default function Header() {
+  return (
+    <header>
+      <div className="fixed z-50 w-full bg-background/30 backdrop-blur-lg transition-all duration-500 hover:bg-background/30 hover:backdrop-blur-lg">
+        <div className="mx-auto max-w-7xl px-3 sm:px-6">
+          <div className="flex h-16 w-full items-center sm:gap-x-2">
+            <NavList />
+            <span className="flex-1"></span>
+            <SearchBar />
+            <ThemeToggleButton />
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+----------------------------------------
+logo
+
+import { Link } from 'react-router-dom';
+
+export default function Logo() {
+  return (
+    <div className="text-primary hover:bg-transparent hover:text-primary/80">
+      <Link to="/">
+        <h1 className={`text-3xl tracking-tighter`}>My Books</h1>
+      </Link>
+    </div>
+  );
+}
+
+----------------------------------------
+menu-list
+
+import Button from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Link, useLocation } from 'react-router-dom';
+
+type Props = {
+  onClose?: () => void;
+};
+
+export default function MenuList({ onClose }: Props) {
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  const menuItems = [
+    { href: '/favorites', title: 'FAVORITES' },
+    { href: '/settings', title: 'SETTINGS' },
+  ];
+  return (
+    <ul className="flex flex-col gap-x-0 gap-y-2 md:flex-row">
+      {menuItems.map((item) => (
+        <li key={item.href}>
+          <Button
+            className={cn(
+              'w-full justify-start hover:bg-primary/20',
+              pathname === item.href && 'text-primary underline hover:text-primary'
+            )}
+            variant="ghost"
+            onClick={onClose}
+          >
+            <Link to={item.href}>{item.title}</Link>
+          </Button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+----------------------------------------
+nav-list
+
+import Logo from '@/components/layout/logo';
+import MenuList from '@/components/layout/menu-list';
+import Button from '@/components/ui/button';
+import { useWindowSize } from '@/hooks/useWindowSize';
+import { cn } from '@/lib/utils';
+import { MenuIcon } from 'lucide-react';
+import { useState } from 'react';
+
+export default function NavList() {
+  const [isOpen, setIsOpen] = useState(false);
+  const { width } = useWindowSize(100);
+
+  if (isOpen && width >= 768) {
+    setIsOpen(false);
+  }
+
+  return (
+    <div>
+      <div className="hidden md:flex md:items-center md:gap-x-10">
+        <Logo />
+        <MenuList />
+      </div>
+
+      <div className="md:hidden">
+        <Button
+          className="rounded-full"
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <MenuIcon className="size-5" />
+        </Button>
+
+        <div
+          className={cn(
+            isOpen ? 'absolute left-0 top-0 z-10 h-screen w-screen bg-black/70' : 'hidden'
+          )}
+          onClick={() => setIsOpen(false)}
+        ></div>
+        <div className="relative">
+          <div
+            className={cn(
+              `fixed left-0 top-24 h-full z-20 bg-gray-800 p-4 text-white transition-transform`,
+              isOpen ? 'translate-x-0' : '-translate-x-full'
+            )}
+          >
+            <p>CONTENTS</p>
+          </div>
+        </div>
+
+        {/* <Drawer open={isOpen} onOpenChange={() => setIsOpen(false)}>
+          <div
+            className={cn(
+              isOpen ? 'translate-x-16' : 'translate-x-0',
+              'w-fit bg-card duration-500 md:hidden transition-transform'
+            )}
+            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+              e.stopPropagation();
+            }}
+          >
+            <div className="h-screen bg-background p-8">
+              <div>{isOpen ? 'true' : 'false'}</div>
+              <div>AAA</div>
+              <div>AAA</div>
+              <div>AAA</div>
+              <div>AAA</div>
+              <div>AAA</div>
+              <div>AAA</div>
+            </div>
+          </div>
+        </Drawer> */}
+
+        {/* <Sheet open={isOpen} onOpenChange={() => setIsOpen(false)}>
+          <SheetContent className="w-fit md:hidden" side="left">
+            <SheetHeader className="mb-4">
+              <div onClick={() => setIsOpen(false)}>
+                <Logo />
+              </div>
+            </SheetHeader>
+
+            <MenuList onClose={() => setIsOpen(false)} />
+          </SheetContent>
+        </Sheet> */}
+      </div>
+    </div>
+  );
+}
+
+----------------------------------------
+theme-toggle-button
+
+import Button from '@/components/ui/button';
+import { MoonIcon, SunIcon } from 'lucide-react';
+import { useState } from 'react';
+
+export default function ThemeToggleButton() {
+  const [theme, setTheme] = useState('light');
+
+  const handleClick = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+    const body = document.querySelector('body');
+    body?.classList.toggle('light');
+    body?.classList.toggle('dark');
+  };
+
+  return (
+    <Button className="rounded-full" variant="ghost" size="icon" onClick={handleClick}>
+      {theme === 'light' ? (
+        <MoonIcon className="size-5" />
+      ) : (
+        <SunIcon className="size-5" />
+      )}
+    </Button>
+  );
+}
+
+----------------------------------------
+
+●components/ui/
+
+----------------------------------------
+button
+
+import { cn } from '@/lib/utils';
+import { ButtonHTMLAttributes } from 'react';
+
+const variantList = {
+  default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+  outline:
+    'border border-primary/50 text-primary bg-background hover:bg-primary/20 hover:border-primary',
+  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+  ghost: 'bg-transparent text-foreground hover:bg-primary/20',
+};
+
+const sizeList = {
+  default: 'h-10 px-4 py-2',
+  sm: 'h-9 rounded-md px-3',
+  lg: 'h-11 rounded-md px-8',
+  icon: 'size-10',
+};
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'outline' | 'secondary' | 'ghost';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+}
+
+export default function Button({
+  variant = 'default',
+  size = 'default',
+  children,
+  className,
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      className={cn(
+        'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        variantList[variant],
+        sizeList[size],
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+----------------------------------------
+card
+
+import { cn } from '@/lib/utils';
+import { HTMLAttributes } from 'react';
+
+type CardProps = HTMLAttributes<HTMLDivElement>;
+
+export default function Card({ className, children, ...props }: CardProps) {
+  return (
+    <div
+      className={cn(
+        'rounded-lg border bg-card text-card-foreground shadow-sm',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+----------------------------------------
+input
+
+import { cn } from '@/lib/utils';
+import { forwardRef } from 'react';
+
+type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
+
+const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+
+export default Input;
+
+----------------------------------------
+
+●components
+
+----------------------------------------
+book-card
+
+import FavoriteButton from '@/components/favorite-button';
+import Card from '@/components/ui/card';
+import { Book } from '@/types/book';
+
+type Props = {
+  book: Book;
+};
+
+export default function BookCard({ book }: Props) {
+  return (
+    <>
+      <div className="relative w-fit">
+        <div className="absolute right-3 top-3">
+          <FavoriteButton book={book} />
+        </div>
+        <Card className="w-40 p-6 sm:w-48">
+          <img
+            className="z-0 h-40 rounded object-cover sm:h-48"
+            src={book.imageUrl}
+            alt={book.title}
+          />
+          <p className="line-clamp-2 h-8 w-full px-2 text-center text-xs sm:h-10 sm:text-sm">
+            {book.title}
+          </p>
+        </Card>
+      </div>
+    </>
+  );
+}
+
+----------------------------------------
+favorite-button
+
+import { Book } from '@/types/book';
+import { HeartIcon } from 'lucide-react';
+
+type Props = {
+  book: Book;
+};
+
+export default function FavoriteButton({ book }: Props) {
+  console.log(book);
+
+  return (
+    <>
+      <HeartIcon className="size-4" />
+    </>
+  );
+}
+
+----------------------------------------
+search-bar
+
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
+import { Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+export default function SearchBar() {
+  const [searchText, setSearchText] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    setSearchText(params.get('q')?.toString() ?? '');
+  }, [location.search]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      search();
+    }
+  };
+
+  const search = () => {
+    const params = new URLSearchParams(location.search);
+
+    if (!searchText || searchText === params.get('q')) return;
+
+    params.set('q', searchText);
+
+    const url = `/search?${params.toString()}`;
+    navigate(url);
+  };
+
+  return (
+    <div>
+      <div className="relative h-10 w-64 rounded-full sm:w-80">
+        <Input
+          className="absolute left-0 top-0 h-10 w-full rounded-full border-foreground/10 pl-4"
+          type="text"
+          placeholder="検索"
+          value={searchText}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+        />
+        <Button
+          className="absolute right-0 top-0 rounded-full"
+          variant="ghost"
+          size="icon"
+          onClick={search}
+        >
+          <Search className="size-5" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+----------------------------------------
+
+●hooks
+
+----------------------------------------
+useWindowsSize.ts
+
+import { useEffect, useState } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
+
+export const useWindowSize = (delay: number = 0) => {
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
+
+  const handleResize = useDebouncedCallback(() => {
+    setWidth(window.innerWidth);
+    setHeight(window.innerHeight);
+  }, delay);
+
+  useEffect(() => {
+    setWidth(window.innerWidth);
+    setHeight(window.innerHeight);
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [handleResize]);
+
+  return { width, height };
+};
+
+----------------------------------------
+
+●lib
+
+----------------------------------------
+data.ts
+
+import { Book } from '@/types/book';
+import { GoogleApiBook, SearchResponse } from '@/types/google-books-api';
+
+const GOOGLE_BOOKS_API_ENDPOINT = 'https://www.googleapis.com/books/v1';
+const FETCH_BOOKS_MAX_RESULTS = 20;
+
+/**
+ * 書籍の検索
+ * https://developers.google.com/books/docs/v1/reference/volumes/list?hl=ja
+ * @param q 全文のクエリ文字列
+ * @param startIndex? 最初に返される結果のインデックス（0 から開始）
+ * @return Book[]
+ */
+export const getBooksByQuery = async (q: string, startIndex: number = 0) => {
+  if (!q) return [];
+
+  const url = `${GOOGLE_BOOKS_API_ENDPOINT}/volumes?q=${q}&startIndex=${startIndex}&maxResults=${FETCH_BOOKS_MAX_RESULTS}&langRestrict=ja`;
+
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error(
+      `Failed to fetch data from ${url}. HTTP error! status: ${res.status}`
+    );
+  }
+
+  const googleBooksData = (await res.json()) as SearchResponse;
+
+  const books = googleBooksData.items
+    ? googleBooksData.items.map((item) => convertBook(item))
+    : [];
+
+  return books;
+};
+
+/**
+ * １冊分の本の情報を取得
+ * https://developers.google.com/books/docs/v1/reference/volumes/get?hl=ja
+ * @param volumeId 取得するボリュームの ID
+ * @return Book
+ */
+export const getBookById = async (volumeId: string): Promise<Book | undefined> => {
+  if (!volumeId) return undefined;
+
+  const url = `${GOOGLE_BOOKS_API_ENDPOINT}/volumes/${volumeId}`;
+
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error(
+      `Failed to fetch data from ${url}. HTTP error! status: ${res.status}`
+    );
+  }
+
+  const googleBooksData = (await res.json()) as GoogleApiBook;
+
+  const book = convertBook(googleBooksData);
+
+  return book;
+};
+
+/**
+ * Google Books API のレスポンスをBookへ変換
+ * @param googleBooksData Google Books API のレスポンス
+ * @returns Book
+ */
+const convertBook = (googleBooksData: GoogleApiBook): Book => {
+  return {
+    id: googleBooksData.id,
+    title: googleBooksData.volumeInfo.title,
+    imageUrl: googleBooksData.volumeInfo.imageLinks?.thumbnail ?? '/no-image.png',
+    authors: googleBooksData.volumeInfo.authors,
+    publisher: googleBooksData.volumeInfo.publisher ?? '',
+    publishedDate: googleBooksData.volumeInfo.publishedDate,
+    description: googleBooksData.volumeInfo.description ?? '',
+    webReaderLink: googleBooksData.accessInfo.webReaderLink,
+    pageCount: googleBooksData.volumeInfo.pageCount ?? 0,
+    price: googleBooksData.saleInfo.retailPrice?.amount ?? 0,
+  };
+};
+
+----------------------------------------
+util.ts
+
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+----------------------------------------
+
+●routes
+
+----------------------------------------
+routes/book/[bookId]
+
+layout
+
+import { Outlet } from 'react-router-dom';
+
+export default function Layout() {
+  return (
+    <div className="pt-16">
+      <h1>Book Details</h1>
+      <Outlet />
+    </div>
+  );
+}
+
+----------------------------------------
+favorite
+
+page
+
+export default function Page() {
+  return <div className="pt-16">FavoritesPage</div>;
+}
+
+----------------------------------------
+search
+
+page
+
+import BookCard from '@/components/book-card';
+import { getBooksByQuery } from '@/lib/data';
+import { Book } from '@/types/book';
+import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
+
+type LoaderFunctionReturnType = {
+  books: Book[];
+  query: string;
+};
+
+const loader = async ({ request }: LoaderFunctionArgs) => {
+  const query = new URL(request.url).searchParams;
+  const q = query.get('q') || '';
+  const books = await getBooksByQuery(q);
+  return { books, query: q };
+};
+
+export default function Page() {
+  const { books, query } = useLoaderData() as LoaderFunctionReturnType;
+
+  return (
+    <>
+      <div className="pt-16">
+        <div className="p-4">
+          <p className="text-sm text-muted-foreground">{`「 ${query} 」の検索結果`}</p>
+        </div>
+
+        <ul className="grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
+          {books.map((book, index) => (
+            <li key={`${book.id}-${index}`}>
+              <BookCard book={book} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+}
+
+Page.loader = loader;
+
+----------------------------------------
+ROOT
+
+layout
+
+import Footer from '@/components/layout/footer';
+import Header from '@/components/layout/header';
+import { Outlet } from 'react-router-dom';
+
+export default function Layout() {
+  return (
+    <div className="min-h-dvh">
+      <Header />
+      <main className="mx-auto max-w-7xl px-3 sm:px-6">
+        <Outlet />
+      </main>
+      <Footer className="sticky top-full" />
+    </div>
+  );
+}
+
+page
+
+import { useState } from 'react';
+
+export default function Page() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <>
+      <div className="pt-16">
+        <h1 className="text-3xl font-bold underline">Hello World!</h1>
+        <button onClick={() => setCount((prev) => prev + 1)}>
+          Clicked {count} times
+        </button>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Deleniti inventore
+        </p>
+      </div>
+    </>
+  );
+}
+
+route.tsx
+
+import BookIdNotFound from '@/routes/book/[bookId]/not-found';
+import BookIdPage from '@/routes/book/[bookId]/page';
+import BookLayout from '@/routes/book/layout';
+import FavoritesPage from '@/routes/favorite/page';
+import RootLayout from '@/routes/layout';
+import RootPage from '@/routes/page';
+import SearchPage from '@/routes/search/page';
+import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
+
+export const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route>
+      <Route path="/" element={<RootLayout />}>
+        <Route index element={<RootPage />} />
+
+        <Route path="book" element={<BookLayout />}>
+          <Route
+            path=":bookId"
+            element={<BookIdPage />}
+            loader={BookIdPage.loader}
+            errorElement={<BookIdNotFound />}
+          />
+        </Route>
+
+        <Route path="favorites">
+          <Route index element={<FavoritesPage />} />
+        </Route>
+
+        <Route path="search">
+          <Route index element={<SearchPage />} loader={SearchPage.loader} />
+        </Route>
+      </Route>
+    </Route>
+  )
+);
+
+----------------------------------------
+
+●types
+
+----------------------------------------
+book.ts
+
+export interface Book {
+  id: string; // ID
+  title: string; // タイトル
+  imageUrl: string; // イメージ画像URL
+  authors: string[]; // 作者
+  publisher: string; // 出版社
+  publishedDate: string; // 出版日
+  description: string; // 概要
+  webReaderLink: string; // Web試し読みリンク
+  pageCount: number; // ページ数
+  price: number; // 価格
+}
+
+----------------------------------------
+google-books-api
+
+----------------------------------------
+
+●SRC ROOT
+
+----------------------------------------
+index.css
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --muted: 210 0% 93.85%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 0 0% 87.06%;
+    --primary: 197.18 100% 43.14%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 228.68 25.49% 89.68%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 92.99% 56.11%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 197.18 100% 43.14%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 13.73% 10%;
+    --foreground: 229.76 31.78% 74.71%;
+    --muted: 232.5 15.44% 18.32%;
+    --muted-foreground: 233.79 11.37% 50%;
+    --popover: 234.55 17.46% 12.35%;
+    --popover-foreground: 234 12.4% 52.55%;
+    --card: 234.55 17.46% 12.35%;
+    --card-foreground: 229.76 31.78% 74.71%;
+    --border: 232.5 15.38% 30.59%;
+    --input: 232 20% 14.71%;
+    --primary: 225.45 71.22% 72.75%;
+    --primary-foreground: 234.55 17.46% 12.35%;
+    --secondary: 0 0% 82.75%;
+    --secondary-foreground: 0 0% 20%;
+    --accent: 227.73 48.05% 48.58%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 1.58 47.5% 52.94%;
+    --destructive-foreground: 210 40% 98.04%;
+    --ring: 225.45 71.22% 72.75%;
+  }
+} */
+@layer base {
+  :root {
+    --background: 0 0% 97.65%;
+    --foreground: 0 0% 12.55%;
+    --muted: 0 0% 93.73%;
+    --muted-foreground: 0 0% 39.22%;
+    --popover: 0 0% 98.82%;
+    --popover-foreground: 0 0% 12.55%;
+    --card: 0 0% 98.82%;
+    --card-foreground: 0 0% 12.55%;
+    --border: 0 0% 84.71%;
+    --input: 0 0% 94.12%;
+    --primary: 22.93 92.59% 52.35%;
+    --primary-foreground: 44 0% 100%;
+    --secondary: 34.05 100% 85.49%;
+    --secondary-foreground: 16.27 50.43% 22.94%;
+    --accent: 0 0% 90.98%;
+    --accent-foreground: 0 0% 12.55%;
+    --destructive: 10.16 77.87% 53.92%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 24.8 79.79% 63.14%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 6.67%;
+    --foreground: 0 0% 93.33%;
+    --muted: 0 0% 13.33%;
+    --muted-foreground: 0 0% 70.59%;
+    --popover: 0 0% 9.8%;
+    --popover-foreground: 0 0% 93.33%;
+    --card: 0 0% 9.8%;
+    --card-foreground: 0 0% 93.33%;
+    --border: 44 14% 11%;
+    --input: 0 0% 28.24%;
+    --primary: 22.93 92.59% 52.35%;
+    --primary-foreground: 29.51 0% 100%;
+    --secondary: 28.5 64.52% 12.16%;
+    --secondary-foreground: 29.51 100% 88.04%;
+    --accent: 0 0% 16.47%;
+    --accent-foreground: 0 0% 93.33%;
+    --destructive: 10.16 77.87% 53.92%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 23.11 59.8% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+----------------------------------------
+main.tsx
+
+import { router } from '@/routes/route';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router-dom';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>
+);
+
+----------------------------------------
+index.html
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+  </head>
+  <body class="light">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+----------------------------------------
+
+●package.json
+
+{
+  "name": "app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@types/react-router-dom": "^5.3.3",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.445.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "tailwind-merge": "^2.5.2",
+    "use-debounce": "^10.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@types/node": "^22.5.5",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.9.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-refresh": "^0.4.9",
+    "eslint-plugin-tailwindcss": "^3.17.4",
+    "globals": "^15.9.0",
+    "postcss": "^8.4.47",
+    "prettier": "^3.3.3",
+    "prettier-plugin-organize-imports": "^4.0.0",
+    "tailwindcss": "^3.4.11",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.1",
+    "vite": "^5.4.1"
+  }
+}
+
+----------------------------------------
+
+●tailwind.config.js
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+      },
+    },
+  },
+  plugins: [],
+};
+
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
