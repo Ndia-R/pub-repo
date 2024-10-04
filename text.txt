@@ -1,157 +1,45 @@
 ----------------------------------------
-●components/ui
+●components/book-list
 
-----------------------------------------
-pagination
+book-card.tsx
 
-import Button from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import FavoriteButton from '@/components/favorite-button';
+import Card from '@/components/ui/card';
+import { Book } from '@/types/book';
+import { Link } from 'react-router-dom';
 
 type Props = {
-  total: number;
-  page: number;
-  onChange: (page: number) => void;
+  book: Book;
 };
 
-export default function Pagination({ total, page, onChange }: Props) {
-  const pageNumbers = createPageNumbers(page, total);
-
-  return (
-    <div className="flex w-full justify-center">
-      <ul className="flex">
-        <Button
-          className="size-8 rounded-full"
-          variant="ghost"
-          size="icon"
-          disabled={page <= 1}
-          onClick={() => onChange(page - 1)}
-        >
-          <ChevronLeft className="size-5" />
-        </Button>
-
-        {pageNumbers.map((pageNumber, index) => (
-          <li key={`${pageNumber}-${index}`}>
-            {pageNumber === 0 ? (
-              <div className="size-8 text-center">...</div>
-            ) : (
-              <Button
-                className="size-8 rounded-full"
-                variant={page === pageNumber ? 'default' : 'ghost'}
-                size="icon"
-                onClick={() => {
-                  if (page !== pageNumber) {
-                    onChange(pageNumber);
-                  }
-                }}
-              >
-                {pageNumber}
-              </Button>
-            )}
-          </li>
-        ))}
-
-        <Button
-          className="size-8 rounded-full"
-          variant="ghost"
-          size="icon"
-          disabled={page >= total}
-          onClick={() => onChange(page + 1)}
-        >
-          <ChevronRight className="size-5" />
-        </Button>
-      </ul>
-    </div>
-  );
-}
-
-const createPageNumbers = (page: number, total: number) => {
-  const pages = [];
-  const maxPages = 7;
-
-  if (page <= 4) {
-    for (let i = 1; i <= Math.min(5, total); i++) {
-      pages.push(i);
-    }
-    if (total > 5) {
-      pages.push(0, total);
-    }
-  } else if (page >= total - 3) {
-    pages.push(1, 0);
-    for (let i = total - 4; i <= total; i++) {
-      pages.push(i);
-    }
-  } else {
-    pages.push(1, 0);
-    for (let i = page - 1; i <= page + 1; i++) {
-      pages.push(i);
-    }
-    pages.push(0, total);
-  }
-
-  return pages.slice(0, maxPages);
-};
-
-----------------------------------------
-●components
-
-----------------------------------------
-book-cards-skeleton
-
-import Card from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { FETCH_BOOKS_MAX_RESULTS } from '@/lib/data';
-
-export default function BookCardsSkeleton() {
+export default function BookCard({ book }: Props) {
   return (
     <>
-      <ul className="grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
-        {[...Array<number>(FETCH_BOOKS_MAX_RESULTS)].map((_, index) => (
-          <li key={index}>
-            <Card className="relative flex w-40 flex-col gap-2 p-4 sm:w-48 sm:p-5">
-              <Skeleton className="z-0 h-44 w-32 rounded object-cover sm:h-52 sm:w-36" />
-              <div className="flex w-full flex-col items-center gap-y-3">
-                <Skeleton className="h-3 w-4/5 rounded-lg"></Skeleton>
-                <Skeleton className="h-3 w-4/5 rounded-lg"></Skeleton>
-              </div>
-            </Card>
-          </li>
-        ))}
-      </ul>
+      <Card className="relative flex w-40 flex-col gap-2 px-4 pb-3 pt-6 sm:w-48 sm:px-5 sm:pb-4 sm:pt-7">
+        <div className="absolute right-1 top-1 z-10">
+          <FavoriteButton book={book} />
+        </div>
+        <img
+          className="h-44 rounded object-cover sm:h-52"
+          src={book.imageUrl}
+          alt={book.title}
+        />
+        <p className="line-clamp-2 h-8 w-full px-2 text-center text-xs sm:h-10 sm:text-sm">
+          {book.title}
+          <Link className="absolute inset-0" to={`/book/${book.id}`}></Link>
+        </p>
+      </Card>
     </>
   );
 }
 
-
 ----------------------------------------
-book-cards
+●components
 
-import BookCard from '@/components/book-card';
-import { Book } from '@/types/book';
-
-type Props = {
-  books: Book[];
-};
-
-export default function BookCards({ books }: Props) {
-  if (!books.length)
-    return (
-      <div className="flex h-32 items-center justify-center">見つかりませんでした</div>
-    );
-  return (
-    <ul className="grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
-      {books.map((book, index) => (
-        <li key={`${book.id}-${index}`}>
-          <BookCard book={book} />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-----------------------------------------
 favorite-button
 
 import Button from '@/components/ui/button';
+import { cn } from '@/lib/util';
 import { Book } from '@/types/book';
 import { HeartIcon } from 'lucide-react';
 
@@ -160,120 +48,26 @@ type Props = {
 };
 
 export default function FavoriteButton({ book }: Props) {
+  const isFavorite = !book.isFavorite;
   return (
     <>
-      <Button className="size-8 rounded-full" variant="ghost" size="icon">
+      <Button
+        className={cn(
+          'size-8 rounded-full text-muted-foreground',
+          isFavorite && 'text-primary bg-primary/20'
+        )}
+        variant="ghost"
+        size="icon"
+      >
         <HeartIcon className="size-4" />
-        {book.id}
       </Button>
     </>
   );
 }
 
 ----------------------------------------
-search-bar
-
-import Input from '@/components/ui/input';
-import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Form, useLocation, useNavigate } from 'react-router-dom';
-
-export default function SearchBar() {
-  const [searchText, setSearchText] = useState('');
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    setSearchText(params.get('q') || '');
-  }, [location.search]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(e.target.value);
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!searchText) return;
-
-    const params = new URLSearchParams(location.search);
-    params.set('q', searchText.trim());
-    params.set('page', '1');
-    navigate(`/search?${params.toString()}`);
-  };
-
-  return (
-    <div>
-      <Form className="relative h-10 w-64 lg:w-80" onSubmit={handleSubmit}>
-        <Input
-          className="rounded-full border-foreground/10 pl-10 pr-4"
-          type="search"
-          placeholder="検索"
-          name="searchText"
-          autoComplete="off"
-          spellCheck="false"
-          value={searchText}
-          onChange={handleChange}
-        />
-        <Search className="absolute left-2.5 top-2.5 size-5" />
-      </Form>
-    </div>
-  );
-}
-
-----------------------------------------
-search-pagination
-
-import Pagination from '@/components/ui/pagination';
-import { FETCH_BOOKS_MAX_RESULTS, getTotalItemsByQuery } from '@/lib/data';
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-
-type Props = {
-  query: string;
-};
-
-export default function SearchPagination({ query }: Props) {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [totalPages, setTotalPages] = useState(1);
-
-  const params = new URLSearchParams(location.search);
-  const page = Number(params.get('page') || 1);
-
-  const handleChange = (page: number) => {
-    const params = new URLSearchParams(location.search);
-    params.set('page', page.toString());
-    navigate(`/search?${params.toString()}`);
-  };
-
-  useEffect(() => {
-    const fn = async () => {
-      const totalItems = await getTotalItemsByQuery(query);
-      const totalPages = Math.ceil(totalItems / FETCH_BOOKS_MAX_RESULTS);
-      setTotalPages(totalPages);
-      console.log('getTotalItemsByQuery()');
-    };
-    fn();
-    console.log('useEffect()');
-  }, [query]);
-
-  return (
-    <div>
-      <Pagination total={totalPages} page={page} onChange={handleChange} />
-    </div>
-  );
-}
-
-----------------------------------------
-●constants
-
-削除
-
-----------------------------------------
 ●lib
 
-----------------------------------------
 data
 
 // import { getUser } from '@/lib/auth';
@@ -478,9 +272,11 @@ const convertBook = (
     pageCount: googleBooksData.volumeInfo.pageCount ?? 0,
     price: googleBooksData.saleInfo.retailPrice?.amount ?? 0,
 
-    isFavorite: favoriteBooks.find((favorite) => favorite.bookId === googleBooksData.id)
-      ? true
-      : false,
+    // isFavorite: favoriteBooks.find((favorite) => favorite.bookId === googleBooksData.id)
+    //   ? true
+    //   : false,
+
+    isFavorite: Math.random() > 0.5,
   };
 };
 
@@ -573,139 +369,4 @@ const convertBook = (
 // };
 
 ----------------------------------------
-●routes/book/[bookId]
-
-----------------------------------------
-page
-
-import BookDetail from '@/components/page/book/book-detail';
-import BookDetailSkeleton from '@/components/page/book/book-detail-skeleton';
-import { getBookById } from '@/lib/data';
-import { Book } from '@/types/book';
-import { Suspense } from 'react';
-import {
-  Await,
-  LoaderFunctionArgs,
-  ScrollRestoration,
-  useLoaderData,
-} from 'react-router-dom';
-
-type LoaderFunctionReturnType = {
-  book: Promise<Book>;
-};
-
-const loader = ({ params }: LoaderFunctionArgs) => {
-  const book = getBookById(params.bookId);
-  return { book };
-};
-
-export default function Page() {
-  const { book } = useLoaderData() as LoaderFunctionReturnType;
-
-  return (
-    <>
-      <Suspense fallback={<BookDetailSkeleton />}>
-        <Await resolve={book}>{(book) => <BookDetail book={book} />}</Await>
-      </Suspense>
-
-      <ScrollRestoration />
-    </>
-  );
-}
-
-Page.loader = loader;
-
-----------------------------------------
-●routes/search
-
-----------------------------------------
-page
-
-import BookCards from '@/components/book-cards';
-import BookCardsSkeleton from '@/components/book-cards-skeleton';
-import SearchPagination from '@/components/search-pagination';
-import { FETCH_BOOKS_MAX_RESULTS, getBooksByQuery } from '@/lib/data';
-import { Book } from '@/types/book';
-import { Suspense } from 'react';
-import {
-  Await,
-  LoaderFunctionArgs,
-  ScrollRestoration,
-  useAsyncError,
-  useLoaderData,
-} from 'react-router-dom';
-
-type LoaderFunctionReturnType = {
-  books: Promise<Book[]>;
-  query: string;
-  page: number;
-};
-
-const loader = ({ request }: LoaderFunctionArgs) => {
-  const url = new URL(request.url);
-  const query = url.searchParams.get('q');
-
-  const page = Number(url.searchParams.get('page') || 1);
-  const startIndex = (page - 1) * FETCH_BOOKS_MAX_RESULTS;
-  const books = getBooksByQuery(query, startIndex);
-
-  return { books, query, page };
-};
-
-function ErrorElement() {
-  const error = useAsyncError();
-  console.log(error);
-
-  return <p>Uh Oh, something went wrong!</p>;
-}
-export default function Page() {
-  const { books, query } = useLoaderData() as LoaderFunctionReturnType;
-
-  return (
-    <>
-      <div className="flex flex-col gap-y-2 py-4">
-        <SearchPagination query={query} />
-
-        <p className="text-sm text-muted-foreground">{`「 ${query} 」の検索結果`}</p>
-
-        <Suspense fallback={<BookCardsSkeleton />}>
-          <Await resolve={books} errorElement={<ErrorElement />}>
-            {(resolvedBooks) => <BookCards books={resolvedBooks} />}
-          </Await>
-        </Suspense>
-      </div>
-
-      <ScrollRestoration />
-    </>
-  );
-}
-
-Page.loader = loader;
-
-----------------------------------------
-●
-
-----------------------------------------
-docker-compose
-
-      - 4173:4173
-
-----------------------------------------
-package.json
-
-    "preview": "vite preview --host"
-
-----------------------------------------
-
-
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-
-
-
-
-
-
 
