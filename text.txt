@@ -1,372 +1,160 @@
-----------------------------------------
-●components/book-list
-
-book-card.tsx
-
-import FavoriteButton from '@/components/favorite-button';
-import Card from '@/components/ui/card';
-import { Book } from '@/types/book';
-import { Link } from 'react-router-dom';
-
-type Props = {
-  book: Book;
-};
-
-export default function BookCard({ book }: Props) {
-  return (
-    <>
-      <Card className="relative flex w-40 flex-col gap-2 px-4 pb-3 pt-6 sm:w-48 sm:px-5 sm:pb-4 sm:pt-7">
-        <div className="absolute right-1 top-1 z-10">
-          <FavoriteButton book={book} />
-        </div>
-        <img
-          className="h-44 rounded object-cover sm:h-52"
-          src={book.imageUrl}
-          alt={book.title}
-        />
-        <p className="line-clamp-2 h-8 w-full px-2 text-center text-xs sm:h-10 sm:text-sm">
-          {book.title}
-          <Link className="absolute inset-0" to={`/book/${book.id}`}></Link>
-        </p>
-      </Card>
-    </>
-  );
-}
-
-----------------------------------------
-●components
-
-favorite-button
-
-import Button from '@/components/ui/button';
-import { cn } from '@/lib/util';
-import { Book } from '@/types/book';
-import { HeartIcon } from 'lucide-react';
-
-type Props = {
-  book: Book;
-};
-
-export default function FavoriteButton({ book }: Props) {
-  const isFavorite = !book.isFavorite;
-  return (
-    <>
-      <Button
-        className={cn(
-          'size-8 rounded-full text-muted-foreground',
-          isFavorite && 'text-primary bg-primary/20'
-        )}
-        variant="ghost"
-        size="icon"
-      >
-        <HeartIcon className="size-4" />
-      </Button>
-    </>
-  );
-}
-
-----------------------------------------
-●lib
-
-data
-
-// import { getUser } from '@/lib/auth';
-// import prisma from '@/lib/db';
-import { Book, FavoriteBook } from '@/types/book';
-import { GoogleApiBook, SearchResponse } from '@/types/google-books-api';
-// import { Book, FavoriteBook, GoogleApiBook, SearchResponse } from '@/types';
-
-const GOOGLE_BOOKS_API_ENDPOINT = 'https://www.googleapis.com/books/v1';
-export const FETCH_BOOKS_MAX_RESULTS = 20;
-
-/**
- * 書籍の検索
- * https://developers.google.com/books/docs/v1/reference/volumes/list?hl=ja
- * @param q 全文のクエリ文字列
- * @param startIndex? 最初に返される結果のインデックス（0 から開始）
- * @return Book[]
- */
-export const getBooksByQuery = async (
-  q: string | undefined | null,
-  startIndex: number = 0
-) => {
-  if (!q) return [];
-
-  const url = `${GOOGLE_BOOKS_API_ENDPOINT}/volumes?q=${q}&startIndex=${startIndex}&maxResults=${FETCH_BOOKS_MAX_RESULTS}&langRestrict=ja`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(
-      `Failed to fetch data from ${url}. HTTP error! status: ${res.status}`
-    );
-  }
-
-  const googleBooksData = (await res.json()) as SearchResponse;
-  const books = googleBooksData.items
-    ? googleBooksData.items.map((item) => convertBook(item, []))
-    : [];
-  return books;
-
-  // const user = getUser();
-  // const favoriteBooks = await prisma.favoriteBook.findMany({
-  //   where: {
-  //     userId: user.id,
-  //   },
-  // });
-
-  // const books = googleBooksData.items
-  //   ? googleBooksData.items.map((item) => convertBook(item, favoriteBooks))
-  //   : [];
-
-  // return books;
-};
-
-/**
- * クエリ文字列で検索したときの書籍の総数を取得
- * https://developers.google.com/books/docs/v1/reference/volumes/list?hl=ja
- * @param q 全文のクエリ文字列
- * @returns 総数
- */
-export const getTotalItemsByQuery = async (q: string | undefined | null) => {
-  if (!q) return 0;
-
-  const url = `${GOOGLE_BOOKS_API_ENDPOINT}/volumes?q=${q}&maxResults=1&langRestrict=ja`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(
-      `Failed to fetch data from ${url}. HTTP error! status: ${res.status}`
-    );
-  }
-
-  const googleBooksData = (await res.json()) as SearchResponse;
-
-  return googleBooksData.totalItems;
-};
-
-/**
- * １冊分の本の情報を取得
- * https://developers.google.com/books/docs/v1/reference/volumes/get?hl=ja
- * @param volumeId 取得するボリュームの ID
- * @return Book
- */
-export const getBookById = async (
-  volumeId: string | undefined
-): Promise<Book | undefined> => {
-  if (!volumeId) return undefined;
-
-  const url = `${GOOGLE_BOOKS_API_ENDPOINT}/volumes/${volumeId}`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(
-      `Failed to fetch data from ${url}. HTTP error! status: ${res.status}`
-    );
-  }
-
-  const googleBooksData = (await res.json()) as GoogleApiBook;
-  const book = convertBook(googleBooksData, []);
-  return book;
-
-  // const user = getUser();
-  // const favoriteBooks = await prisma.favoriteBook.findMany({
-  //   where: {
-  //     userId: user.id,
-  //   },
-  // });
-
-  // const book = convertBook(googleBooksData, favoriteBooks);
-
-  // return book;
-};
-
-/**
- * お気に入り一覧取得
- * @return Book[]
- */
-export const fetchFavorites = async () => {
-  // const user = getUser();
-  // const favorites = await prisma.favoriteBook.findMany({
-  //   where: {
-  //     userId: user.id,
-  //   },
-  //   orderBy: {
-  //     createdAt: 'desc',
-  //   },
-  // });
-  // const books = favorites.map((favorite) => ({
-  //   id: favorite.bookId,
-  //   title: favorite.title,
-  //   imageUrl: favorite.imageUrl,
-  //   authors: [],
-  //   publisher: '',
-  //   publishedDate: '',
-  //   description: '',
-  //   webReaderLink: '',
-  //   pageCount: 0,
-  //   price: 0,
-  //   isFavorite: true,
-  // }));
-  // return books;
-};
-
-/**
- * 閲覧履歴一覧取得
- * @return Book[]
- */
-export const getBrowsingHistory = async () => {
-  // const user = getUser();
-  // const histories = await prisma.bookBrowsingHistory.findMany({
-  //   where: {
-  //     userId: user.id,
-  //   },
-  //   orderBy: {
-  //     createdAt: 'desc',
-  //   },
-  // });
-  // const favorites = await prisma.favoriteBook.findMany({
-  //   where: {
-  //     userId: user.id,
-  //   },
-  //   select: {
-  //     bookId: true,
-  //   },
-  // });
-  // const books = histories.map((history) => ({
-  //   id: history.bookId,
-  //   title: history.title,
-  //   imageUrl: history.imageUrl,
-  //   authors: [],
-  //   publisher: '',
-  //   publishedDate: '',
-  //   description: '',
-  //   webReaderLink: '',
-  //   pageCount: 0,
-  //   price: 0,
-  //   isFavorite: favorites.find((favorite) => favorite.bookId === history.bookId)
-  //     ? true
-  //     : false,
-  // }));
-  // return books;
-};
-
-/**
- * Google Books API のレスポンスをBookへ変換
- * @param googleBooksData Google Books API のレスポンス
- * @param favoriteBooks お気に入り一覧
- * @returns Book
- */
-const convertBook = (
-  googleBooksData: GoogleApiBook,
-  favoriteBooks: FavoriteBook[]
-): Book => {
-  return {
-    id: googleBooksData.id,
-    title: googleBooksData.volumeInfo.title,
-    imageUrl: googleBooksData.volumeInfo.imageLinks?.thumbnail ?? '/no-image.png',
-    authors: googleBooksData.volumeInfo.authors,
-    publisher: googleBooksData.volumeInfo.publisher ?? '',
-    publishedDate: googleBooksData.volumeInfo.publishedDate,
-    description: googleBooksData.volumeInfo.description ?? '',
-    webReaderLink: googleBooksData.accessInfo.webReaderLink,
-    pageCount: googleBooksData.volumeInfo.pageCount ?? 0,
-    price: googleBooksData.saleInfo.retailPrice?.amount ?? 0,
-
-    // isFavorite: favoriteBooks.find((favorite) => favorite.bookId === googleBooksData.id)
-    //   ? true
-    //   : false,
-
-    isFavorite: Math.random() > 0.5,
-  };
-};
-
-// import { Book } from '@/types/book';
-// import { GoogleApiBook, SearchResponse } from '@/types/google-books-api';
-
-// const GOOGLE_BOOKS_API_ENDPOINT = 'https://www.googleapis.com/books/v1';
-// const FETCH_BOOKS_MAX_RESULTS = 20;
-
-// /**
-//  * 書籍の検索
-//  * https://developers.google.com/books/docs/v1/reference/volumes/list?hl=ja
-//  * @param q 全文のクエリ文字列
-//  * @param startIndex? 最初に返される結果のインデックス（0 から開始）
-//  * @return Book[]
-//  */
-// export const getBooksByQuery = async (
-//   q: string | undefined | null,
-//   startIndex: number = 0
-// ) => {
-//   if (!q) return [];
-
-//   const url = `${GOOGLE_BOOKS_API_ENDPOINT}/volumes?q=${q}&startIndex=${startIndex}&maxResults=${FETCH_BOOKS_MAX_RESULTS}&langRestrict=ja`;
-
-//   const res = await fetch(url);
-
-//   if (!res.ok) {
-//     throw new Error(
-//       `Failed to fetch data from ${url}. HTTP error! status: ${res.status}`
-//     );
-//   }
-
-//   const googleBooksData = (await res.json()) as SearchResponse;
-
-//   const books = googleBooksData.items
-//     ? googleBooksData.items.map((item) => convertBook(item))
-//     : [];
-
-//   return books;
-// };
-
-// /**
-//  * １冊分の本の情報を取得
-//  * https://developers.google.com/books/docs/v1/reference/volumes/get?hl=ja
-//  * @param volumeId 取得するボリュームの ID
-//  * @return Book
-//  */
-// export const getBookById = async (
-//   volumeId: string | undefined
-// ): Promise<Book | undefined> => {
-//   if (!volumeId) return undefined;
-
-//   const url = `${GOOGLE_BOOKS_API_ENDPOINT}/volumes/${volumeId}`;
-
-//   const res = await fetch(url);
-
-//   if (!res.ok) {
-//     throw new Error(
-//       `Failed to fetch data from ${url}. HTTP error! status: ${res.status}`
-//     );
-//   }
-
-//   const googleBooksData = (await res.json()) as GoogleApiBook;
-
-//   const book = convertBook(googleBooksData);
-
-//   return book;
-// };
-
-// /**
-//  * Google Books API のレスポンスをBookへ変換
-//  * @param googleBooksData Google Books API のレスポンス
-//  * @returns Book
-//  */
-// const convertBook = (googleBooksData: GoogleApiBook): Book => {
-//   return {
-//     id: googleBooksData.id,
-//     title: googleBooksData.volumeInfo.title,
-//     imageUrl:
-//       googleBooksData.volumeInfo.imageLinks?.thumbnail ??
-//       new URL(`src/assets/no-image.png`, import.meta.url).href,
-//     authors: googleBooksData.volumeInfo.authors,
-//     publisher: googleBooksData.volumeInfo.publisher ?? '',
-//     publishedDate: googleBooksData.volumeInfo.publishedDate,
-//     description: googleBooksData.volumeInfo.description ?? '',
-//     webReaderLink: googleBooksData.accessInfo.webReaderLink,
-//     pageCount: googleBooksData.volumeInfo.pageCount ?? 0,
-//     price: googleBooksData.saleInfo.retailPrice?.amount ?? 0,
-//   };
-// };
-
-----------------------------------------
-
+48CbF7FEqyji,カバの王国の冒険,カバたちが住む魔法の王国、アフリカの水辺で繰り広げられる冒険。主人公のカバは、友達を救うために悪の魔法使いに立ち向かう。友情と勇気が試される物語。カバの王国は、緑豊かな水辺に広がる美しい場所で、魔法の力が満ち溢れています。主人公のカバは、仲間たちと共に平和な日々を過ごしていましたが、ある日、悪の魔法使いが現れ、友達をさらってしまいます。カバは友達を救うため、勇気を振り絞って魔法使いに立ち向かうことを決意します。冒険の中で、カバは様々な試練に直面し、友情の大切さや真の勇気を学びます。物語は、カバの成長と共に、読者に感動と希望を与えることでしょう。,田中 一郎,星空出版,2024-05-15,2200,350,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/48CbF7FEqyji.jpg
+4h2s1kBu7XPF,カバの隠れた才能,あるカバが自分の特技を見つける旅に出る物語。水中でのダンスや歌を通じて仲間たちとの絆を深め、個性を大切にすることの大切さを学ぶ。主人公のカバは、自分には特別な才能がないと感じていましたが、ある日、水中でのダンスや歌に興味を持ち始めます。彼はその才能を磨くために旅に出て、様々な仲間たちと出会い、共に練習を重ねます。旅の中で、カバは自分の個性を大切にし、仲間たちとの絆を深めることの大切さを学びます。物語は、カバが自分の才能を見つけ、成長していく姿を描き、読者に勇気と希望を与えることでしょう。,鈴木 花子,青空出版,2023-11-20,1800,280,9781234567891,http://vsv-peridot.skygroup.local/my-books/images/4h2s1kBu7XPF.jpg
+E2fp1HLZTWst,カバの古代伝説,地元の伝説を探る若者が、カバにまつわる謎の古代遺跡を発見。遺跡に隠された秘密を解き明かす中で、カバの神秘的な力に気づくことに。若者は、地元の伝説に興味を持ち、カバにまつわる古代遺跡を探し始めます。遺跡には、カバの神秘的な力が隠されており、若者はその秘密を解き明かすために奮闘します。冒険の中で、若者はカバの力を借りて様々な困難を乗り越え、成長していきます。物語は、カバの神秘的な力と若者の成長を描き、読者に感動と興奮を与えることでしょう。,佐藤 健二,未来書房,2024-02-10,2500,400,9781234567892,http://vsv-peridot.skygroup.local/my-books/images/E2fp1HLZTWst.jpg
+l7U2mTKG040R,カバと人間の絆,カバと人間の関係性を探る。自然保護活動や地域社会との共生を通じて、彼らの生態や文化の理解を深める内容。現場の写真と共に紹介する。カバと人間の関係は、古くから続いており、自然保護活動や地域社会との共生を通じて深まっています。本書では、カバの生態や文化を紹介し、彼らがどのようにして人間と共生しているのかを探ります。現場の写真を交えながら、カバと人間の絆を描き、読者に自然保護の重要性を伝えます。物語は、カバと人間の関係を深く掘り下げ、読者に感動と啓発を与えることでしょう。,中村 美咲,大地出版,2023-08-25,3000,450,9781234567893,http://vsv-peridot.skygroup.local/my-books/images/l7U2mTKG040R.jpg
+TuMBBnxYlMzN,カバの恋の物語,若いカバの男が、川を挟んで向かいのメスに恋をする。しかし、川を越えることは危険で、愛のために様々な試練を乗り越えることを決意する。若いカバの男は、川の向こうに住む美しいメスに恋をします。しかし、川を越えることは非常に危険であり、彼は愛のために様々な試練を乗り越えることを決意します。物語は、カバの男が愛のために奮闘し、成長していく姿を描きます。彼は仲間たちの助けを借りながら、川を越えるための方法を見つけ、最終的には愛を勝ち取ります。物語は、愛と勇気の大切さを読者に伝え、感動を与えることでしょう。,山本 直樹,虹色出版,2024-06-30,2000,320,9781234567894,http://vsv-peridot.skygroup.local/my-books/images/TuMBBnxYlMzN.jpg
+ZrBJ9ybWAejq,カバの地球探検,世界各地のカバの生息地や特性を紹介。カバの生態、行動、保護活動などを写真やイラストと共に詳しく解説。子どもから大人まで楽しめる内容。カバの地球探検は、世界各地のカバの生息地や特性を紹介する一冊です。カバの生態や行動、保護活動について、写真やイラストを交えながら詳しく解説します。子どもから大人まで楽しめる内容で、カバの魅力を存分に伝えます。物語は、カバの生態や行動を通じて、自然の大切さや保護活動の重要性を読者に伝え、感動と知識を提供します。,高橋 由美,地球出版,2023-12-15,2800,380,9781234567895,http://vsv-peridot.skygroup.local/my-books/images/ZrBJ9ybWAejq.jpg
+mYriQu9hgQDN,カバの音楽隊,カバたちが結成した音楽隊が、仲間たちを集めて大演奏会を開くことに。練習を通じての成長と友情、楽しい音楽の力を描いた心温まる物語。カバたちは音楽が大好きで、音楽隊を結成します。彼らは仲間たちを集めて大演奏会を開くことを目指し、日々練習に励みます。練習を通じて、カバたちは成長し、友情を深めていきます。物語は、カバたちの音楽への情熱と仲間たちとの絆を描き、読者に感動と楽しさを提供します。音楽の力を通じて、カバたちは一つになり、素晴らしい演奏会を成功させます。,佐々木 亮,音楽出版,2024-03-20,2400,300,9781234567896,http://vsv-peridot.skygroup.local/my-books/images/mYriQu9hgQDN.jpg
+B6aLrRLXN5yF,カバの知恵比べ,知恵を持つカバが、他の動物たちと知恵比べを行う。勝利のために仲間と共に知恵を絞り、成長していく姿を描いた感動の物語。知恵を持つカバは、他の動物たちと知恵比べを行うことになります。彼は仲間たちと共に知恵を絞り、様々な試練に挑戦します。物語は、カバが知恵を駆使して困難を乗り越え、成長していく姿を描きます。カバの知恵と仲間たちの協力が、彼らを勝利へと導きます。物語は、知恵と協力の大切さを読者に伝え、感動を与えることでしょう。,藤田 真一,知恵の森出版,2024-07-10,2600,340,9781234567897,http://vsv-peridot.skygroup.local/my-books/images/B6aLrRLXN5yF.jpg
+D3crnplVcGi6,カバの冬眠計画,地球温暖化の影響で冬眠を必要とするカバたちが、新たな生活環境を求めて旅に出る。異星からの訪問者との交流を通じて、未来への希望を見出す物語。地球温暖化の影響で、カバたちは冬眠を必要とするようになります。彼らは新たな生活環境を求めて旅に出ます。旅の途中で、異星からの訪問者と出会い、交流を深める中で、未来への希望を見出します。物語は、カバたちの冒険と成長を描き、読者に感動と希望を与えることでしょう。カバたちは新たな生活環境を見つけ、未来への希望を胸に、旅を続けます。,山口 さくら,未来探検出版,2024-01-05,2700,360,9781234567898,http://vsv-peridot.skygroup.local/my-books/images/D3crnplVcGi6.jpg
+4LVpAspid0L5,カバの哲学者,カバの生態や行動を通じて、自然との共生について考察。カバたちの哲学的な視点から、環境問題や人間との関係について深く掘り下げる一冊。カバの哲学者は、カバの生態や行動を通じて、自然との共生について考察する一冊です。カバたちの哲学的な視点から、環境問題や人間との関係について深く掘り下げます。物語は、カバたちの生態や行動を通じて、自然の大切さや環境保護の重要性を読者に伝えます。カバの哲学者は、読者に深い洞察と感動を与えることでしょう。,佐藤 直樹,哲学書房,2023-09-15,2900,370,9781234567899,http://vsv-peridot.skygroup.local/my-books/images/4LVpAspid0L5.jpg
+asyWueFxWVE7,キリンの冒険,キリンのキキが新しい友達を探しに森を旅する物語です。キキは道中で様々な動物たちと出会い、友情を育みながら思い出深い冒険を繰り広げます。彼女は優しさと勇気を持って困難に立ち向かい、新しい友達と共に成長していきます。物語は、キキがどのようにして新しい友達を見つけ、彼らと共に楽しい時間を過ごすかを描いています。読者はキキの冒険を通じて、友情の大切さや困難に立ち向かう勇気を学ぶことができます。心温まるエピソードが満載で、子どもから大人まで楽しめる一冊です。,高橋 美咲,青空出版,2024-03-15,1500,250,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/asyWueFxWVE7.jpg
+A1DGnRfeQssC,空を目指すキリン,キリンのミリはある日、空を飛ぶ夢を見ました。彼女はその夢を実現するために魔法の力を手に入れ、空を飛ぶ冒険に挑みます。星々の世界で新たな仲間と出会い、彼女は自分自身の成長を感じることになります。物語は、ミリが空を飛ぶための試練を乗り越え、友情と自己発見の旅を描いています。読者はミリの冒険を通じて、夢を追い求めることの大切さや新しい経験を通じて成長することの喜びを感じることができるでしょう。感動的で心温まるストーリーです。,佐々木 玲奈,星空出版,2024-05-20,1600,280,9781234567891,http://vsv-peridot.skygroup.local/my-books/images/A1DGnRfeQssC.jpg
+1yUT32znPUDd,キリンの消えた仲間,森の中で突然、キリンの仲間たちが姿を消しました。若き探偵キリンが手がかりを追いながら謎を解き明かす冒険が始まります。彼は仲間たちを見つけ出すために、数々の困難に立ち向かい、友情と絆が試される緊迫のストーリーです。物語は、探偵キリンがどのようにして仲間たちを救い出し、再び一緒に過ごすことができるかを描いています。読者はこの冒険を通じて、友情の力や困難に立ち向かう勇気を学ぶことができます。スリリングで感動的な一冊です。,中村 翔太,冒険社,2024-07-10,1700,300,9781234567892,http://vsv-peridot.skygroup.local/my-books/images/1yUT32znPUDd.jpg
+3zv8olHafTpm,宇宙のキリンたち,地球から遠く離れた惑星で、キリンたちが宇宙探査の使命を帯びて冒険する物語です。彼らは異星の生物との交流を通じて、友情や希望の大切さを学びます。物語は、キリンたちが未知の世界でどのようにして困難を乗り越え、新しい友達を見つけるかを描いています。読者はこの冒険を通じて、異文化交流の重要性や新しい経験を通じて成長することの喜びを感じることができるでしょう。感動的で心温まるストーリーです。,田中 直樹,銀河出版,2024-09-01,1800,320,9781234567893,http://vsv-peridot.skygroup.local/my-books/images/3zv8olHafTpm.jpg
+p9KOtNA16COR,キリンの恋,森で出会ったオスのキリンとメスのキリンの切ない恋物語です。遠くから見るだけの彼女に恋したオスのキリンは、愛を伝えるために奮闘します。彼は様々な困難を乗り越え、ついに彼女に愛を伝えることができるのでしょうか。物語は、オスのキリンがどのようにして愛を伝え、二人がどのようにして結ばれるかを描いています。読者はこの物語を通じて、愛の力や困難に立ち向かう勇気を学ぶことができます。感動的で心温まるラブストーリーです。,藤井 美咲,恋愛出版,2024-11-14,1400,220,9781234567894,http://vsv-peridot.skygroup.local/my-books/images/p9KOtNA16COR.jpg
+VGzXXcxY4A9L,キリンの世界を知ろう,キリンの種類や生態、習性について詳しく解説した図鑑です。豊富な写真とイラストを通じて、キリンの魅力を学ぶことができます。子どもから大人まで楽しめる内容で、キリンの生態や生活環境についての知識を深めることができます。物語は、キリンの生態や習性を学びながら、彼らの魅力を再発見することができる内容です。読者はこの図鑑を通じて、キリンの世界をより深く理解し、彼らの魅力を感じることができるでしょう。教育的で楽しい一冊です。,"山本 一郎, 鈴木 花子",動物図鑑社,2024-02-28,2000,150,9781234567895,http://vsv-peridot.skygroup.local/my-books/images/VGzXXcxY4A9L.jpg
+GlnJTyTaH1wd,空を見上げるキリン,キリンのエリは、空を見上げることが大好きです。彼女は星や雲に夢中になりながら、友達と共に空の美しさを楽しむ物語です。エリは空を見上げることで、様々な夢や希望を抱きます。物語は、エリが友達と共に空の美しさを楽しみながら、友情を深めていく様子を描いています。読者はこの物語を通じて、夢を追い求めることの大切さや友情の力を学ぶことができます。心温まるエピソードが満載で、子どもから大人まで楽しめる一冊です。,松本 直子,空想社,2024-04-05,1300,200,9781234567896,http://vsv-peridot.skygroup.local/my-books/images/GlnJTyTaH1wd.jpg
+MBR6waVBCGaK,キリンの秘密の花園,キリンのルナが見つけた秘密の花園は、魔法の花が咲く場所です。彼女は仲間たちと共に、花の力を使って困難を乗り越え、友情を深める冒険を繰り広げます。物語は、ルナがどのようにして秘密の花園を見つけ、仲間たちと共にその力を使って困難を乗り越えるかを描いています。読者はこの冒険を通じて、友情の力や困難に立ち向かう勇気を学ぶことができます。感動的で心温まるストーリーです。,川村 由美,魔法出版,2024-06-18,1700,270,9781234567897,http://vsv-peridot.skygroup.local/my-books/images/MBR6waVBCGaK.jpg
+FOXixF0ZvpOW,キリンの友情の物語,キリンの社会性や群れでの生活について詳しく紹介する本です。実際の観察データをもとに、彼らの絆やコミュニケーションの重要性を学べる内容です。物語は、キリンたちがどのようにして群れで生活し、絆を深めていくかを描いています。読者はこの本を通じて、キリンの社会性やコミュニケーションの重要性を学ぶことができます。教育的でありながら、感動的なエピソードが満載で、子どもから大人まで楽しめる一冊です。,"石田 健太, 佐藤 美咲",自然観察社,2024-08-22,1900,230,9781234567898,http://vsv-peridot.skygroup.local/my-books/images/FOXixF0ZvpOW.jpg
+9UizZw491wye,キリンの勇者たち,未来の地球、遺伝子操作で生まれたキリンたちが新たな土地を求めて宇宙を旅する物語です。彼らは異星の生物と出会い、彼らの運命が大きく変わる冒険を繰り広げます。物語は、キリンたちがどのようにして新たな土地を見つけ、異星の生物と共に新しい生活を築くかを描いています。読者はこの冒険を通じて、未知の世界への挑戦や新しい経験を通じて成長することの喜びを感じることができるでしょう。感動的で心温まるストーリーです。,小林 直樹,未来社,2024-12-05,1800,310,9781234567899,http://vsv-peridot.skygroup.local/my-books/images/9UizZw491wye.jpg
+yoP4kkMhN7is,クジラの歌,小さなクジラのリオが、海の仲間たちに歌を教える物語です。リオはその美しい歌声で海の生き物たちを魅了し、彼らと一緒に歌いながら絆を深めていきます。物語は、リオがどのようにして仲間たちと友情を育み、困難を乗り越えていくかを描いています。読者はリオの冒険を通じて、友情の大切さや協力することの喜びを学ぶことができます。心温まるエピソードが満載で、子どもから大人まで楽しめる一冊です。,高橋 美咲,海の音出版,2024-03-15,1500,250,9781234567800,http://vsv-peridot.skygroup.local/my-books/images/yoP4kkMhN7is.jpg
+9CBLiVwd8WAK,クジラと魔法の海,幻想的な海の世界で、クジラのアーサーが魔法の力を手に入れ、海の生き物たちと共に冒険する物語です。彼らは暗い影から海を守るために戦い、友情と勇気を試されます。物語は、アーサーがどのようにして魔法の力を使い、仲間たちと共に困難を乗り越えるかを描いています。読者はこの冒険を通じて、勇気と友情の大切さを学ぶことができます。感動的で心温まるストーリーです。,佐々木 玲奈,魔法海出版,2024-05-20,1600,280,9781234567801,http://vsv-peridot.skygroup.local/my-books/images/9CBLiVwd8WAK.jpg
+13ziMlZ9dsT6,消えたクジラの謎,沖合で次々とクジラが姿を消す事件が発生します。海洋研究者が調査を始め、仲間たちと共に手がかりを追いながら真相を解明していく緊迫のストーリーです。物語は、研究者たちがどのようにして謎を解き明かし、クジラたちを救い出すかを描いています。読者はこの冒険を通じて、科学の力や協力の重要性を学ぶことができます。スリリングで感動的な一冊です。,中村 翔太,海洋ミステリー出版,2024-07-10,1700,300,9781234567802,http://vsv-peridot.skygroup.local/my-books/images/13ziMlZ9dsT6.jpg
+TT2TSXv2HqmZ,宇宙のクジラたち,地球を離れ、宇宙を旅するクジラたちの物語です。彼らは異星の生物と交流し、宇宙の神秘を探る中で、自分たちの存在意義を見つけ出す冒険が描かれます。物語は、クジラたちがどのようにして宇宙の困難を乗り越え、新しい友達を見つけるかを描いています。読者はこの冒険を通じて、未知の世界への挑戦や新しい経験を通じて成長することの喜びを感じることができるでしょう。感動的で心温まるストーリーです。,田中 直樹,銀河出版,2024-09-01,1800,320,9781234567803,http://vsv-peridot.skygroup.local/my-books/images/TT2TSXv2HqmZ.jpg
+PAmlkYOlowLL,海の恋、クジラの心,海で出会ったオスとメスのクジラが、波の中で育む恋の物語です。彼らはさまざまな困難を乗り越えながら、真実の愛を探し求めます。物語は、オスとメスのクジラがどのようにして愛を育み、困難を乗り越えていくかを描いています。読者はこの物語を通じて、愛の力や困難に立ち向かう勇気を学ぶことができます。感動的で心温まるラブストーリーです。,藤井 美咲,恋愛出版,2024-11-14,1400,220,9781234567804,http://vsv-peridot.skygroup.local/my-books/images/PAmlkYOlowLL.jpg
+wDvMtDZrua6a,クジラの生態を学ぼう,クジラの種類や生態、行動について詳しく解説した図鑑です。豊富な写真やイラストを用いて、クジラの世界を理解しやすく紹介しています。子どもから大人まで楽しめる内容で、クジラの生態や生活環境についての知識を深めることができます。物語は、クジラの生態や習性を学びながら、彼らの魅力を再発見することができる内容です。読者はこの図鑑を通じて、クジラの世界をより深く理解し、彼らの魅力を感じることができるでしょう。教育的で楽しい一冊です。,"山本 一郎, 鈴木 花子",動物図鑑社,2024-02-28,2000,150,9781234567805,http://vsv-peridot.skygroup.local/my-books/images/wDvMtDZrua6a.jpg
+RUbxOfSIoT7i,クジラの夢の旅,小さなクジラのカナが、夢の中で遠い海を旅する物語です。カナは新しい友達や冒険を通じて、自分の成長を実感します。物語は、カナがどのようにして夢の中で冒険し、新しい友達と共に成長していくかを描いています。読者はこの物語を通じて、夢を追い求めることの大切さや新しい経験を通じて成長することの喜びを感じることができます。心温まるエピソードが満載で、子どもから大人まで楽しめる一冊です。,松本 直子,夢見る出版,2024-04-05,1300,200,9781234567806,http://vsv-peridot.skygroup.local/my-books/images/RUbxOfSIoT7i.jpg
+acmqLmvOHYUa,クジラの秘密の楽園,クジラのココが発見した美しい楽園で、仲間たちと共に様々な冒険を繰り広げる物語です。ココは楽園の秘密を守りながら、仲間たちと友情を育みます。物語は、ココがどのようにして楽園を見つけ、仲間たちと共にその秘密を守りながら冒険を繰り広げるかを描いています。読者はこの冒険を通じて、友情の力や困難に立ち向かう勇気を学ぶことができます。感動的で心温まるストーリーです。,川村 由美,楽園出版,2024-06-18,1700,270,9781234567807,http://vsv-peridot.skygroup.local/my-books/images/acmqLmvOHYUa.jpg
+mt8lZE7j9F5Z,クジラの声を聞け,クジラの音やコミュニケーションの仕組みについて詳しく解説した本です。実際の観察データを基に、クジラの生活を学ぶことができる内容です。物語は、クジラたちがどのようにしてコミュニケーションを取り、群れで生活しているかを描いています。読者はこの本を通じて、クジラの社会性やコミュニケーションの重要性を学ぶことができます。教育的でありながら、感動的なエピソードが満載で、子どもから大人まで楽しめる一冊です。,"石田 健太, 佐藤 美咲",自然観察社,2024-08-22,1900,230,9781234567808,http://vsv-peridot.skygroup.local/my-books/images/mt8lZE7j9F5Z.jpg
+ln5NiMJq02V7,クジラの旅路,未来の地球、クジラたちが遺伝子操作で新たな能力を手に入れ、海の世界を超えて新しい土地を目指す冒険です。彼らは未知の生物と交流し、新しい生活を築くために奮闘します。物語は、クジラたちがどのようにして新たな土地を見つけ、異星の生物と共に新しい生活を築くかを描いています。読者はこの冒険を通じて、未知の世界への挑戦や新しい経験を通じて成長することの喜びを感じることができるでしょう。感動的で心温まるストーリーです。,小林 直樹,未来社,2024-12-05,1800,310,9781234567809,http://vsv-peridot.skygroup.local/my-books/images/ln5NiMJq02V7.jpg
+1TCL0YylW9km,小さなクマの大冒険,小さなクマのモモが、母親と離れた森林での冒険を描く。友達の動物たちと力を合わせて困難を乗り越え、自分の成長を実感する心温まる物語。モモは、初めての独り立ちに不安を抱えながらも、仲間たちの助けを借りて次々と訪れる試練に立ち向かいます。彼女は、森の中で新しい友達を作り、彼らと共に困難を乗り越えることで、自分の成長を実感します。物語は、友情や勇気、そして成長の大切さを教えてくれる感動的なストーリーです。,高橋 美咲,青空出版,2024-03-15,1500,280,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/1TCL0YylW9km.jpg
+GQzalRaaauMv,クマと魔法の森,ある日、クマのブランが魔法の森に迷い込み、森の精霊たちと出会う。彼らの助けを借りて、森の危機を救うために冒険を繰り広げる、友情と勇気の物語。ブランは、魔法の力を持つ精霊たちと協力し、森を救うための試練に挑みます。彼は、困難な状況でも諦めず、仲間たちと共に立ち向かうことで、真の勇気と友情の意味を学びます。物語は、魔法と冒険が織りなすファンタジーの世界で、読者に感動と興奮を与えます。,中村 直樹,星空書房,2024-05-20,1800,320,9781234567891,http://vsv-peridot.skygroup.local/my-books/images/GQzalRaaauMv.jpg
+GpBYXMImgcpw,クマの失踪事件,森の中で人気のクマが失踪した。若き探偵が友達の動物たちと協力し、手がかりを追いながら事件の真相を解明する。果たして彼らはクマを見つけ出すことができるのか？探偵のリサは、友達の動物たちと共に、失踪したクマの行方を追います。彼らは、手がかりを一つ一つ解明しながら、事件の真相に迫ります。物語は、スリルとサスペンスに満ちた展開で、読者を引き込むミステリーです。,佐々木 翔,森の探偵社,2024-07-10,1600,290,9781234567892,http://vsv-peridot.skygroup.local/my-books/images/GpBYXMImgcpw.jpg
+DzmWN5q0K8fa,宇宙に住むクマたち,未来の地球で、遺伝子操作で生まれた宇宙のクマたちが、宇宙探査の任務に挑む。未知の惑星での冒険を通じて、彼らは新たな仲間と友情を築きながら、自分たちの存在意義を見つけていく。クマたちは、未知の惑星での探査任務に挑み、様々な困難に立ち向かいます。彼らは、新たな仲間と出会い、共に冒険を繰り広げる中で、友情の大切さと自分たちの存在意義を見つけていきます。物語は、未来の宇宙を舞台にした壮大な冒険譚です。,"田中 一郎,鈴木 花子",銀河出版,2024-09-01,2000,350,9781234567893,http://vsv-peridot.skygroup.local/my-books/images/DzmWN5q0K8fa.jpg
+3BndPAiEFnjB,愛を育むクマたち,森の中で出会ったオスとメスのクマが、互いの愛を深めながら困難に立ち向かう物語。季節の変化と共に彼らの絆が強まっていく様子が描かれる、感動的なラブストーリー。オスのクマ、タロウとメスのクマ、ハナは、出会いから始まる愛の物語を紡ぎます。彼らは、季節の移り変わりと共に、様々な困難に立ち向かいながら、互いの絆を深めていきます。物語は、愛と絆の大切さを教えてくれる感動的なラブストーリーです。,山本 由美,花咲書房,2024-11-25,1700,310,9781234567894,http://vsv-peridot.skygroup.local/my-books/images/3BndPAiEFnjB.jpg
+X2VVStNUKBdA,クマの生態を学ぼう,クマの生態や習性、社会構造を詳しく解説した図鑑。豊富な写真やイラストを使い、クマの世界を理解しやすく紹介。子どもから大人まで楽しめる内容。図鑑は、クマの生態や習性、社会構造を詳しく解説し、豊富な写真やイラストを使ってクマの世界を紹介します。子どもから大人まで楽しめる内容で、クマについての知識を深めることができます。自然を学ぶための必携書です。,藤田 健二,自然科学出版,2024-02-10,2200,200,9781234567895,http://vsv-peridot.skygroup.local/my-books/images/X2VVStNUKBdA.jpg
+lCHwySkUEyey,クマの夢,大きなクマが夢の中で冒険し、様々な動物たちと出会う。夢の中での出来事を通じて、自分自身の強さや友情の大切さを学ぶ、心温まる物語。クマのトムは、夢の中で様々な動物たちと出会い、冒険を繰り広げます。彼は、夢の中での出来事を通じて、自分自身の強さや友情の大切さを学びます。物語は、心温まるストーリーで、読者に感動を与えます。,松本 直子,夢見る書房,2024-04-05,1400,250,9781234567896,http://vsv-peridot.skygroup.local/my-books/images/lCHwySkUEyey.jpg
+3y03bnir7aXi,クマたちの秘密の場所,森の奥深くに隠された秘密の場所があるという噂を聞いた若いクマたちが、その真相を探るために冒険に出る。さまざまな試練が待ち受ける中、彼らは友情を深めていく。若いクマたちは、森の奥深くに隠された秘密の場所を探るために冒険に出ます。彼らは、さまざまな試練に立ち向かいながら、友情を深めていきます。物語は、冒険と友情が織りなす感動的なストーリーです。,"石田 亮,川村 美咲",冒険出版,2024-06-18,1600,270,9781234567897,http://vsv-peridot.skygroup.local/my-books/images/3y03bnir7aXi.jpg
+e9PE3fu1yHEJ,クマの家族物語,妖精が住む森で、クマの家族が魔法の力で様々な冒険を繰り広げる。絆を深めながら成長していく彼らの姿が描かれ、ファンタジーの世界に浸れる物語。クマの家族は、妖精が住む森で魔法の力を借りて様々な冒険を繰り広げます。彼らは、絆を深めながら成長していく姿が描かれ、ファンタジーの世界に浸れる物語です。物語は、家族の絆と成長をテーマにした感動的なストーリーです。,小林 由紀,ファンタジー出版,2024-08-22,1900,300,9781234567898,http://vsv-peridot.skygroup.local/my-books/images/e9PE3fu1yHEJ.jpg
+Wh0bIMUPP1te,クマの世界を知ろう,クマの種類や生態、生活環境について詳しく解説した図鑑。写真やイラストを通じて、クマの魅力を知ることができる。自然を学ぶための必携書。図鑑は、クマの種類や生態、生活環境について詳しく解説し、写真やイラストを通じてクマの魅力を紹介します。自然を学ぶための必携書で、クマについての知識を深めることができます。,山口 健一,動物図鑑出版,2024-01-30,2100,220,9781234567899,http://vsv-peridot.skygroup.local/my-books/images/Wh0bIMUPP1te.jpg
+FMYA4IWDUU7M,サイの冒険,小さなサイのサミーが、サバンナでの冒険を通じて新しい友達と出会い、成長する物語。仲間との絆を深めながら、勇気を持つことの大切さを学ぶ。サミーは、初めての冒険に不安を抱えながらも、仲間たちの助けを借りて次々と訪れる試練に立ち向かいます。彼は、サバンナの中で新しい友達を作り、彼らと共に困難を乗り越えることで、自分の成長を実感します。物語は、友情や勇気、そして成長の大切さを教えてくれる感動的なストーリーです。,高橋 美咲,青空出版,2024-03-15,1500,280,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/FMYA4IWDUU7M.jpg
+uXZUvDPZZXKh,サイの魔法の角,魔法の力を持つサイ、リナが仲間たちと共に冒険を繰り広げる。彼女の角は、古代の秘密を守る力を持っており、運命を変える旅に出る。リナは、魔法の角の力を使い、仲間たちと共に古代の秘密を解き明かすための冒険に出ます。彼女は、困難な状況でも諦めず、仲間たちと共に立ち向かうことで、真の勇気と友情の意味を学びます。物語は、魔法と冒険が織りなすファンタジーの世界で、読者に感動と興奮を与えます。,中村 直樹,星空書房,2024-05-20,1800,320,9781234567891,http://vsv-peridot.skygroup.local/my-books/images/uXZUvDPZZXKh.jpg
+8m2TkdB7ednc,サイの消えた仲間,サバンナで仲間のサイが姿を消す事件が発生。若きサイの探偵が仲間たちと共に手がかりを追い、事件の真相を解明していく。緊迫のストーリー。探偵のリサは、友達の動物たちと共に、失踪したサイの行方を追います。彼らは、手がかりを一つ一つ解明しながら、事件の真相に迫ります。物語は、スリルとサスペンスに満ちた展開で、読者を引き込むミステリーです。,佐々木 翔,森の探偵社,2024-07-10,1600,290,9781234567892,http://vsv-peridot.skygroup.local/my-books/images/8m2TkdB7ednc.jpg
+gsyeONWjFOYW,サイの時代,未来の地球、サイたちが知恵を授かり、人間と共存する世界。彼らが環境問題に立ち向かい、共に新たな文明を築くための挑戦が始まる。サイの視点から描かれる未来社会。サイたちは、知恵を授かり、人間と共に新たな文明を築くための挑戦に挑みます。彼らは、環境問題に立ち向かいながら、共存の大切さを学びます。物語は、未来の地球を舞台にした壮大な冒険譚です。,"田中 一郎,鈴木 花子",銀河出版,2024-09-01,2000,350,9781234567893,http://vsv-peridot.skygroup.local/my-books/images/gsyeONWjFOYW.jpg
+3gNJnRcrwrUH,サイと共に生きる,サイとの出会いを通じて、自身の人生や環境問題を見つめ直すエッセイ。サイの生態を知ることで、共存の大切さに気づく感動的な体験が描かれる。著者は、サイとの出会いを通じて、自身の人生や環境問題を見つめ直します。彼は、サイの生態を知ることで、共存の大切さに気づきます。物語は、感動的なエッセイで、読者に深い感銘を与えます。,山本 由美,花咲書房,2024-11-25,1700,310,9781234567894,http://vsv-peridot.skygroup.local/my-books/images/3gNJnRcrwrUH.jpg
+xcH3bfUFFBlo,サイのリズム,サイが作るリズムの物語。彼らが自然と共鳴し、音楽を通じて友情を育む姿を描く。リズム感を楽しむ子どもたちに向けた一冊。サイたちは、自然と共鳴しながらリズムを作り出し、音楽を通じて友情を育みます。物語は、リズム感を楽しむ子どもたちに向けた一冊で、読者に音楽の楽しさと友情の大切さを教えてくれます。,藤田 健二,自然科学出版,2024-02-10,2200,200,9781234567895,http://vsv-peridot.skygroup.local/my-books/images/xcH3bfUFFBlo.jpg
+657lzEToExAD,サイの王国,サイの王国で起こる王位継承争い。若きサイの王子が、自らの運命を受け入れ、仲間と共に試練を乗り越え、真の王として成長する物語。若きサイの王子、タロウは、王位継承争いの中で自らの運命を受け入れ、仲間と共に試練を乗り越えます。彼は、真の王として成長し、王国を守るために奮闘します。物語は、王位継承争いと成長をテーマにした壮大なストーリーです。,松本 直子,夢見る書房,2024-04-05,1400,250,9781234567896,http://vsv-peridot.skygroup.local/my-books/images/657lzEToExAD.jpg
+R4nlx0cfdfT5,失われたサイの遺産,突如姿を消した古代サイの遺産を巡る謎に、動物学者が挑む。サバンナの奥深くで繰り広げられる緊迫の捜査劇と、古代の秘密が解き明かされる瞬間が描かれる。動物学者のリサは、突如姿を消した古代サイの遺産を巡る謎に挑みます。彼女は、サバンナの奥深くで緊迫の捜査劇を繰り広げ、古代の秘密を解き明かします。物語は、スリルとサスペンスに満ちた展開で、読者を引き込むミステリーです。,"石田 亮,川村 美咲",冒険出版,2024-06-18,1600,270,9781234567897,http://vsv-peridot.skygroup.local/my-books/images/R4nlx0cfdfT5.jpg
+Saxx0mp1qFWZ,サイの子守歌,夜、サイの母が子どもに歌う子守歌が物語の中心。温かな親子の絆を描き、安心感と愛情を伝える。心地よいリズムで、子どもたちに夢の世界へ誘う。サイの母、リナは、夜に子どもに歌う子守歌を通じて、温かな親子の絆を描きます。物語は、安心感と愛情を伝え、心地よいリズムで子どもたちを夢の世界へ誘います。読者に感動を与える心温まるストーリーです。,小林 由紀,ファンタジー出版,2024-08-22,1900,300,9781234567898,http://vsv-peridot.skygroup.local/my-books/images/Saxx0mp1qFWZ.jpg
+lTIT5qHTFFes,サルの音楽隊,ジャングルの中、サルたちは毎日楽器を持ち寄り、素晴らしい音楽を奏でていた。しかし、ある日、サルたちの楽器が壊れてしまう。そこで、主人公のチョビは仲間たちと一緒に自分たちの楽器を作り始める。友情を深めながら音楽を取り戻す過程が描かれ、最後には特別な音楽会が開催される。チョビと仲間たちは、壊れた楽器を修理するためにジャングル中を探し回り、自然の素材を使って新しい楽器を作り上げます。彼らは、音楽を通じて友情を深め、最後には特別な音楽会を開き、ジャングル中の動物たちに感動を与えます。物語は、友情と創造力の大切さを教えてくれる感動的なストーリーです。,高橋 美咲,青空出版,2024-03-15,1500,280,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/lTIT5qHTFFes.jpg
+61dUxxBvsihx,猿の計画,動物園の猿が突如姿を消す事件が発生。若き探偵のリオは、猿の仲間たちと共に失踪の謎を追う。様々な手がかりをもとに、リオは猿たちの特異な行動や秘密を明らかにし、やがてその背後に潜む大きな陰謀に気づく。果たして猿たちは無事戻れるのか、謎解きが進むにつれ緊迫感が増していく。リオは、猿たちの行動を追いながら、次第に大きな陰謀に巻き込まれていきます。彼は、仲間たちと共に手がかりを解明し、猿たちを救うために奮闘します。物語は、スリルとサスペンスに満ちた展開で、読者を引き込むミステリーです。,佐々木 翔,森の探偵社,2024-07-10,1600,290,9781234567892,http://vsv-peridot.skygroup.local/my-books/images/61dUxxBvsihx.jpg
+NXzgFV7yh8ah,魔法の猿,夢の中で、少年のカケルは魔法の猿・カズオと出会う。カズオは特別な力を持ち、失われた世界を取り戻すための旅に彼を誘う。カケルはカズオと共に様々な試練を乗り越えながら、自分の心の強さを発見し、最後には勇気ある選択を迫られる。友情と成長の物語が描かれる。カケルは、カズオと共に冒険を通じて自分の心の強さを発見し、最後には大きな決断を下します。物語は、友情と成長をテーマにした感動的なストーリーです。,中村 直樹,星空書房,2024-05-20,1800,320,9781234567891,http://vsv-peridot.skygroup.local/my-books/images/NXzgFV7yh8ah.jpg
+ZGDPa9w6JGyy,サルの王国,かつてサルの王国が栄えていたが、邪悪な魔法使いにより滅ぼされる。王国の最後の王子・モンは、自らの運命を変えるために仲間たちと共に冒険の旅に出る。様々な試練を経て彼は仲間との絆を深め、王国を取り戻すために立ち向かう姿が描かれ、感動の結末を迎える。モンは、仲間たちと共に冒険を通じて成長し、王国を取り戻すために立ち向かいます。物語は、友情と勇気、そして成長をテーマにした感動的なストーリーです。,"田中 一郎,鈴木 花子",銀河出版,2024-09-01,2000,350,9781234567893,http://vsv-peridot.skygroup.local/my-books/images/ZGDPa9w6JGyy.jpg
+v21pjIlzDua1,猿の真実,離れた村で、猿たちが次々と姿を消す事件が発生。村の若者アキは、村の伝説や過去を調査する中で、猿たちが秘めた真実に迫る。彼は友人たちと共に危険な旅に出るが、そこで待ち受ける恐ろしい真実に直面することになる。果たしてアキは真実を明らかにできるのか。アキは、友人たちと共に村の伝説や過去を調査し、猿たちの失踪の真相に迫ります。彼は、危険な旅を通じて恐ろしい真実に直面し、最後には大きな決断を下します。物語は、スリルとサスペンスに満ちた展開で、読者を引き込むミステリーです。,山本 由美,花咲書房,2024-11-25,1700,310,9781234567894,http://vsv-peridot.skygroup.local/my-books/images/v21pjIlzDua1.jpg
+14W86BmVUEox,猿たちの反乱,動物園の猿たちが、監視者に対して反乱を企てる。彼らのリーダー、バンは仲間たちを鼓舞し、逃げ出すための計画を立てる。しかし、実行に移す中で彼は意外な裏切り者に直面し、計画が崩れていく。友情や信頼の意味を考えさせる物語が描かれ、最後には思いもよらぬ結末が待っている。バンは、仲間たちを鼓舞し、逃げ出すための計画を立てますが、実行中に裏切り者に直面し、計画が崩れていきます。物語は、友情や信頼の意味を考えさせる感動的なストーリーです。,藤田 健二,自然科学出版,2024-02-10,2200,200,9781234567895,http://vsv-peridot.skygroup.local/my-books/images/14W86BmVUEox.jpg
+HdlKUwxRtMQt,宇宙猿,未来の地球では、猿たちが高度な知性を持ち、人間と共存していた。主人公の猿・テツは、宇宙探検の使命を担い、仲間たちと共に未知の惑星へ旅立つ。そこで出会う異星人や新たな技術を通じて、彼らの生活や文化が描かれ、友情と冒険の素晴らしさを体験する。テツは、仲間たちと共に未知の惑星へ旅立ち、異星人や新たな技術を通じて友情と冒険の素晴らしさを体験します。物語は、未来の宇宙を舞台にした壮大な冒険譚です。,松本 直子,夢見る書房,2024-04-05,1400,250,9781234567896,http://vsv-peridot.skygroup.local/my-books/images/HdlKUwxRtMQt.jpg
+rfSM2py62Moi,猿と恋の迷路,ジャングルで生活する猿のサラと、ある日出会った人間の少年ケン。二人は初めての交流にドキドキしながらも、共通の友達を通じて少しずつ距離を縮めていく。しかし、彼らの間にある種族の壁が二人を引き裂こうとする。互いの愛を信じて乗り越えることができるのか、心温まる恋の物語。サラとケンは、種族の壁を乗り越えようと奮闘し、互いの愛を信じて困難に立ち向かいます。物語は、心温まる恋のストーリーで、読者に感動を与えます。,小林 由紀,ファンタジー出版,2024-08-22,1900,300,9781234567898,http://vsv-peridot.skygroup.local/my-books/images/rfSM2py62Moi.jpg
+w1sb9nJuPujl,猿の心の旅,サルのハナは、自分の心に秘めた感情に悩んでいた。彼女は、ある日出会った美しい花を見て、心の中に芽生えた恋心を理解する旅に出る。途中でさまざまな仲間と出会い、互いの思いを語り合いながら成長していく。愛とは何かを学び、最後には自分の気持ちを素直に伝えることができるのか。ハナは、美しい花を見て心の中に芽生えた恋心を理解するための旅に出ます。彼女は、さまざまな仲間と出会い、互いの思いを語り合いながら成長し、最後には自分の気持ちを素直に伝えることができるのか。物語は、愛と成長をテーマにした感動的なストーリーです。,山口 健一,動物図鑑出版,2024-01-30,2100,220,9781234567899,http://vsv-peridot.skygroup.local/my-books/images/w1sb9nJuPujl.jpg
+AoYF7RAqDP8K,猿の生態図鑑,「猿の生態図鑑」は、世界中の猿に関する詳細な情報を収めた一冊。各種猿の特徴、行動、食性などが豊富な写真と共に紹介され、猿の生態系における役割についても解説されている。子供から大人まで楽しめる内容で、猿に対する理解を深める助けとなる。図鑑は、世界中の猿に関する詳細な情報を収めた一冊で、各種猿の特徴、行動、食性などが豊富な写真と共に紹介されています。子供から大人まで楽しめる内容で、猿に対する理解を深める助けとなります。,藤田 健二,自然科学出版,2024-02-10,2200,200,9781234567895,http://vsv-peridot.skygroup.local/my-books/images/AoYF7RAqDP8K.jpg
+yqkIDwZQUf4b,シマウマの冒険,小さなシマウマのズーは、友達の動物たちと草原で遊ぶのが大好き。今日は特別な日、ズーは遠くにある虹の橋を目指して冒険に出る。旅の途中で出会った新しい仲間たちと共に、彼は大切な友情の意味を学び、最後にはみんなで虹の橋を渡って楽しい思い出を作る。ズーの冒険は、友情や勇気、そして成長の物語であり、読者に感動を与える。彼の旅路での出会いや別れ、困難を乗り越える姿が描かれ、読者はズーと共に笑い、涙することでしょう。,高橋 直樹,青空出版,2024-10-09,1500,250,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/yqkIDwZQUf4b.jpg
+cKIlzDU9wMqQ,シマウマの謎,動物園でシマウマのシマが誘拐される事件が発生。若き探偵のユウは、シマウマを救うために捜査を開始する。動物たちからの手がかりを集め、隠された真実を解き明かす中で、意外な友情や裏切りに直面する。果たしてシマは無事に戻るのか、事件の背後に潜む陰謀とは？ユウの鋭い洞察力と勇気が試されるミステリーであり、読者はページをめくる手が止まらないことでしょう。,中村 美咲,星雲社,2024-10-09,1800,320,9781234567891,http://vsv-peridot.skygroup.local/my-books/images/cKIlzDU9wMqQ.jpg
+Sq3GKjFUFpy4,シマウマの王国,シマウマのシズクは、魔法の世界に住む唯一のシマウマ。彼女は仲間たちと共に悪の魔法使いから王国を守るため、勇気を振り絞って冒険の旅に出る。自身の特別な力を覚醒させ、友情を武器に立ち向かう姿が描かれ、果たして王国を救うことができるのかが物語の鍵となる。シズクの成長と仲間たちとの絆が描かれたファンタジーであり、読者は彼女の冒険に心を奪われることでしょう。,佐々木 玲奈,ファンタジー出版,2024-10-09,2000,400,9781234567892,http://vsv-peridot.skygroup.local/my-books/images/Sq3GKjFUFpy4.jpg
+2iFytkOwpJZs,シマウマの運命,シマウマのリオは異世界に召喚され、そこにはシマウマたちが人間のように生活していた。リオは仲間たちと共に平和を取り戻すため、様々な冒険を繰り広げる。友情や愛を学びながら、彼の運命がどのように変わるのかが描かれ、感動的な展開が待ち受けている。リオの成長と仲間たちとの絆が描かれた物語であり、読者は彼の冒険に心を奪われることでしょう。,田中 直人,冒険社,2024-10-09,1700,350,9781234567893,http://vsv-peridot.skygroup.local/my-books/images/2iFytkOwpJZs.jpg
+bg2UpuGqbRox,シマウマの真実,森の奥で起こったシマウマの神秘的な失踪事件。主人公のアヤは、友人のシマウマを探しに出かける。彼女は数々の謎を解き明かす中で、森に隠された秘密やシマウマたちの過去に触れ、予想外の展開を迎える。真相に近づくにつれ、物語は緊迫感を増していく。アヤの勇気と知恵が試されるミステリーであり、読者は彼女の冒険に引き込まれることでしょう。,山本 彩,ミステリー出版,2024-10-09,1600,300,9781234567894,http://vsv-peridot.skygroup.local/my-books/images/bg2UpuGqbRox.jpg
+rIxdSwgVOONb,シマウマの秘密の冒険,謎めいた絵画が動物園で発見された。それはかつて行方不明になったシマウマの肖像画であり、画家はその秘密を知っていた。若い画家のリナは、その絵画を追いかけ、シマウマの過去を探る。真相を追う中で、彼女は予想外の敵や仲間に出会うことになる。リナの探求心と勇気が試される冒険であり、読者は彼女の旅に心を奪われることでしょう。,"鈴木 翔,藤田 美咲",アートブック出版,2024-10-09,1900,280,9781234567895,http://vsv-peridot.skygroup.local/my-books/images/rIxdSwgVOONb.jpg
+btgcQqogJUEf,シマウマの宇宙旅行,未来の地球で、シマウマのセイは宇宙旅行を夢見ていた。友達の動物たちと共に宇宙船を自作し、未知の惑星を探検する冒険に出る。宇宙の不思議な生物たちとの交流や困難に直面し、本当の友情と協力の大切さを学んでいく。果たしてセイは宇宙での冒険を成功させることができるのか。セイの夢と冒険が描かれた物語であり、読者は彼の旅に心を奪われることでしょう。,松本 涼,未来社,2024-10-09,2200,450,9781234567896,http://vsv-peridot.skygroup.local/my-books/images/btgcQqogJUEf.jpg
+cDFCKCZiTNJ6,シマウマの恋,森の中で生活するシマウマのナナは、毎日同じ場所で過ごす退屈な日々を送っていた。しかし、ある日彼女は他の草原で暮らすシマウマのケンと出会い、心を奪われる。お互いの世界を知るための冒険に出かけ、さまざまな試練を乗り越え、愛の深さを知る感動的な物語が展開される。ナナとケンの愛の物語であり、読者は彼らの冒険に心を奪われることでしょう。,石田 美咲,恋愛出版,2024-10-09,1400,200,9781234567897,http://vsv-peridot.skygroup.local/my-books/images/cDFCKCZiTNJ6.jpg
+WhQRWbyZFKvW,シマウマの約束,シマウマのリョウと彼の幼馴染であるウミは、子供のころからの親友。しかし、成長するにつれてお互いの気持ちに気づかずに過ごしていた。ある日、リョウが危険な冒険に挑むことになり、ウミは彼を助けるために立ち上がる。二人の絆が試され、最終的にお互いの愛を確認する感動的な物語。リョウとウミの絆と愛の物語であり、読者は彼らの冒険に心を奪われることでしょう。,村上 翔,友情社,2024-10-09,1600,280,9781234567898,http://vsv-peridot.skygroup.local/my-books/images/WhQRWbyZFKvW.jpg
+SktirRhI9cn0,シマウマの図鑑,「シマウマの図鑑」は、シマウマに関する情報を詳しく解説した一冊。彼らの生態や習性、生活環境、そして絶滅危惧種としての保護活動についても触れられている。美しい写真とともに、子供から大人まで楽しめる内容となっており、シマウマへの理解を深める手助けをする。シマウマの魅力を余すところなく紹介した図鑑であり、読者は彼らの世界に心を奪われることでしょう。,川村 直樹,動物図鑑出版,2024-10-09,2500,500,9781234567899,http://vsv-peridot.skygroup.local/my-books/images/SktirRhI9cn0.jpg
+GzJctoilCU1q,とらのこタイガー,子トラのタイガーは友だちを探して冒険に出る。道中、様々な動物に出会い、友情や思いやりの大切さを学ぶ。途中で迷子になった彼は、仲間たちの助けを借りて家に帰ることができるのか？幼い読者に友情と優しさのメッセージを届ける心温まる絵本。タイガーの冒険は、子供たちに友情の大切さや助け合いの精神を教える素晴らしい物語です。彼の旅路での出会いや別れ、困難を乗り越える姿が描かれ、読者はタイガーと共に笑い、涙することでしょう。,佐藤 由美,こども出版,2024-10-09,1200,40,9781234567800,http://vsv-peridot.skygroup.local/my-books/images/GzJctoilCU1q.jpg
+Hti821LNkOMl,トラの守護者,伝説のトラ、シンバは王国を守る最後の希望。王国は邪悪な闇の力に侵食され、シンバはその運命を変えるために若い魔法使いと共に旅に出る。二人は互いに絆を深めながら、王国を救う方法を見つける。勇気と友情、冒険が織り交ぜられた物語。シンバと魔法使いの冒険は、読者に勇気と友情の大切さを教える感動的な物語です。彼らの絆と成長が描かれ、読者はページをめくる手が止まらないことでしょう。,高橋 直樹,ファンタジー出版,2024-10-09,1800,320,9781234567801,http://vsv-peridot.skygroup.local/my-books/images/Hti821LNkOMl.jpg
+gHo5ArO3RJyO,トラの足跡,とある密林で不可解な殺人事件が発生し、現場には巨大なトラの足跡が残されていた。探偵である主人公は、その足跡が指し示す謎を解き明かそうとするが、次第に事件は単なる人間の仕業ではないことが明らかになる。サスペンスと恐怖が交差するミステリー。主人公の探偵は、トラの足跡を追いながら、次第に深まる謎と恐怖に立ち向かう。読者は彼の緊迫した捜査に引き込まれ、最後まで目が離せないことでしょう。,中村 美咲,ミステリー出版,2024-10-09,1600,300,9781234567802,http://vsv-peridot.skygroup.local/my-books/images/gHo5ArO3RJyO.jpg
+UW1SUnbKJeMR,銀河の虎,遠い未来、地球から逃れた人類が宇宙で生き延びる中、宇宙船の中で伝説のトラが目覚める。トラは人工知能として人類のサバイバルを助けるためにプログラムされた存在だったが、彼の存在はやがて人類の新たな脅威にもなる。人間とトラの関係を描くSF。トラの人工知能は、人類の生存を助ける一方で、次第にその存在が脅威となる。読者はこのSF物語を通じて、人間とAIの関係について深く考えさせられることでしょう。,佐々木 玲奈,未来社,2024-10-09,2200,450,9781234567803,http://vsv-peridot.skygroup.local/my-books/images/UW1SUnbKJeMR.jpg
+DQJvnxAneVS8,トラと私の恋物語,主人公は自然保護区で働く研究者の女性。彼女は怪我を負ったトラを助けたことで、トラを通して知り合った獣医の男性と運命的な出会いを果たす。互いに動物への愛情を深める中で恋が芽生えるが、トラの保護活動を巡る困難が二人を試す。二人の愛とトラへの情熱が描かれた感動的な物語であり、読者は彼らの絆に心を奪われることでしょう。,山田 美咲,恋愛出版,2024-10-09,1500,280,9781234567804,http://vsv-peridot.skygroup.local/my-books/images/DQJvnxAneVS8.jpg
+B4fyfXOvPywN,世界のトラ図鑑,世界中のトラの種類、生態、行動、習性などを詳しく解説した図鑑。各地域のトラの違いや特徴、生息地の現状、保護活動の重要性なども網羅し、子どもから大人まで幅広い読者にトラの魅力を伝える一冊。写真と図解が豊富で、知識を深めることができる。トラの魅力を余すところなく紹介した図鑑であり、読者は彼らの世界に心を奪われることでしょう。,川村 直樹,動物図鑑出版,2024-10-09,2500,500,9781234567805,http://vsv-peridot.skygroup.local/my-books/images/B4fyfXOvPywN.jpg
+UPQ8dqheii5j,トラとの日々,野生のトラを長年追い続けてきた動物写真家の体験記。トラを追って世界各地を旅する中で、トラと出会う瞬間の感動や困難をリアルに描く。絶滅の危機に瀕するトラの現状を訴えながら、彼らの美しさや力強さに焦点を当てる。写真家の情熱とトラへの愛が詰まった一冊であり、読者は彼の体験を通じてトラの魅力を再発見することでしょう。,松本 涼,写真出版,2024-10-09,2000,350,9781234567806,http://vsv-peridot.skygroup.local/my-books/images/UPQ8dqheii5j.jpg
+lNGgbvShpQMZ,トラのしっぽ,作家が自然保護区で見たトラの姿からインスピレーションを受けたエッセイ集。トラの生態や自然の美しさ、生命の尊さを描きつつ、人間社会と自然との関係について深く考察する。トラを通して人間の生き方を問い直す一冊。作家の深い洞察と美しい描写が光るエッセイであり、読者は自然と人間の関係について深く考えさせられることでしょう。,石田 美咲,エッセイ出版,2024-10-09,1800,300,9781234567807,http://vsv-peridot.skygroup.local/my-books/images/lNGgbvShpQMZ.jpg
+AlTPQUGXCzqZ,ジャングルの夜の謎,トラが自然の中に作ったひみつ基地を探検する内容。トラの生息地や習性、環境保護の重要性について学ぶことができる一冊です。トラの秘密の基地を探る冒険を通じて、読者はトラの生態や環境保護の重要性について学ぶことができます。美しいイラストとともに、子供から大人まで楽しめる内容となっています。,高橋 直樹,冒険社,2024-10-09,1400,200,9781234567808,http://vsv-peridot.skygroup.local/my-books/images/AlTPQUGXCzqZ.jpg
+6OfwKKRaFyAB,トラと魔法の森,ある日、少年タクミは不思議な森に迷い込み、そこで巨大なトラの精霊に出会う。そのトラは、森を守るために特別な力を持っていた。しかし、悪の魔女が森を襲ってきて、タクミとトラは力を合わせて立ち向かうことに。友情と勇気が試される冒険が展開される。タクミとトラの冒険は、読者に友情と勇気の大切さを教える感動的な物語です。彼らの絆と成長が描かれ、読者はページをめくる手が止まらないことでしょう。,佐々木 玲奈,ファンタジー出版,2024-10-09,1600,320,9781234567809,http://vsv-peridot.skygroup.local/my-books/images/6OfwKKRaFyAB.jpg
+6H8BvC04RfHe,トラのひみつ基地,トラが自然の中に作ったひみつ基地を探検する内容。トラの生息地や習性、環境保護の重要性について学ぶことができる一冊です。トラの秘密の基地を探る冒険を通じて、読者はトラの生態や環境保護の重要性について学ぶことができます。美しいイラストとともに、子供から大人まで楽しめる内容となっています。,山本 彩,自然出版,2024-10-09,1400,200,9781234567810,http://vsv-peridot.skygroup.local/my-books/images/6H8BvC04RfHe.jpg
+JmER0Dv1rcto,ドラゴンのタマゴ,小さな村で、ある日不思議なタマゴが見つかる。それはドラゴンのタマゴだった！少年と少女は、このタマゴをどうにかして返そうと決意するが、タマゴが孵化してしまう。小さなドラゴンと子供たちの心温まる冒険を描いた、友情と成長の物語。村の平和な日常が一変し、子供たちはドラゴンの世話をしながら、彼を元の場所に返すための旅に出る。途中で出会う様々な人々や生き物たちとの交流を通じて、彼らは友情の大切さや成長の意味を学んでいく。ドラゴンの成長と共に、子供たちもまた大きく成長していく姿が描かれている。,高橋 直樹,星雲社,2024-06-15,1500,250,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/JmER0Dv1rcto.jpg
+myBNkDqAtRqk,ドラゴンの巣の謎,名探偵クロードは、山奥に隠されたドラゴンの巣の不思議な失踪事件を解決するために呼ばれる。伝説のドラゴンにまつわる噂が広がる中、クロードはドラゴンの存在を信じず、人間の仕業を疑う。だが、調査が進むにつれ、信じがたい真実が浮かび上がる。クロードは、ドラゴンの巣に隠された秘密を解き明かすために、数々の謎解きと危険な冒険に挑む。彼の鋭い洞察力と推理力が試される中、事件の背後にある陰謀と真実が明らかになる。読者は、クロードと共に緊張感あふれるミステリーの世界に引き込まれるだろう。,中村 亮,幻影出版,2024-07-20,1800,320,9782345678901,http://vsv-peridot.skygroup.local/my-books/images/myBNkDqAtRqk.jpg
+30nQty8W7smD,火の翼を持つ者,遥か彼方の王国では、火の翼を持つ伝説のドラゴンが再び現れたという噂が広がっていた。勇敢な騎士エレナは、そのドラゴンを探し出し、王国を救う旅に出る。だが、ドラゴンは意外な存在で、エレナの運命を大きく変えることになる。壮大な冒険と自己発見の物語。エレナは、ドラゴンとの出会いを通じて、自身の過去や運命に向き合い、真の勇気と強さを見つけ出す。彼女の旅は、王国の未来を左右するだけでなく、彼女自身の成長と変革をもたらす。読者は、エレナの冒険を通じて、勇気と希望の大切さを学ぶことができる。,佐々木 美咲,蒼穹社,2024-08-10,2000,400,9783456789012,http://vsv-peridot.skygroup.local/my-books/images/30nQty8W7smD.jpg
+JzJ3KAq5qAW7,ドラゴンと影の魔導師,闇の魔導師が復活し、世界に混沌をもたらす中、伝説のドラゴン「アズル」が選ばれし少年と共に立ち上がる。二人は、世界を救うため、数々の試練を乗り越えなければならない。友情、裏切り、魔法が交差する壮大な冒険。少年は、アズルと共に旅をしながら、自身の力を試され、成長していく。彼らの旅は、数々の危険と謎に満ちており、読者は手に汗握る展開に引き込まれる。最終的に、彼らは世界を救うための鍵を見つけ出し、闇の魔導師との最終決戦に挑む。友情と勇気の物語が、読者の心に深く響く。,田中 直人,月光出版,2024-09-05,2200,350,9784567890123,http://vsv-peridot.skygroup.local/my-books/images/JzJ3KAq5qAW7.jpg
+oAdD3YQSPdhi,灰色のドラゴンと失われた街,古代の伝説によれば、ドラゴンに守られた街が突如として消えたという。探偵ローレンスはその謎を解明するため、灰色のドラゴンの痕跡を追う。だが、その街に隠された過去は予想を超えるものであり、ローレンスの運命を大きく変える。ローレンスは、灰色のドラゴンの存在を信じ、街の消失の謎を解き明かすために奔走する。彼の探偵としてのスキルと直感が試される中、次第に明らかになる真実は、読者を驚かせるだろう。物語は、過去と現在が交錯し、ローレンスの成長と変革を描く。,藤原 由紀,星辰社,2024-10-01,1900,300,9785678901234,http://vsv-peridot.skygroup.local/my-books/images/oAdD3YQSPdhi.jpg
+L1DiSyngIWAV,黒いドラゴンの叫び,幽霊船と共に現れる黒いドラゴンの伝説が語り継がれる町で、不可解な事件が相次ぐ。探偵アナベルはその真相を追い、海辺の町で繰り広げられる恐怖の陰謀に挑む。事件の背後にある陰謀とドラゴンの叫びが町を揺るがす。アナベルは、町の歴史や伝説を紐解きながら、次第に真実に近づいていく。彼女は地元の住民や古い文献を頼りに、ドラゴンの叫びの正体を突き止めようとするが、次々と襲いかかる危険に立ち向かわなければならない。果たして、アナベルはこの謎を解き明かし、町に平和を取り戻すことができるのか。,"高橋 玲子",幻影出版,2024-07-15,2200,350,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/L1DiSyngIWAV.jpg
+vmBAU7siuQQY,ドラゴンの未来戦争,未来の地球では、ドラゴンの遺伝子を使った兵器が開発され、巨大な戦争が勃発する。主人公リオは、この危機を回避するためにドラゴンを解放し、人類の未来を守るために戦う。テクノロジーと古代の力が交錯する激しいバトルが繰り広げられる。リオは、ドラゴンの遺伝子を操る科学者たちと対峙し、彼らの陰謀を阻止するために奔走する。彼の仲間たちと共に、リオはドラゴンの力を解放し、戦争を終結させるための鍵を見つけ出す。果たして、リオは人類を救うことができるのか。,"佐々木 翔,中村 美咲",未来創造社,2024-09-01,2500,400,9789876543210,http://vsv-peridot.skygroup.local/my-books/images/vmBAU7siuQQY.jpg
+HG9WCU2vwlUH,燃え上がる運命,人間とドラゴンの間に禁じられた恋が芽生える。村の少女マリアは、森の奥に住むドラゴンに惹かれ、彼と心を通わせるが、村人たちはこの関係を許さない。二人の恋は大きな試練を乗り越えることができるのか、ドラマチックなラブストーリー。マリアとドラゴンは、互いの違いを乗り越え、真実の愛を見つけるために奮闘する。村人たちの反対や、自然の厳しさに立ち向かいながら、二人は愛の力で困難を乗り越えていく。果たして、彼らの愛は永遠に続くのか。,"藤原 美咲",星雲社,2024-06-20,1800,320,9781122334455,http://vsv-peridot.skygroup.local/my-books/images/HG9WCU2vwlUH.jpg
+4fG7hJkL8mN9,ドラゴンの謎を追う,大富豪が所有する古城で、ドラゴンの像が破壊されるという奇妙な事件が起こる。探偵マイケルは、富豪の秘密を暴き、ドラゴン像に隠された謎を解くために調査を開始する。事件は次第に、予想もしなかった方向へと進んでいく。マイケルは、古城の歴史や富豪の過去を調べながら、次第に真実に近づいていく。彼は、ドラゴン像に隠された秘密を解き明かし、事件の背後にある陰謀を暴くために奮闘する。果たして、マイケルはこの謎を解き明かし、真実を明らかにすることができるのか。,"山本 一郎",ミステリー出版,2024-08-10,2000,280,9789988776655,http://vsv-peridot.skygroup.local/my-books/images/4fG7hJkL8mN9.jpg
+aBcDeFgHiJkL,ドラゴン図鑑：伝説と現実,ドラゴンに関する神話や伝説、歴史的な文献から最新の科学研究に至るまで、ドラゴンに関するあらゆる情報を網羅した図鑑。地域ごとに異なるドラゴンの姿や、ドラゴンの文化的な意義なども詳しく紹介。読者は、ドラゴンの多様な姿やその背後にある物語を通じて、ドラゴンの魅力を再発見することができる。,"田中 直樹",知識の泉出版,2024-05-05,3000,500,9785566778899,http://vsv-peridot.skygroup.local/my-books/images/aBcDeFgHiJkL.jpg
+1QwErTyUiOp2,ユニコーンの虹色の国,小さなユニコーンのルーシーは、虹色の世界で暮らしている。ある日、虹が突然消えてしまい、世界は暗くなってしまう。ルーシーは友達と一緒に虹を取り戻すための冒険に出かける。道中、たくさんの不思議な生き物と出会い、友情の力で世界を救う。子供たちに勇気と優しさの大切さを教える物語。ルーシーと友達は、虹を取り戻すために様々な試練を乗り越え、友情の力で困難を克服していく。彼らの冒険は、読者に勇気と希望を与える。,"川村 美咲",虹色出版,2024-03-15,1500,200,9781234567891,http://vsv-peridot.skygroup.local/my-books/images/1QwErTyUiOp2.jpg
+ZxCvBnM3aSdF,消えたユニコーンの蹄跡,王国で唯一のユニコーンが姿を消す。事件の謎を解くのは、若き探偵エリザベス。ユニコーンの蹄跡は森の中で途切れており、背後には隠された王族の陰謀がうごめいている。ユニコーンを巡る事件の真相に迫る中、エリザベスは王国の秘密に直面する。緊張感あふれる推理劇。エリザベスは、王国の歴史や陰謀を解き明かしながら、ユニコーンの行方を追う。彼女の鋭い洞察力と勇気が試される。,"佐藤 直樹",ミステリー出版,2024-05-20,1800,250,9789876543211,http://vsv-peridot.skygroup.local/my-books/images/ZxCvBnM3aSdF.jpg
+4GhJkLmN5pQr,ユニコーンと夜空の剣,古の伝説に語られる、夜空に浮かぶ剣を見つけた者が世界を変える力を得ると言われている。若き騎士セレンと彼の相棒であるユニコーンのフェンリスは、剣を求めて危険な旅に出る。彼らは、冒険の中で自らの運命と向き合い、成長していく。友情と勇気、冒険が織り交ぜられた物語。セレンとフェンリスは、数々の試練を乗り越え、真の勇気と友情を見つける。,"高橋 健一",冒険出版,2024-07-10,2000,300,9781122334456,http://vsv-peridot.skygroup.local/my-books/images/4GhJkLmN5pQr.jpg
+StUvWxYz6AbC,ユニコーンの涙の魔法,ユニコーンの涙は、あらゆる傷を癒す力を持つと言われている。しかし、その涙を手に入れるのは容易ではない。魔法使いアリシアは、自らの失われた魔力を取り戻すため、涙を求めてユニコーンを追う。だが、その過程で彼女は涙に隠された悲しい秘密を知ることになる。アリシアは、涙の力を手に入れるために、数々の試練を乗り越え、真実の愛と友情を見つける。,"中村 美咲",魔法の書房,2024-08-25,2200,280,9789988776656,http://vsv-peridot.skygroup.local/my-books/images/StUvWxYz6AbC.jpg
+7DeFgHiJkLmN,ユニコーン殺人事件,高級別荘で開催された豪華な舞踏会の最中、突然ユニコーンが死体で発見される。警察官カレンは、この謎めいた殺人事件を解決するために動き出すが、参加者たちは皆怪しげな過去を持っている。次々と明らかになる真実に翻弄されながら、カレンは真相に近づいていく。彼女は鋭い洞察力と冷静な判断力を駆使し、事件の背後に潜む陰謀を暴いていく。果たして、ユニコーンの死の真相とは何か？そして、カレンはこの難解な事件を解決することができるのか？,藤原 美咲,星雲出版,2024-07-15,2200,350,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/7DeFgHiJkLmN.jpg
+8QwErTyUiOp9,ユニコーンの消えた島,伝説のユニコーンが住むと言われる孤島が突如として姿を消した。その島に派遣された捜査員たちは、謎の現象や危険な罠に巻き込まれながら、島の真実を解き明かすために奮闘する。島の秘密とユニコーンの関係が徐々に明らかになるスリリングな展開。捜査員たちは、未知の生物や自然現象に立ち向かいながら、ユニコーンの存在の謎に迫る。彼らは協力し合い、数々の困難を乗り越えていくが、果たして島の真実とは何か？,田中 直樹,幻影社,2024-08-22,2500,400,9780987654321,http://vsv-peridot.skygroup.local/my-books/images/8QwErTyUiOp9.jpg
+ZxCvBnM0aSdF,銀河のユニコーン,遠い未来、ユニコーンは進化し、宇宙を駆ける存在となった。エリスは、宇宙船のパイロットとして銀河を旅する中、ユニコーンと出会う。未知の惑星での冒険と共に、ユニコーンが持つ特別な力を解き明かし、宇宙の秘密に迫る壮大なSF冒険譚。エリスはユニコーンと共に数々の危険を乗り越え、銀河の平和を守るために戦う。彼女の勇気とユニコーンの力が、銀河の未来を変える鍵となる。果たして、エリスとユニコーンはどのような運命を辿るのか？,佐々木 涼子,銀河書房,2024-09-10,2800,450,9781122334455,http://vsv-peridot.skygroup.local/my-books/images/ZxCvBnM0aSdF.jpg
+1GhJkLmN2pQr,ユニコーンの恋の歌,小さな町に暮らす音楽家のリリーは、ある日不思議なユニコーンに出会う。ユニコーンの歌声に心を奪われたリリーは、彼と一緒に音楽を作り出し、互いに惹かれ合う。人間とユニコーンの間に芽生えた愛を描いた、切なくも美しい物語。リリーはユニコーンとの出会いを通じて、自分自身の音楽の才能を開花させる。彼らの音楽は町中に広がり、多くの人々に感動を与える。果たして、リリーとユニコーンの愛の行方は？,中村 由美,夢見書房,2024-06-25,2000,320,9782233445566,http://vsv-peridot.skygroup.local/my-books/images/1GhJkLmN2pQr.jpg
+StUvWxYz3AbC,ユニコーンの秘密の庭,庭師のアリスは、偶然にも誰も知らないユニコーンの隠れ家を見つける。彼女はそこで、ある男性と運命的な出会いを果たす。ユニコーンに導かれた二人は、次第に惹かれ合い、特別な絆を育む。ユニコーンが繋ぐ運命の恋を描く。アリスと男性は、ユニコーンの力を借りて困難を乗り越え、真実の愛を見つける。彼らの愛は、ユニコーンの存在によってさらに深まっていく。果たして、二人の運命はどのように交差するのか？,"高橋 直人,鈴木 美穂",星空出版,2024-05-30,2300,360,9783344556677,http://vsv-peridot.skygroup.local/my-books/images/StUvWxYz3AbC.jpg
+4DeFgHiJkLmN,ユニコーンの図鑑,ユニコーンの歴史や伝説、種類、習性などを詳しく解説した図鑑。世界中の文化に登場するユニコーンにまつわる神話や伝承を網羅し、美しいイラストと共にユニコーンの多彩な姿を紹介する。ユニコーン愛好家にはたまらない一冊。ユニコーンの生態や特徴、各地の伝説を詳細に解説し、読者に新たな発見を提供する。ユニコーンの魅力を余すところなく伝えるこの図鑑は、子供から大人まで楽しめる内容となっている。,"山本 一郎,佐藤 花子",ファンタジー出版,2024-04-18,3200,500,9784455667788,http://vsv-peridot.skygroup.local/my-books/images/4DeFgHiJkLmN.jpg
+1qhKpCgf0Y2f,ライオンの勇気,小さな子ライオンが、自分の勇気を見つける冒険の物語。主人公の子ライオンは、友だちのために立ち向かう姿を通じて、仲間の大切さと勇気の意味を学んでいきます。物語は、彼が様々な困難に直面しながらも、友だちと協力して乗り越えていく過程を描いています。読み聞かせにもぴったりの心温まる絵本で、子どもたちに勇気と友情の大切さを教える一冊です。,高橋 直樹,星雲出版,2024-05-15,1200,48,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/1qhKpCgf0Y2f.jpg
+bfJUBkCwyHBc,黄金のライオン,遥か昔、伝説の黄金のライオンが封印されていました。そのライオンを解放した少女が、国を救うための冒険に挑む物語です。少女は仲間たちと共に、友情や信頼をテーマにした数々の試練を乗り越え、冒険の果てに待つ運命に立ち向かいます。壮大なスケールで描かれるこの物語は、読者に勇気と希望を与えることでしょう。,佐々木 美穂,光文社,2024-06-20,1500,320,9781234567891,http://vsv-peridot.skygroup.local/my-books/images/bfJUBkCwyHBc.jpg
+OagkR9XuHRvO,ライオンの謎を解け,古代遺跡で発見されたライオンの彫刻。その背後には、長い間封印されていた秘密がありました。若き考古学者は、ライオンにまつわる謎を解明するため、仲間たちと共に危険な冒険に挑みます。彼らは数々の困難を乗り越え、真実に迫る過程で友情と信頼を深めていきます。歴史と冒険が交錯するこの物語は、読者を引き込むこと間違いなしです。,中村 亮,新星社,2024-07-10,1800,280,9781234567892,http://vsv-peridot.skygroup.local/my-books/images/OagkR9XuHRvO.jpg
+w0GxstRSIRCH,宇宙のライオン,未来の地球で、遺伝子操作によって誕生した超知能ライオンが登場します。彼は人類との共存を試みながら、宇宙に広がる新たな脅威に立ち向かいます。物語は、友情、選択、そして未来の姿を問いかける壮大なSFです。超知能ライオンと人類が協力して困難を乗り越える姿を描き、読者に深い感動を与えます。,田中 宏,銀河出版,2024-08-05,2000,350,9781234567893,http://vsv-peridot.skygroup.local/my-books/images/w0GxstRSIRCH.jpg
+oH2jk7mKFPbV,ライオンの季節,サバンナで生まれ育った青年と、都会からやってきた女性が運命的に出会います。共にライオンを守るために奮闘しながら、互いの心を通わせていく姿を描いた、切なくも温かな恋愛物語です。彼らはライオンの保護活動を通じて、自然の美しさと厳しさを学び、真の愛と絆を見つけていきます。読者に感動を与える一冊です。,山本 彩,青空出版,2024-09-12,1600,280,9781234567894,http://vsv-peridot.skygroup.local/my-books/images/oH2jk7mKFPbV.jpg
+KsenyPNXfD1H,ライオンの子どもたち,世界中のライオンの子どもたちに焦点を当てた図鑑です。成長過程や習性、社会構造を詳しく解説し、ライオンの魅力を余すところなく伝える一冊です。写真やイラストを豊富に用いて、子どもたちにも親しみやすい内容になっています。ライオンの生態を学びながら、自然の大切さを感じることができるでしょう。,鈴木 一郎,動物図鑑社,2024-04-25,2200,150,9781234567895,http://vsv-peridot.skygroup.local/my-books/images/KsenyPNXfD1H.jpg
+VVUwdUHaz9zD,夜の王国、ライオンの物語,月明かりの下、特別な力を持つライオンが夜の王国を守っています。しかし、ある日、邪悪な魔女が現れ、王国を脅かします。ライオンは仲間と共に立ち向かい、真の勇気を試される冒険が始まります。物語は、友情と勇気、そして正義の力を描き、読者に深い感動を与えます。,佐藤 直子,月光出版,2024-11-01,1800,300,9781234567896,http://vsv-peridot.skygroup.local/my-books/images/VVUwdUHaz9zD.jpg
+OQoaNl9iSJsJ,サバンナの王者,サバンナに生息するライオンの生態や習性、社会構造を詳しく解説した図鑑です。狩りの様子や家族の絆、絶滅の危機に瀕するライオンたちの現状についても触れ、読者にライオンの魅力と重要性を伝えます。科学的な視点からライオンを理解するための一冊です。,高橋 健,自然科学出版,2024-03-18,2500,200,9781234567897,http://vsv-peridot.skygroup.local/my-books/images/OQoaNl9iSJsJ.jpg
+pDYIwtdahwkp,ライオンの夢,自然保護の活動をする女性と、ライオン保護のために尽力する男性が出会います。二人は共に活動を通じて夢を追いかけながら、互いの心に惹かれていきます。情熱的な恋と自然との調和がテーマの物語です。彼らの努力と愛が、読者に感動を与えることでしょう。,田中 美咲,未来社,2024-12-20,1700,280,9781234567898,http://vsv-peridot.skygroup.local/my-books/images/pDYIwtdahwkp.jpg
+pkVkt4ZpQ3mP,ライオンの生態を探る,世界中のライオンの生態や行動を研究した図鑑です。生息地、食生活、社会構造、繁殖行動などを詳細に解説し、ライオンの魅力を学ぶことができます。科学的な視点からライオンを理解するための一冊です。ライオンの生態を深く知ることで、自然の大切さを感じることができるでしょう。,佐藤 健一,学術出版,2024-02-14,2300,220,9781234567899,http://vsv-peridot.skygroup.local/my-books/images/pkVkt4ZpQ3mP.jpg
+zzYfXDSNyL1o,サバンナの勇者,ライオンの子どもが冒険の旅に出る物語です。群れの外の世界を初めて目の当たりにし、他の捕食者や自然の脅威と対峙します。仲間と協力して困難を乗り越え、家族や群れの大切さを学びつつ、彼は成長していきます。家族の絆と冒険心をテーマにした感動作です。,中村 直樹,冒険社,2024-01-30,1400,180,9781234567800,http://vsv-peridot.skygroup.local/my-books/images/zzYfXDSNyL1o.jpg
+8N1ls7SbDb6H,ワニの子どもたち,小さなワニが仲間たちと共に川を探検し、様々な冒険を通じて成長していく物語です。主人公のワニは、友だちと協力して困難を乗り越え、友情や家族の絆を深めていきます。物語は、彼らが新しい場所を発見し、危険な状況に立ち向かう姿を描いています。子どもたちに勇気と友情の大切さを教える一冊で、読み聞かせにもぴったりの心温まる絵本です。,藤田 直樹,川辺出版,2024-03-15,1300,60,9781234567810,http://vsv-peridot.skygroup.local/my-books/images/8N1ls7SbDb6H.jpg
+L7QYAtVzgt3N,ワニの秘宝,ワニたちが住む異世界で、伝説の秘宝を巡る冒険が始まります。若きワニたちは、友情と勇気を武器に、悪党たちに立ち向かいます。物語は、彼らが数々の試練を乗り越え、秘宝を手に入れるための旅を描いています。友情と信頼の大切さをテーマにしたこの冒険物語は、読者に感動と興奮を与えることでしょう。,佐藤 美咲,冒険社,2024-05-20,1500,320,9781234567811,http://vsv-peridot.skygroup.local/my-books/images/L7QYAtVzgt3N.jpg
+DQWRJrdl6QBX,消えたワニの足跡,地元の川でワニが突然消え、町は騒然となります。若い探偵がその謎を追い、ワニの行方を探る中で、隠された真実を発見する物語です。探偵は、様々な手がかりを元に事件を解決し、ワニの消失の背後にある陰謀を暴きます。ミステリーと冒険が交錯するこの物語は、読者を引き込むこと間違いなしです。,高橋 健一,ミステリー出版,2024-07-10,1800,280,9781234567812,http://vsv-peridot.skygroup.local/my-books/images/DQWRJrdl6QBX.jpg
+LGYEynrdXPCd,ワニの宇宙探検,地球の未来、ワニたちが宇宙に旅立ちます。未知の惑星での冒険や異星人との交流を通じて、仲間との絆が試される物語です。ワニたちは、宇宙の新たな脅威に立ち向かいながら、友情と協力の大切さを学びます。壮大なスケールで描かれるこのSF物語は、読者に深い感動を与えることでしょう。,田中 宏,銀河出版,2024-08-05,2000,350,9781234567813,http://vsv-peridot.skygroup.local/my-books/images/LGYEynrdXPCd.jpg
+Za82lVtyySqu,ワニと愛の交差点,ワニの保護区で出会った人間とワニの飼い主が、共に困難を乗り越える中で芽生える愛を描いた物語です。彼らは、ワニの保護活動を通じて、互いの心を通わせていきます。奇妙な出会いが織り成すロマンチックな物語で、読者に感動を与える一冊です。,山本 彩,青空出版,2024-09-12,1600,280,9781234567814,http://vsv-peridot.skygroup.local/my-books/images/Za82lVtyySqu.jpg
+mkn0JPJUFvyO,ワニの生態大図鑑,ワニの種類や生息地、生態について詳細に解説した図鑑です。写真やイラストを用い、子供から大人まで楽しめる知識を提供します。ワニの生態を学びながら、自然の大切さを感じることができる一冊です。科学的な視点からワニを理解するための貴重な資料となるでしょう。,鈴木 一郎,動物図鑑社,2024-04-25,2200,150,9781234567815,http://vsv-peridot.skygroup.local/my-books/images/mkn0JPJUFvyO.jpg
+5x2sYLfFjXdz,ワニの伝説,世界中のワニに関する神話や伝説を紹介する一冊です。文化や地域によるワニの象徴的な意味を探り、読者に新たな視点を提供します。物語は、ワニがどのようにして神話や伝説の中で重要な役割を果たしてきたかを描いています。歴史と文化を学びながら、ワニの魅力を再発見することができるでしょう。,中村 亮,伝承出版,2024-06-30,1800,200,9781234567816,http://vsv-peridot.skygroup.local/my-books/images/5x2sYLfFjXdz.jpg
+SivD0btT6Es6,ワニの心、私の心,ワニとの交流を通じて学んだ生命の大切さや環境保護について考えるエッセイ集です。著者の心温まる体験が綴られ、読者に深い感動を与えます。ワニとの触れ合いを通じて、自然との共生や環境保護の重要性を感じることができる一冊です。,佐藤 直子,エッセイ出版,2024-11-01,1800,300,9781234567817,http://vsv-peridot.skygroup.local/my-books/images/SivD0btT6Es6.jpg
+afcIMuetDuzj,ワニと月の舞踏会,月明かりの下、ワニたちが集まる特別な舞踏会が開かれます。その夜、運命の出会いが待っている物語です。ワニたちは、舞踏会を通じて新たな友情や愛を見つけ、絆を深めていきます。幻想的な雰囲気の中で繰り広げられるこの物語は、読者に夢と希望を与えることでしょう。,高橋 直樹,月光出版,2024-12-20,1700,280,9781234567818,http://vsv-peridot.skygroup.local/my-books/images/afcIMuetDuzj.jpg
+ZZpYoCdD9KF2,ワニの四季,ワニの視点から見た四季の移り変わりを描く物語です。自然の美しさや変化を子どもたちに伝え、感受性を育てる一冊です。物語は、ワニが四季を通じて経験する様々な出来事を描き、読者に自然の大切さを教えます。子どもたちにとって、自然との触れ合いを楽しむことができるでしょう。,藤田 美穂,自然出版,2024-01-30,1400,180,9781234567819,http://vsv-peridot.skygroup.local/my-books/images/ZZpYoCdD9KF2.jpg
+iykNDzEdmRtG,小さな探偵犬,小さな犬のポチは、探偵犬としての夢を抱いている。ある日、友達の猫が失くしたおもちゃを探す依頼を受ける。ポチは仲間と一緒に、町中を駆け回り、手がかりを集めながら冒険を繰り広げる。友達との絆を深めながら、最後には見事におもちゃを見つける心温まる物語。ポチの勇気と知恵、そして仲間たちとの協力が描かれ、読者に感動を与える。,"高橋 直樹",青空出版,2024-10-09,1500,220,9781234567890,http://vsv-peridot.skygroup.local/my-books/images/iykNDzEdmRtG.jpg
+LGX05tnGr72c,犬の飼い主は誰だ？,人気のあるドッグショーで、審査員が謎の死を遂げた。主人公の飼い主・ユウは、愛犬のレオと共に事件を解決するための冒険に乗り出す。参加者たちの中に潜む秘密や嘘を暴き、真実に迫る中で、ユウは意外な真犯人を突き止める。友情と信頼が試されるスリリングな物語。ユウとレオの絆が深まり、読者に感動を与える。,"佐々木 美咲,田中 一郎",星雲社,2024-10-09,1800,350,9781234567891,http://vsv-peridot.skygroup.local/my-books/images/LGX05tnGr72c.jpg
+X0mG5KASU9FO,夢見る犬たち,ある夜、夢の中で犬たちが人間の言葉を話すことができる世界へと迷い込む。主人公の犬・カナは、仲間たちと共に冒険を繰り広げ、様々な問題を解決するために力を合わせる。友情や勇気の大切さを学びながら、現実世界に戻るための試練に立ち向かう。カナの成長と仲間たちとの絆が描かれ、読者に感動を与える。,"山本 由紀",未来書房,2024-10-09,1600,280,9781234567892,http://vsv-peridot.skygroup.local/my-books/images/X0mG5KASU9FO.jpg
+bOaJ7B4FABUx,犬の王国の逆襲,犬たちが支配する王国が、邪悪な王によって脅かされている。若き犬の王子・バディは、平和を取り戻すために仲間たちと共に立ち上がる。彼らは様々な冒険を経て、友情や信頼の力で王国を救う方法を見つける。果たしてバディは、真の勇者となれるのか。バディの成長と仲間たちとの絆が描かれ、読者に感動を与える。,"藤田 健太",新星出版社,2024-10-09,1700,300,9781234567893,http://vsv-peridot.skygroup.local/my-books/images/bOaJ7B4FABUx.jpg
+IHTz9hhqYXkG,犬の影,静かな町で犬たちが次々と失踪する事件が発生。主人公の青年・タケルは、自身の犬・サブと共にその謎を追う。手がかりを探る中で、町の隠された過去が明らかになり、タケルは思わぬ真実に直面することになる。友情や勇気が試されるスリリングな物語が展開される。,"中村 亮介",光文社,2024-10-09,1900,320,9781234567894,http://vsv-peridot.skygroup.local/my-books/images/IHTz9hhqYXkG.jpg
+gjmRsXc6nJJg,宇宙の犬たち,未来の宇宙で、犬たちが知識を持ち、人間と共に星々を探索する時代が訪れる。主人公の犬・ロボは、仲間たちと共に新たな惑星を発見し、異星人との交流を果たす。未知なる宇宙の冒険を通じて、友情や冒険の重要性を学びながら、自分自身の成長を描く。,"小林 直子",銀河出版,2024-10-09,2000,340,9781234567895,http://vsv-peridot.skygroup.local/my-books/images/gjmRsXc6nJJg.jpg
+CsoBYGFHv2sf,ワンちゃんのラブレター,小さな町に住む犬・ミミは、近所の飼い犬・ココに恋をしている。しかし、ミミは自分の気持ちを伝えられずに悩む。ある日、ミミは友達に相談し、ラブレターを書くことを決心。手紙を書く過程で自分の気持ちを整理し、ついに勇気を振り絞ってココに届ける。,"鈴木 由美",花咲出版,2024-10-09,1400,200,9781234567896,http://vsv-peridot.skygroup.local/my-books/images/CsoBYGFHv2sf.jpg
+3Lx69SzdZNOO,犬と異世界の冒険,少女のナナは、夢の中で異世界に迷い込み、そこで出会った犬のファルと心を通わせる。彼女はファルとの冒険を通じて愛の大切さや勇気を学ぶ。現実世界に戻る際、ナナはファルとの別れに心を痛めながらも、愛の力を信じて自分の道を進むことを決意する。,"松本 直樹,山田 美穂",冒険社,2024-10-09,1800,310,9781234567897,http://vsv-peridot.skygroup.local/my-books/images/3Lx69SzdZNOO.jpg
+9yTNVhIFVpgZ,犬の家族,「犬の家族」は、様々な犬種とその特徴を紹介する図鑑。犬の歴史、性格、育て方、健康管理など、多岐にわたる情報を豊富な写真と共に収めている。子供から大人まで楽しめる内容で、犬に関する知識を深め、愛犬との暮らしをより良くするための手助けとなる。,"石田 由紀",ペットライフ出版,2024-10-09,2200,400,9781234567898,http://vsv-peridot.skygroup.local/my-books/images/9yTNVhIFVpgZ.jpg
+a1Kr6v8bmxjG,犬の時間,町に住む一匹の犬が、毎日同じ場所で日向ぼっこをするのが日課。しかしある日、彼が見かけた不思議な出来事が彼の生活を一変させる。周りの人々や他の動物との交流を通じて、犬は人生のさまざまな側面を学び、自身の存在意義を見出す。心温まる成長の物語。,"村上 直子",日向出版,2024-10-09,1600,250,9781234567899,http://vsv-peridot.skygroup.local/my-books/images/a1Kr6v8bmxjG.jpg
+5QwErTyUiOp6,小さな象の大冒険,小さな象のエリーが、家族と離れて冒険の旅に出る。新しい友だちと出会い、困難を乗り越える中で、自分の強さと大切なものを見つける心温まる物語。エリーは旅の中で様々な動物たちと出会い、彼らの助けを借りながら成長していく。友情や勇気、そして家族の大切さを学び、最終的には家族の元に戻ることができる。,"田中 美咲",冒険社,2024-10-09,1600,250,9781234567800,http://vsv-peridot.skygroup.local/my-books/images/5QwErTyUiOp6.jpg
+ZxCvBnM7aSdF,象の王国,夢の中に現れた象の王国で、勇敢な少女が大切な宝物を守るために冒険を繰り広げる。象たちと共に絆を深め、試練を乗り越えていく。友情と勇気の物語。少女は象たちの助けを借りながら、王国を脅かす危機に立ち向かい、最終的には宝物を守り抜く。,"佐藤 健一,山田 由紀",未来書房,2024-10-09,1800,300,9781234567801,http://vsv-peridot.skygroup.local/my-books/images/ZxCvBnM7aSdF.jpg
+8GhJkLmN9pQr,象が消えた日,サファリパークで人気の象が突如として姿を消した。動物たちと共に真相を解明するために動き出す若き探偵。緊迫した状況の中、彼が見つけた意外な真実とは？探偵は象の失踪の背後に隠された陰謀を暴き、象を無事に見つけ出す。,"高橋 直樹",星雲社,2024-10-09,1700,280,9781234567802,http://vsv-peridot.skygroup.local/my-books/images/8GhJkLmN9pQr.jpg
+StUvWxYz0AbC,宇宙の象たち,未来の地球で、科学者たちは象の知能を持つ生物を遺伝子操作で作り出した。しかし、彼らは自らの存在意義を問い始め、宇宙へ旅立つ決意をする。未知の星での冒険が始まる。象たちは新たな星での生活を通じて、自分たちの存在意義を見つける。,"中村 亮介",銀河出版,2024-10-09,2000,320,9781234567803,http://vsv-peridot.skygroup.local/my-books/images/StUvWxYz0AbC.jpg
+1DeFgHiJkLmN,愛と象の涙,大都市で出会った男性と女性が、象保護の活動を通じて互いの心を通わせていく。象の存在が彼らの絆を深め、愛の力で様々な困難を乗り越える姿を描く感動のストーリー。彼らは象保護の活動を通じて、互いの信頼と愛を深めていく。,"鈴木 由美",花咲出版,2024-10-09,1900,280,9781234567804,http://vsv-peridot.skygroup.local/my-books/images/1DeFgHiJkLmN.jpg
+2QwErTyUiOp3,象の生態を知ろう,象の生態、習性、社会構造を詳しく解説した図鑑。豊富な写真やイラストを用いて、子どもから大人まで楽しめる内容になっている。象の魅力を学ぶための必携書。象の生活や行動を詳細に解説し、読者に象の魅力を伝える。,"石田 由紀",ペットライフ出版,2024-10-09,2200,400,9781234567805,http://vsv-peridot.skygroup.local/my-books/images/2QwErTyUiOp3.jpg
+ZxCvBnM4aSdF,夢の中の象,夢の中でしか会えない象と少女の不思議な冒険。彼女は夢の中で象と共に旅をし、現実世界の問題を解決する方法を見つける。夢と現実が交錯する物語。少女は夢の中で象と共に様々な冒険を繰り広げ、現実世界での問題を解決する。,"松本 直樹",光文社,2024-10-09,1600,240,9781234567806,http://vsv-peridot.skygroup.local/my-books/images/ZxCvBnM4aSdF.jpg
+5GhJkLmN6pQr,象たちの秘密の森,大森林で象たちが謎の失踪を遂げる。若き動物探偵は、象たちの秘密を解き明かすために仲間たちと共に調査を開始する。思わぬ真実が待ち受けるサスペンスフルな物語。探偵は象たちの失踪の背後に隠された真実を暴き、象たちを救う。,"藤田 健太",新星出版社,2024-10-09,1800,300,9781234567807,http://vsv-peridot.skygroup.local/my-books/images/5GhJkLmN6pQr.jpg
+StUvWxYz7AbC,象と空を飛ぶ,小さな象が空を飛ぶことを夢見て、魔法の羽を手に入れる物語。空を飛びながら冒険し、友だちを助ける中で、大切なことを学んでいく。夢の力を信じる心温まるストーリー。象は空を飛ぶ冒険を通じて、友情や勇気の大切さを学ぶ。,"山本 由紀",青空出版,2024-10-09,1500,220,9781234567808,http://vsv-peridot.skygroup.local/my-books/images/StUvWxYz7AbC.jpg
+8DeFgHiJkLmN,象の知恵と優しさ,象の知恵と優しさをテーマにした図鑑。社会的な行動やコミュニケーション方法、環境保護の大切さを学ぶことができる内容。子どもから大人まで楽しめる、自然の素晴らしさを伝える一冊。象の知恵と優しさを通じて、読者に自然の大切さを伝える。,"村上 直子",日向出版,2024-10-09,2100,380,9781234567809,http://vsv-peridot.skygroup.local/my-books/images/8DeFgHiJkLmN.jpg
+9QwErTyUiOp0,サバンナの巨人,物語は、一頭のオス象が仲間たちと共に生き残るためにサバンナを旅する姿を追う。乾季の厳しい環境や捕食者との戦い、そして群れの中での葛藤が描かれ、象がいかにして大自然の中で適応し、繁栄しているのかを描いたドラマ。,"佐藤 健一",未来書房,2024-10-09,1800,320,9781234567810,http://vsv-peridot.skygroup.local/my-books/images/9QwErTyUiOp0.jpg
+ZxCvBnM1aSdF,象たちの戦い,群れの中で起こるリーダー争いを中心に描かれる物語。二頭のオス象が群れの支配権を巡って激しく対立し、群れ全体が危機に直面する。最終的に、力ではなく知恵と協調が新しいリーダーシップの鍵であることが明らかになる。,"小林 直子,鈴木 健一",冒険社,2024-10-09,1700,290,9781234567811,http://vsv-peridot.skygroup.local/my-books/images/ZxCvBnM1aSdF.jpg
+2GhJkLmN3pQr,象の約束,幼いメス象が、亡くなった母の意志を継ぎ、群れの次のリーダーになることを誓う。彼女は仲間を導き、困難な決断を下す中で成長していく。母象との絆と、新しいリーダーとしての責任が交差する、成長と勇気の物語。,"高橋 直樹",星雲社,2024-10-09,1800,310,9781234567812,http://vsv-peridot.skygroup.local/my-books/images/2GhJkLmN3pQr.jpg
+StUvWxYz4AbC,鷹の世界を翔ける,小さな鷹が、仲間たちと共に空を飛びながら、自分の役割を見つける旅に出る。様々な冒険を通じて、友情と勇気を学んでいく物語。鷹は空を飛びながら新しい友達と出会い、困難を乗り越える中で成長していく。彼の冒険は、読者に勇気と友情の大切さを教えてくれる。,"田中 美咲",冒険社,2024-10-09,1600,250,9781234567813,http://vsv-peridot.skygroup.local/my-books/images/StUvWxYz4AbC.jpg
+5DeFgHiJkLmN,鷹と魔法の羽,魔法の力を持つ特別な羽を持つ鷹が、王国を救うために立ち上がる。鷹の冒険は、古の魔法や友との絆を結ぶ旅となる。鷹は魔法の羽を使って様々な困難を乗り越え、王国を救うために奮闘する。,"佐藤 健一,山田 由紀",未来書房,2024-10-09,1800,300,9781234567814,http://vsv-peridot.skygroup.local/my-books/images/5DeFgHiJkLmN.jpg
+6QwErTyUiOp7,鷹の記憶,ある町で不審な鷹の目撃情報が相次ぐ。探偵がその背後に隠された秘密を解き明かすため、事件の真相を追う。探偵は鷹の目撃情報を手がかりに、町の隠された過去と真実を暴いていく。,"高橋 直樹",星雲社,2024-10-09,1700,280,9781234567815,http://vsv-peridot.skygroup.local/my-books/images/6QwErTyUiOp7.jpg
+ZxCvBnM8aSdF,星空の鷹,遠い未来、宇宙を飛ぶ鷹が未知の星を探査する。彼らの旅を通じて、宇宙の秘密や人類の未来を探求する壮大な冒険が展開される。鷹たちは未知の星での冒険を通じて、宇宙の秘密を解き明かし、人類の未来を見つける。,"中村 亮介",銀河出版,2024-10-09,2000,320,9781234567816,http://vsv-peridot.skygroup.local/my-books/images/ZxCvBnM8aSdF.jpg
+9GhJkLmN0pQr,鷹の羽根、心の声,鷹の飼い主である女性が、鷹との絆を通じて過去のトラウマを乗り越え、新たな愛に出会う姿を描いた感動的な物語。女性は鷹との絆を深める中で、自分の過去と向き合い、新たな愛を見つける。,"鈴木 由美",花咲出版,2024-10-09,1900,280,9781234567817,http://vsv-peridot.skygroup.local/my-books/images/9GhJkLmN0pQr.jpg
+StUvWxYz1AbC,鷹の生態と習性,鷹の多様な種類や生息地、狩猟方法を詳細に解説した図鑑。写真やイラストを用いて、鷹の魅力を紹介し、読者に知識を提供する。鷹の生態や習性を詳細に解説し、読者に鷹の魅力を伝える。,"石田 由紀",ペットライフ出版,2024-10-09,2200,400,9781234567818,http://vsv-peridot.skygroup.local/my-books/images/StUvWxYz1AbC.jpg
+2DeFgHiJkLmN,天空の獲物,鷹の狩猟技術と生態系における役割を探る一冊。実際の観察や研究を基に、鷹の生活とその環境への影響を明らかにする。鷹の狩猟技術や生態系における役割を詳細に解説し、読者に鷹の重要性を伝える。,"松本 直樹",光文社,2024-10-09,1600,240,9781234567819,http://vsv-peridot.skygroup.local/my-books/images/2DeFgHiJkLmN.jpg
+3QwErTyUiOp4,風の中の鷹,鷹との出会いや観察を通じて、自然の美しさや生命の大切さについて考えるエッセイ集。著者の個人的な体験と感想が綴られる。著者は鷹との出会いや観察を通じて、自然の美しさや生命の大切さを読者に伝える。,"藤田 健太",新星出版社,2024-10-09,1800,300,9781234567820,http://vsv-peridot.skygroup.local/my-books/images/3QwErTyUiOp4.jpg
+ZxCvBnM5aSdF,鷹の恩返し,事故で傷ついた鷹を助けた少年が、鷹から授かる特別な力を通じて、自分の人生を変える冒険に挑む。友情と成長の物語が展開される。少年は鷹から授かった特別な力を使って、様々な困難を乗り越え、成長していく。,"山本 由紀",青空出版,2024-10-09,1500,220,9781234567821,http://vsv-peridot.skygroup.local/my-books/images/ZxCvBnM5aSdF.jpg
+6GhJkLmN7pQr,天翔る鷹たち,鷹たちがそれぞれの夢を追いかけて飛ぶ姿を描いた物語。仲間と協力し合いながら成長し、空を自由に飛ぶ喜びを感じる。鷹たちは夢を追いかけながら、仲間と協力し合い、成長していく。,"村上 直子",日向出版,2024-10-09,2100,380,9781234567822,http://vsv-peridot.skygroup.local/my-books/images/6GhJkLmN7pQr.jpg
+StUvWxYz8AbC,ねこちゃんの魔法の冒険,小さな猫のモモは、ある日不思議な魔法の粉を見つける。粉をかけたものはすべて、思いがけない冒険に巻き込まれる。モモは友達の動物たちと共に、夢の中の国を探検し、勇気や友情の大切さを学びながら帰る方法を見つける。心温まるストーリー。モモの冒険は、読者に勇気と友情の大切さを教えてくれる。,"田中 美咲",冒険社,2024-10-09,1600,250,9781234567823,http://vsv-peridot.skygroup.local/my-books/images/StUvWxYz8AbC.jpg
+9DeFgHiJkLmN,消えた猫の謎,町で人気のある猫が突然行方不明になる。若き探偵・アキは、自分の猫のサクラと共に、その謎を解くために立ち上がる。猫が消えた理由や、周囲の動物たちの証言をもとに捜査を進める中、意外な真実が明らかになる。アキとサクラの絆が深まり、読者に感動を与える。,"佐藤 健一,山田 由紀",未来書房,2024-10-09,1800,300,9781234567824,http://vsv-peridot.skygroup.local/my-books/images/9DeFgHiJkLmN.jpg
+0QwErTyUiOp1,月夜の猫たち,月明かりの下で、猫たちが集まる秘密の社交会が開催される。主人公のニャーは、そこで特別な力を持つ猫たちと出会い、彼らと共に冒険の旅に出る。彼らは魔法の力を使って、困難に立ち向かいながら、友情や自己発見の重要性を学ぶ。ニャーの成長と仲間たちとの絆が描かれ、読者に感動を与える。,"高橋 直樹",星雲社,2024-10-09,1700,280,9781234567825,http://vsv-peridot.skygroup.local/my-books/images/0QwErTyUiOp1.jpg
+ZxCvBnM2aSdF,猫の王国の秘密,小さな町の猫たちが、隠された王国を発見する。主人公のタマは、仲間たちと共に王国の運命を変えるために冒険を始める。途中で様々な試練を乗り越え、友情や信頼の力を学びながら、真の王国の姿を取り戻すことができるのか。タマの冒険は、読者に勇気と友情の大切さを教えてくれる。,"中村 亮介",銀河出版,2024-10-09,2000,320,9781234567826,http://vsv-peridot.skygroup.local/my-books/images/ZxCvBnM2aSdF.jpg
+3GhJkLmN4pQr,暗闇の中の猫たち,猫たちが住む街で、一夜にして何匹かの猫が消えてしまう事件が発生する。若い猫のレオは、自らの知恵を使って真実を探ることを決意。彼は、猫たちが失踪する前に起こった出来事を調査し、友達との協力の中で真犯人を見つけ出す。レオの勇気と知恵が描かれ、読者に感動を与える。,"鈴木 由美",花咲出版,2024-10-09,1900,280,9781234567827,http://vsv-peridot.skygroup.local/my-books/images/3GhJkLmN4pQr.jpg
+StUvWxYz5AbC,銀河猫の冒険,未来の銀河で、猫たちが宇宙探検を行う時代が訪れる。主人公の猫・ゼロは、宇宙船の一員として新たな惑星を探しに出発する。異星人との出会いや、未知なる生物との交流を通じて、友情や勇気の大切さを学びながら成長する姿が描かれる。ゼロの冒険は、読者に勇気と友情の大切さを教えてくれる。,"石田 由紀,松本 直樹",ペットライフ出版,2024-10-09,2200,400,9781234567828,http://vsv-peridot.skygroup.local/my-books/images/StUvWxYz5AbC.jpg
