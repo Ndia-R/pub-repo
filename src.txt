@@ -1,0 +1,451 @@
+----------------------------------------
+BookController.java
+
+package com.example.spring_boot_test.controller;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.example.spring_boot_test.dto.BookDto;
+import com.example.spring_boot_test.model.BookResponse;
+import com.example.spring_boot_test.service.BookService;
+
+@RestController
+@RequestMapping("/books")
+public class BookController {
+
+    @Autowired
+    private BookService bookService;
+
+    @GetMapping
+    public List<BookDto> getBooks() {
+        return bookService.getBooks();
+    }
+
+    @GetMapping("{id}")
+    public BookDto getBookById(@PathVariable String id) {
+        return bookService.getBookById(id);
+    }
+
+    @GetMapping("/search")
+    public BookResponse searchByTitle(@RequestParam String q,
+            @RequestParam(required = false, defaultValue = "0") Integer startIndex,
+            @RequestParam(required = false, defaultValue = "20") Integer maxResults) {
+        return bookService.searchByTitle(q, startIndex, maxResults);
+    }
+
+}
+
+----------------------------------------
+BookDto.java
+
+package com.example.spring_boot_test.dto;
+
+import java.time.LocalDate;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class BookDto {
+
+    private String id; // ID
+    private String title; // タイトル
+    private String description; // 概要
+    private List<String> authors; // 作者
+    private String publisher; // 出版社
+    private LocalDate publishedDate; // 出版日
+    private Integer price; // 価格
+    private Integer pageCount; // ページ数
+    private String isbn; // ISBN
+    private String imageUrl; // イメージ画像URL
+}
+
+----------------------------------------
+Book.java
+
+package com.example.spring_boot_test.model;
+
+import java.time.LocalDate;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "book")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Book {
+
+    @Id
+    private String id; // ID
+    private String title; // タイトル
+    private String description; // 概要
+    private String authors; // 作者
+    private String publisher; // 出版社
+    private LocalDate publishedDate; // 出版日
+    private Integer price; // 価格
+    private Integer pageCount; // ページ数
+    private String isbn; // ISBN
+    private String imageUrl; // イメージ画像URL
+}
+
+----------------------------------------
+BookResponse.java
+
+package com.example.spring_boot_test.model;
+
+import java.util.List;
+import com.example.spring_boot_test.dto.BookDto;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class BookResponse {
+    private Integer totalItems;
+    private List<BookDto> books;
+}
+
+----------------------------------------
+BookRepository.java
+
+package com.example.spring_boot_test.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.example.spring_boot_test.model.Book;
+
+@Repository
+public interface BookRepository extends JpaRepository<Book, String> {
+    Page<Book> findByTitleContainingOrderByPublishedDateDescIdDesc(@RequestParam String q,
+            Pageable pageable);
+
+    // @Query("SELECT b FROM Book b WHERE b.title LIKE %:q% ORDER BY b.publishedDate DESC, b.id
+    // DESC")
+    // Page<Book> findByTitleContainingOrderByPublishedDateAndIdDesc(String q, Pageable pageable);
+
+    // Spring Data JPAで自動的に生成する場合は以下の様に記述
+    // メソッド名はSpring Data JPAの命名規則に基づいて指定
+    // List<Book> findByTitleContaining(String q);
+    // ↓クエリ指定では以下
+    // @Query("SELECT b FROM Book b WHERE b.title LIKE %:q%")
+    // List<Book> searchByTitle(@RequestParam String q);
+}
+
+----------------------------------------
+BookService.java
+
+package com.example.spring_boot_test.service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import com.example.spring_boot_test.dto.BookDto;
+import com.example.spring_boot_test.model.Book;
+import com.example.spring_boot_test.model.BookResponse;
+import com.example.spring_boot_test.repository.BookRepository;
+
+@Service
+public class BookService {
+
+    @Autowired
+    private BookRepository bookRepository;
+
+    public List<BookDto> getBooks() {
+        List<Book> books = bookRepository.findAll();
+        return books.stream().map(book -> convertToDto(book)).collect(Collectors.toList());
+    }
+
+    public BookDto getBookById(String id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        return convertToDto(book);
+    }
+
+    public BookResponse searchByTitle(String q) {
+        return searchByTitle(q, 0, 20);
+    }
+
+    public BookResponse searchByTitle(String q, Integer startIndex, Integer maxResults) {
+        Integer pageIndex = (startIndex < 0) ? 0 : startIndex;
+        Pageable pageable = PageRequest.of(pageIndex, maxResults);
+        Page<Book> page =
+                bookRepository.findByTitleContainingOrderByPublishedDateDescIdDesc(q, pageable);
+        List<Book> books = page.getContent();
+        Integer totalItems = (int) page.getTotalElements();
+        return new BookResponse(totalItems,
+                books.stream().map(book -> convertToDto(book)).collect(Collectors.toList()));
+    }
+
+    private BookDto convertToDto(Book book) {
+        BookDto bookDto = new BookDto();
+        bookDto.setId(book.getId());
+        bookDto.setTitle(book.getTitle());
+        bookDto.setDescription(book.getDescription());
+        String authorsString = book.getAuthors();
+        List<String> authors = new ArrayList<>(Arrays.asList(authorsString.split(",")));
+        bookDto.setAuthors(authors);
+        bookDto.setPublisher(book.getPublisher());
+        bookDto.setPublishedDate(book.getPublishedDate());
+        bookDto.setPrice(book.getPrice());
+        bookDto.setIsbn(book.getIsbn());
+        bookDto.setImageUrl(book.getImageUrl());
+        return bookDto;
+    }
+}
+
+
+
+----------------------------------------
+util/RandomStringUtil.java
+
+package com.example.spring_boot_test.util;
+
+import java.security.SecureRandom;
+
+public class RandomStringUtil {
+    // 使用する文字のセット
+    private static final String CHARACTERS =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final int LENGTH = 12;
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    public static String generateRandomString() {
+        StringBuilder sb = new StringBuilder(LENGTH);
+        for (int i = 0; i < LENGTH; i++) {
+            int index = RANDOM.nextInt(CHARACTERS.length());
+            sb.append(CHARACTERS.charAt(index));
+        }
+        return sb.toString();
+    }
+}
+
+
+----------------------------------------
+SpringBootTestApplication.java
+
+package com.example.spring_boot_test;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class SpringBootTestApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringBootTestApplication.class, args);
+	}
+
+}
+----------------------------------------
+application.properties
+
+spring.application.name=spring-boot-test
+
+spring.datasource.url=jdbc:mysql://localhost:3306/my-books-api
+spring.datasource.username=root
+spring.datasource.password=password
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.transaction.jta.platform=org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
+spring.jpa.open-in-view=false
+spring.jpa.hibernate.ddl-auto=none
+
+----------------------------------------
+build.gradle
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.4'
+	id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'mysql:mysql-connector-java:8.0.33'
+	compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+----------------------------------------
+docker-compose.yml
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace
+    tty: true
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-book-api
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: my-book-api
+    ports:
+      - 3306:3306
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
+
+
+----------------------------------------
+.vscode/settings.json
+
+{
+  // ミニマップを非表示にする
+  "editor.minimap.enabled": false,
+
+  // 制御文字を表示する
+  "editor.renderControlCharacters": true,
+
+  // コードフォーマット
+  "java.format.settings.url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml",
+  "java.format.settings.profile": "GoogleStyle",
+
+  // ファイル保存時にフォーマット
+  "[java]": {
+    "editor.formatOnSave": true
+  },
+
+  // コード補完機能を有効にするかどうか
+  "java.completion.enabled": true,
+
+  // Nullアノテーションタイプの解析を有効にする
+  "java.compile.nullAnalysis.mode": "automatic",
+  
+  // スペルチェックの対象外にするワード
+  "cSpell.words": [
+    "checkstyle",
+    "esbenp",
+    "mhutchie",
+    "mosapride",
+    "shengchen",
+    "vscjava",
+    "zenkaku"
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "remote.autoForwardPortsFallback": 0
+}
+
+
+----------------------------------------
+.devcontainer/devcontainer.json
+
+{
+  "name": "My Dev Container",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-gradle",
+        "mhutchie.git-graph",
+        "streetsidesoftware.code-spell-checker",
+        "mosapride.zenkaku",
+        "shengchen.vscode-checkstyle"
+      ]
+    }
+  }
+}
+
+
+----------------------------------------
+.devcontainer/Dockerfile
+
+FROM openjdk:17-jdk-slim
+
+WORKDIR /workspace
+
+ARG PKG="git curl unzip zip sudo"
+
+RUN apt-get update \
+    && apt-get install -y ${PKG} \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG GRADLE_VERSION=8.10
+
+RUN curl -s "https://get.sdkman.io" | bash \
+    && bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install gradle $GRADLE_VERSION"
+    
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
+----------------------------------------
