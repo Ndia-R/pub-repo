@@ -1,3 +1,99 @@
+mysql -u root -p
+
+USE my-book-api;
+
+show tables;
+
+drop table book;
+
+docker cp /mnt/c/work/data.csv <コンテナID>:/var/lib/mysql-files/
+
+SET character_set_client = 'utf8';
+SET character_set_connection = 'utf8';
+SET character_set_results = 'utf8';
+
+
+
+
+ターミナルから
+mysql -u root -p
+でmysqlに入り、以下のコマンドを打ちました
+
+USE my-book-api;
+CREATE TABLE `book` (
+  `id` varchar(32) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `authors` varchar(255) NOT NULL,
+  `publisher` varchar(255) NOT NULL,
+  `published_date` date NOT NULL,
+  `price` int(11) NOT NULL,
+  `page_count` int(11) NOT NULL,
+  `isbn` varchar(13) NOT NULL,
+  `image_url` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+USE my-book-api;
+LOAD DATA INFILE '/var/lib/mysql-files/data.csv'
+INTO TABLE book
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n';
+
+
+
+MariaDB [(none)]> show variables like 'character_set%';
++--------------------------+------------------------------+
+| Variable_name            | Value                        |
++--------------------------+------------------------------+
+| character_set_client     | utf8                         |
+| character_set_connection | utf8                         |
+| character_set_database   | utf8mb4                      |
+| character_set_filesystem | binary                       |
+| character_set_results    | utf8                         |
+| character_set_server     | utf8mb4                      |
+| character_set_system     | utf8                         |
+| character_sets_dir       | /usr/share/mariadb/charsets/ |
++--------------------------+------------------------------+
+
+----------------------------------------
+
+書籍のタイトルとあらすじから、ジャンル分けをしたい。
+
+ジャンル一覧
+
+"genres":[
+  {"id": 1, "name": "ミステリー"},
+  {"id": 2, "name": "サスペンス"},
+  {"id": 3, "name": "ロマンス"},
+  {"id": 4, "name": "ファンタジー"},
+  {"id": 5, "name": "SF"},
+  {"id": 6, "name": "ホラー"},
+  {"id": 7, "name": "歴史"},
+  {"id": 8, "name": "絵本"},
+  {"id": 9, "name": "教科書"},
+  {"id": 10, "name": "専門書"},
+  {"id": 11, "name": "研究書"},
+  {"id": 12, "name": "マンガ"},
+]
+
+以下の１０冊の書籍はどのジャンルがあてはまりますか？
+
+# 条件
+
+- 複数当てはまる場合はできるだけ複数回答してください。
+- ジャンルが複数ある場合は、「,」で連結して並べてください
+- タイトルとジャンルは横並びの１行で回答してください
+- 回答内容はタイトル名やジャンルを「,」で区切っただけのシンプルなものにしてください
+
+# ジャンル分けしてほしい書籍１０冊分
+
+----------------------------------------
+
 タイトル、本のあらすじや表紙絵を表現する文章がこれまでと似たような内容とならないように考えてください。
 
 ----
