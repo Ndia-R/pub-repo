@@ -1,0 +1,87 @@
+---------------------------------------
+init.sql
+
+CREATE DATABASE IF NOT EXISTS `my-books-api`;
+
+USE `my-books-api`;
+
+DROP TABLE IF EXISTS `book`;
+
+CREATE TABLE `book` (
+  `id` varchar(32) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `authors` varchar(255) NOT NULL,
+  `publisher` varchar(255) NOT NULL,
+  `published_date` date NOT NULL,
+  `price` int(11) NOT NULL,
+  `page_count` int(11) NOT NULL,
+  `isbn` varchar(13) NOT NULL,
+  `image_url` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+LOAD DATA INFILE '/var/lib/mysql-files/data.csv'
+INTO TABLE book
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n';
+---------------------------------------
+my.cnf
+[mysqld]
+secure-file-priv=/var/lib/mysql-files/
+
+---------------------------------------
+Dockerfile
+FROM tomcat:10-jdk17-openjdk-slim
+
+# WARファイルをコンテナ内のTomcatのwebappsディレクトリにコピー
+COPY ./docker/spring-boot/my-books.war /usr/local/tomcat/webapps/
+
+# 
+RUN cp -r /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps/
+
+# コンテナのポート8080を公開
+# EXPOSE 8080
+
+# # Tomcatを起動
+# CMD ["catalina.sh", "run"]
+
+---------------------------------------
+docker-container.yml
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/spring-boot/Dockerfile
+    ports:
+      - 8080:8080
+    tty: true
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-books-api
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: my-books-api
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/db/data.csv:/var/lib/mysql-files/data.csv
+      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
+
+---------------------------------------
+
+
+
