@@ -1,17 +1,97 @@
-----------------------------------------
-BookController.java
+--------------------------------------------------
+init.sql
+
+DROP DATABASE IF EXISTS `my-books-db`;
+CREATE DATABASE `my-books-db`;
+
+USE `my-books-db`;
+
+-- bookテーブルの削除と再作成
+DROP TABLE IF EXISTS `book`;
+CREATE TABLE `book` (
+  `id` varchar(255) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `genreIds` varchar(255) NOT NULL,
+  `authors` varchar(255) NOT NULL,
+  `publisher` varchar(255) NOT NULL,
+  `published_date` date NOT NULL,
+  `price` int(11) NOT NULL,
+  `page_count` int(11) NOT NULL,
+  `isbn` varchar(255) NOT NULL,
+  `image_url` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+);
+
+-- genreテーブルの削除と再作成
+DROP TABLE IF EXISTS `genre`;
+CREATE TABLE `genre` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `description` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_active` TINYINT(1) DEFAULT 1,
+  PRIMARY KEY (`id`)
+);
+
+-- データのロード
+LOAD DATA INFILE '/docker-entrypoint-initdb.d/data.csv'
+INTO TABLE book
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+INSERT INTO `genre` (`name`, `description`) VALUES
+('ミステリー', '謎解きや推理をテーマにした作品'),
+('サスペンス', '緊張感や驚きを伴う作品'),
+('ロマンス', '恋愛をテーマにした作品'),
+('ファンタジー', '魔法や異世界を舞台にした作品'),
+('SF', '科学技術や未来をテーマにした作品'),
+('ホラー', '恐怖をテーマにした作品'),
+('歴史', '歴史的な出来事や人物をテーマにした作品'),
+('絵本', '子供向けのイラストが多い本'),
+('教科書', '教育機関で使用される教材'),
+('専門書', '特定の分野に特化した書籍'),
+('研究書', '学術的な研究をまとめた書籍'),
+('環境', '自然や環境問題をテーマにした作品'),
+('冒険', '冒険や探検をテーマにした作品'),
+('図鑑', '特定のテーマに関する情報を集めた書籍'),
+('音楽', '音楽に関する書籍'),
+('ドラマ', '人間関係や感情を描いた作品'),
+('教育', '教育に関する書籍');
+
+--------------------------------------------------
+my.cnf
+
+[mysqld]
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+
+[client]
+default-character-set=utf8mb4
+
+[mysql]
+default-character-set=utf8mb4
+
+--------------------------------------------------
+BookController
 
 package com.example.spring_boot_test.controller;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.spring_boot_test.dto.BookDto;
-import com.example.spring_boot_test.model.BookResponse;
+import com.example.spring_boot_test.dto.BookResponseDto;
 import com.example.spring_boot_test.service.BookService;
 
 @RestController
@@ -26,22 +106,74 @@ public class BookController {
         return bookService.getBooks();
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public BookDto getBookById(@PathVariable String id) {
         return bookService.getBookById(id);
     }
 
     @GetMapping("/search")
-    public BookResponse searchByTitle(@RequestParam String q,
-            @RequestParam(required = false, defaultValue = "0") Integer startIndex,
-            @RequestParam(required = false, defaultValue = "20") Integer maxResults) {
-        return bookService.searchByTitle(q, startIndex, maxResults);
+    public BookResponseDto searchByTitle(@RequestParam String q, @PageableDefault(page = 0,
+            size = 20, sort = "title", direction = Direction.ASC) Pageable pageable) {
+        return bookService.searchByTitle(q, pageable);
     }
+
+    // @GetMapping("/discover")
+    // public BookResponseDto searchByGenreId(@RequestParam String genreId, @PageableDefault(page =
+    // 0,
+    // size = 20, sort = "title", direction = Direction.ASC) Pageable pageable) {
+    // return bookService.searchByGenreId(genreId, pageable);
+    // }
 
 }
 
-----------------------------------------
-BookDto.java
+--------------------------------------------------
+GenreController
+
+package com.example.spring_boot_test.controller;
+
+import java.net.URI;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import com.example.spring_boot_test.dto.GenreDto;
+import com.example.spring_boot_test.model.Genre;
+import com.example.spring_boot_test.service.GenreService;
+
+@RestController
+@RequestMapping("/genres")
+public class GenreController {
+
+    @Autowired
+    private GenreService genreService;
+
+    @GetMapping
+    public List<GenreDto> getGenres() {
+        return genreService.getGenres();
+    }
+
+    @GetMapping("/{id}")
+    public GenreDto getGenreById(@PathVariable Integer id) {
+        return genreService.getGenreById(id);
+    }
+
+    @PostMapping
+    public ResponseEntity<Genre> createTodoItem(@RequestBody Genre newGenre) {
+        Genre genre = genreService.saveGenre(newGenre);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                .buildAndExpand(genre.getId()).toUri();
+        return ResponseEntity.created(location).body(genre);
+    }
+}
+
+--------------------------------------------------
+BookDto
 
 package com.example.spring_boot_test.dto;
 
@@ -59,6 +191,7 @@ public class BookDto {
     private String id; // ID
     private String title; // タイトル
     private String description; // 概要
+    private List<Integer> genreIds; // ジャンルID
     private List<String> authors; // 作者
     private String publisher; // 出版社
     private LocalDate publishedDate; // 出版日
@@ -66,10 +199,54 @@ public class BookDto {
     private Integer pageCount; // ページ数
     private String isbn; // ISBN
     private String imageUrl; // イメージ画像URL
+
 }
 
-----------------------------------------
-Book.java
+--------------------------------------------------
+BookResponseDto
+
+package com.example.spring_boot_test.dto;
+
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class BookResponseDto {
+    private Integer totalItems;
+    private List<BookDto> books;
+}
+
+--------------------------------------------------
+GenreDto
+
+package com.example.spring_boot_test.dto;
+
+import com.example.spring_boot_test.model.Genre;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class GenreDto {
+
+    private Integer id;
+    private String name;
+
+    public GenreDto(Genre genre) {
+        this.id = genre.getId();
+        this.name = genre.getName();
+    }
+}
+
+
+--------------------------------------------------
+Book
 
 package com.example.spring_boot_test.model;
 
@@ -92,6 +269,7 @@ public class Book {
     private String id; // ID
     private String title; // タイトル
     private String description; // 概要
+    private String genreIds; // ジャンルID
     private String authors; // 作者
     private String publisher; // 出版社
     private LocalDate publishedDate; // 出版日
@@ -101,25 +279,40 @@ public class Book {
     private String imageUrl; // イメージ画像URL
 }
 
-----------------------------------------
-BookResponse.java
+--------------------------------------------------
+Genre
 
 package com.example.spring_boot_test.model;
 
-import java.util.List;
-import com.example.spring_boot_test.dto.BookDto;
+import java.sql.Timestamp;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "genre")
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
-public class BookResponse {
-    private Integer totalItems;
-    private List<BookDto> books;
+public class Genre {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+    private String name;
+    private String description;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+    private Boolean isActive;
 }
 
-----------------------------------------
-BookRepository.java
+--------------------------------------------------
+BookRepository
 
 package com.example.spring_boot_test.repository;
 
@@ -127,13 +320,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.RequestParam;
 import com.example.spring_boot_test.model.Book;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, String> {
-    Page<Book> findByTitleContainingOrderByPublishedDateDescIdDesc(@RequestParam String q,
-            Pageable pageable);
+    Page<Book> findByTitleContaining(String q, Pageable pageable);
+
+    // Page<Book> findByGenreIdsLike(String genreIdPattern, Pageable pageable);
 
     // @Query("SELECT b FROM Book b WHERE b.title LIKE %:q% ORDER BY b.publishedDate DESC, b.id
     // DESC")
@@ -147,23 +340,35 @@ public interface BookRepository extends JpaRepository<Book, String> {
     // List<Book> searchByTitle(@RequestParam String q);
 }
 
-----------------------------------------
-BookService.java
+--------------------------------------------------
+GenreRepository
+
+package com.example.spring_boot_test.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.example.spring_boot_test.model.Genre;
+
+@Repository
+public interface GenreRepository extends JpaRepository<Genre, Integer> {
+}
+
+--------------------------------------------------
+BookService
 
 package com.example.spring_boot_test.service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.spring_boot_test.dto.BookDto;
+import com.example.spring_boot_test.dto.BookResponseDto;
 import com.example.spring_boot_test.model.Book;
-import com.example.spring_boot_test.model.BookResponse;
 import com.example.spring_boot_test.repository.BookRepository;
 
 @Service
@@ -172,53 +377,134 @@ public class BookService {
     @Autowired
     private BookRepository bookRepository;
 
+    @Transactional
     public List<BookDto> getBooks() {
         List<Book> books = bookRepository.findAll();
-        return books.stream().map(book -> convertToDto(book)).collect(Collectors.toList());
+        List<BookDto> booksDto =
+                books.stream().map(this::convertToDto).collect(Collectors.toList());
+        return booksDto;
     }
 
+    @Transactional
     public BookDto getBookById(String id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
-        return convertToDto(book);
+        BookDto bookDto = convertToDto(book);
+        return bookDto;
     }
 
-    public BookResponse searchByTitle(String q) {
-        return searchByTitle(q, 0, 20);
-    }
+    public BookResponseDto searchByTitle(String q, Pageable pageable) {
+        Page<Book> page = bookRepository.findByTitleContaining(q, pageable);
 
-    public BookResponse searchByTitle(String q, Integer startIndex, Integer maxResults) {
-        Integer pageIndex = (startIndex < 0) ? 0 : startIndex;
-        Pageable pageable = PageRequest.of(pageIndex, maxResults);
-        Page<Book> page =
-                bookRepository.findByTitleContainingOrderByPublishedDateDescIdDesc(q, pageable);
-        List<Book> books = page.getContent();
         Integer totalItems = (int) page.getTotalElements();
-        return new BookResponse(totalItems,
-                books.stream().map(book -> convertToDto(book)).collect(Collectors.toList()));
+        List<Book> books = page.getContent();
+        List<BookDto> booksDto =
+                books.stream().map(this::convertToDto).collect(Collectors.toList());
+        BookResponseDto bookResponseDto = new BookResponseDto(totalItems, booksDto);
+        return bookResponseDto;
     }
+
+    // public BookResponseDto searchByGenreId(String genreId, Pageable pageable) {
+    // String genreIdPattern = "%" + genreId + "%";
+    // Page<Book> page = bookRepository.findByGenreIdsLike(genreIdPattern, pageable);
+
+    // Integer totalItems = (int) page.getTotalElements();
+    // List<Book> books = page.getContent();
+    // List<BookDto> booksDto =
+    // books.stream().map(this::convertToDto).collect(Collectors.toList());
+    // BookResponseDto bookResponseDto = new BookResponseDto(totalItems, booksDto);
+    // return bookResponseDto;
+    // }
+
 
     private BookDto convertToDto(Book book) {
         BookDto bookDto = new BookDto();
         bookDto.setId(book.getId());
         bookDto.setTitle(book.getTitle());
         bookDto.setDescription(book.getDescription());
-        String authorsString = book.getAuthors();
-        List<String> authors = new ArrayList<>(Arrays.asList(authorsString.split(",")));
-        bookDto.setAuthors(authors);
+        bookDto.setGenreIds(Arrays.stream(book.getGenreIds().split(",")).map(Integer::parseInt)
+                .collect(Collectors.toList()));
+        bookDto.setAuthors(Arrays.asList(book.getAuthors().split(",")));
         bookDto.setPublisher(book.getPublisher());
         bookDto.setPublishedDate(book.getPublishedDate());
         bookDto.setPrice(book.getPrice());
+        bookDto.setPageCount(book.getPageCount());
         bookDto.setIsbn(book.getIsbn());
         bookDto.setImageUrl(book.getImageUrl());
+
         return bookDto;
+    }
+
+    // private Book convertToEntity(BookDto bookDto) {
+    // Book book = new Book();
+    // String id = RandomStringUtil.generateRandomString();
+    // book.setId(id);
+    // book.setTitle(bookDto.getTitle());
+    // book.setDescription(bookDto.getDescription());
+    // book.setAuthors(bookDto.getAuthors());
+    // book.setPublisher(book.getPublisher());
+    // book.setPublishedDate(bookDto.getPublishedDate());
+    // book.setPrice(bookDto.getPrice());
+    // book.setPageCount(bookDto.getPageCount());
+    // book.setIsbn(bookDto.getIsbn());
+    // book.setImageUrl("http://vsv-peridot.skygroup.local/my-books/images/" + id + ".jpg");
+
+    // book.setGenres(bookDto.getGenreIds().stream().map(genreId -> {
+    // Genre genre = new Genre();
+    // genre.setId(genreId);
+    // return genre;
+    // }).collect(Collectors.toSet()));
+    // return book;
+    // }
+}
+
+--------------------------------------------------
+GenreService
+
+package com.example.spring_boot_test.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.example.spring_boot_test.dto.GenreDto;
+import com.example.spring_boot_test.model.Genre;
+import com.example.spring_boot_test.repository.GenreRepository;
+
+@Service
+public class GenreService {
+
+    @Autowired
+    private GenreRepository genreRepository;
+
+    public List<GenreDto> getGenres() {
+        List<Genre> genres = genreRepository.findAll();
+        List<GenreDto> genresDto =
+                genres.stream().map(this::convertToDto).collect(Collectors.toList());
+        return genresDto;
+    }
+
+    public GenreDto getGenreById(Integer id) {
+        Genre genre = genreRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Genre not found"));
+        GenreDto genreDto = new GenreDto(genre);
+        return genreDto;
+    }
+
+    public Genre saveGenre(Genre genre) {
+        return genreRepository.save(genre);
+    }
+
+    private GenreDto convertToDto(Genre genre) {
+        GenreDto genreDto = new GenreDto();
+        genreDto.setId(genre.getId());
+        genreDto.setName(genre.getName());
+        return genreDto;
     }
 }
 
-
-
-----------------------------------------
-util/RandomStringUtil.java
+--------------------------------------------------
+RandomStringUtil
 
 package com.example.spring_boot_test.util;
 
@@ -241,46 +527,53 @@ public class RandomStringUtil {
     }
 }
 
-
-----------------------------------------
-SpringBootTestApplication.java
+--------------------------------------------------
+SpringBootTestApplication
 
 package com.example.spring_boot_test;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 @SpringBootApplication
-public class SpringBootTestApplication {
+public class SpringBootTestApplication extends SpringBootServletInitializer {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringBootTestApplication.class, args);
 	}
 
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+		return application.sources(SpringBootTestApplication.class);
+
+	}
+
 }
-----------------------------------------
+
+--------------------------------------------------
 application.properties
 
 spring.application.name=spring-boot-test
 
-spring.datasource.url=jdbc:mysql://localhost:3306/my-books-api
+spring.datasource.url=jdbc:mysql://localhost:3306/my-books-db
 spring.datasource.username=root
 spring.datasource.password=password
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.transaction.jta.platform=org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
 spring.jpa.open-in-view=false
-spring.jpa.hibernate.ddl-auto=none
 
-----------------------------------------
+--------------------------------------------------
 build.gradle
 
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.4'
 	id 'io.spring.dependency-management' version '1.1.6'
+	id 'war'
 }
 
 group = 'com.example'
@@ -290,6 +583,10 @@ java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
 	}
+}
+
+bootWar {
+    archiveFileName = 'my-books.war'
 }
 
 repositories {
@@ -306,13 +603,14 @@ dependencies {
 	implementation 'mysql:mysql-connector-java:8.0.33'
 	compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
 
-----------------------------------------
+--------------------------------------------------
 docker-compose.yml
 
 services:
@@ -326,7 +624,7 @@ services:
     ports:
       - 8080:8080
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-book-api
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-books-db
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: password
     depends_on:
@@ -336,116 +634,38 @@ services:
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: my-book-api
+      MYSQL_DATABASE: my-books-db
     ports:
       - 3306:3306
     volumes:
+      - ./.devcontainer/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./.devcontainer/db/data.csv:/docker-entrypoint-initdb.d/data.csv
+      - ./.devcontainer/db/my.cnf:/etc/mysql/conf.d/my.cnf
       - db_data:/var/lib/mysql
+    command: --secure-file-priv=/docker-entrypoint-initdb.d
 
 volumes:
   db_data:
 
-
-----------------------------------------
-.vscode/settings.json
-
-{
-  // ミニマップを非表示にする
-  "editor.minimap.enabled": false,
-
-  // 制御文字を表示する
-  "editor.renderControlCharacters": true,
-
-  // コードフォーマット
-  "java.format.settings.url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml",
-  "java.format.settings.profile": "GoogleStyle",
-
-  // ファイル保存時にフォーマット
-  "[java]": {
-    "editor.formatOnSave": true
-  },
-
-  // コード補完機能を有効にするかどうか
-  "java.completion.enabled": true,
-
-  // Nullアノテーションタイプの解析を有効にする
-  "java.compile.nullAnalysis.mode": "automatic",
-  
-  // スペルチェックの対象外にするワード
-  "cSpell.words": [
-    "checkstyle",
-    "esbenp",
-    "mhutchie",
-    "mosapride",
-    "shengchen",
-    "vscjava",
-    "zenkaku"
-  ],
-  "java.configuration.updateBuildConfiguration": "interactive",
-  "remote.autoForwardPortsFallback": 0
-}
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
 
 
-----------------------------------------
-.devcontainer/devcontainer.json
-
-{
-  "name": "My Dev Container",
-  "dockerComposeFile": "../docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspace",
-  "shutdownAction": "stopCompose",
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "vscjava.vscode-java-pack",
-        "vscjava.vscode-gradle",
-        "mhutchie.git-graph",
-        "streetsidesoftware.code-spell-checker",
-        "mosapride.zenkaku",
-        "shengchen.vscode-checkstyle"
-      ]
-    }
-  }
-}
 
 
-----------------------------------------
-.devcontainer/Dockerfile
-
-FROM openjdk:17-jdk-slim
-
-WORKDIR /workspace
-
-ARG PKG="git curl unzip zip sudo"
-
-RUN apt-get update \
-    && apt-get install -y ${PKG} \
-    && rm -rf /var/lib/apt/lists/*
-
-ARG GRADLE_VERSION=8.10
-
-RUN curl -s "https://get.sdkman.io" | bash \
-    && bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install gradle $GRADLE_VERSION"
-    
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
-----------------------------------------
