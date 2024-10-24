@@ -1,0 +1,154 @@
+総合案内
+https://qiita.com/SAITO_Keita/items/069715dde090f6584c33
+
+
+●WSLインストール
+
+# 管理者で実行する
+wsl --install
+
+●Ubuntuアンインストール
+
+ターミナルで以下のコマンド実行
+
+wsl --unregister Ubuntu
+
+その後、ターミナルからUbuntuを開こうとすると
+自動的に再インストールしてくれる。
+
+●Dockerインストール
+
+公式ページ
+https://docs.docker.com/engine/install/ubuntu/#installation-methods
+
+の以下の項目の部分1.～3.実施（3.は確認作業）
+
+Install using the apt repository
+
+●Dockerインストール後
+
+sudoなしでコマンドを実行できるようにする
+https://docs.docker.com/engine/install/linux-postinstall/
+
+●Git設定
+
+Ubuntuのユーザーディレクトリへ移動
+
+/home/{ユーザー名}
+
+インストール
+sudo apt install git
+
+バージョン確認
+git --version
+
+git config --global user.name "ubuntu"
+git config --global user.email "ubuntu@gmail.com"
+
+●GitHubとの連携
+
+SSHキーの生成
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
+
+ssh-keygen -t ed25519 -C "ubuntu@gmail.com"
+
+上記コマンドで、以下のディレクトリが作成され、SSHキーが格納される
+/home/{ユーザー名}/.ssh
+
+生成された公開鍵をコピー
+
+/home/{ユーザー名}/.sshディレクトリ内の「id_ed25519.pub」の内容をコピー
+
+内容を表示して、表示内容をコピー
+cat .ssh/id_ed25519.pub
+
+GitHubへのSSHキーの追加
+・GitHubの「Settings」を開きます。
+・左サイドバーから「SSH and GPG keys」を選択します。
+・「New SSH Key」をクリックし、タイトルとコピーした公開鍵を入力して「Add SSH Key」をクリックします。
+
+GitHubとの接続確認
+
+ssh -T git@github.com
+
+以下の質問は「yes」
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes 
+
+以下が表示されればOK
+Hi Ndia-R! You've successfully authenticated, but GitHub does not provide shell access.
+
+gitのメインブランチを「main」に設定する
+
+git config --global init.defaultBranch main
+
+
+適当なリポジトリをクローンして動作確認
+
+git clone git@github.com:xxxx/xxxx.git
+
+----------------------------------------
+devcontainerでgithubにssh接続できるようにする
+https://zenn.dev/tyyy/articles/devcontainer_git
+
+「~/.bashrc」ファイルの終端に追加
+
+vim .bashrc
+
+ファイルを開いてから「i」キーを押し、インサートモードへ
+一番下に以下を追加（コピペ）
+
+↓↓↓追加↓↓↓
+# ターミナルを開くたびに自動で ssh-agent を起動させる
+if [ -z "$SSH_AUTH_SOCK" ] ; then
+  eval `ssh-agent -s`
+  ssh-add ~/.ssh/id_ed25519
+  ssh-add -L
+fi
+↑↑↑追加↑↑↑
+
+「ESC」を押してノーマルモードに戻し、
+「:wq」と入力して保存して終了
+
+ターミナルを閉じてから、再度「Ubuntu」を立ち上げて
+ssh-agent を自動起動させる
+
+----------------------------------------
+
+LinuxのOSのバージョン確認
+
+cat /etc/os-release
+
+----------------------------------------
+
+githubへpushするまで
+
+まだ設定してない場合、gitのメインブランチを「main」に設定する
+git config --global init.defaultBranch main
+
+git init
+↓
+git add .
+↓
+git commit -m "initial commit"
+↓
+githubでリポジトリを作成
+作成したリポジトリのSSH URLをコピー
+※SSH設定終わっているものとする
+↓
+git remote add origin {コピーしたSSH URL}
+↓
+git push -u origin main
+
+----------------------------------------
+
+mkdocs起動方法
+
+mkdocs serve --dev-addr 0.0.0.0:8000
+または
+mkdocs serve -a 0.0.0.0:8000
+
+----------------------------------------
+モノレポ、ポリレポ
+
+https://engineering.nifty.co.jp/blog/24155
+https://engineering.nifty.co.jp/blog/24158
