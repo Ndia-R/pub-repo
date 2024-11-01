@@ -7,43 +7,47 @@ CREATE DATABASE `my-books-db`;
 USE `my-books-db`;
 
 -- bookテーブルの削除と再作成
-DROP TABLE IF EXISTS `book`;
-CREATE TABLE `book` (
-  `id` varchar(255) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` text NOT NULL,
-  `genreIds` varchar(255) NOT NULL,
-  `authors` varchar(255) NOT NULL,
-  `publisher` varchar(255) NOT NULL,
-  `published_date` date NOT NULL,
-  `price` int(11) NOT NULL,
-  `page_count` int(11) NOT NULL,
-  `isbn` varchar(255) NOT NULL,
-  `image_url` varchar(255) NOT NULL,
+DROP TABLE IF EXISTS `books`;
+CREATE TABLE `books` (
+  `id` VARCHAR(255) NOT NULL,
+  `title` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` TEXT NOT NULL,
+  `genre_ids` VARCHAR(255) NOT NULL DEFAULT '',
+  `authors` VARCHAR(255) NOT NULL DEFAULT '',
+  `publisher` VARCHAR(255) NOT NULL DEFAULT '',
+  `published_date` DATE NOT NULL,
+  `price` INT(11) NOT NULL DEFAULT 0,
+  `page_count` INT(11) NOT NULL DEFAULT 0,
+  `isbn` VARCHAR(255) NOT NULL DEFAULT '',
+  `image_url` VARCHAR(255) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
 );
 
 -- genreテーブルの削除と再作成
-DROP TABLE IF EXISTS `genre`;
-CREATE TABLE `genre` (
+DROP TABLE IF EXISTS `genres`;
+CREATE TABLE `genres` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NOT NULL,
-  `description` TEXT,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` TEXT NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_active` TINYINT(1) DEFAULT 1,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
-);
+) AUTO_INCREMENT=10;
 
 -- データのロード
 LOAD DATA INFILE '/docker-entrypoint-initdb.d/data.csv'
-INTO TABLE book
+INTO TABLE books
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
-LINES TERMINATED BY '\n';
+LINES TERMINATED BY '\n'
+(`id`, `title`, `description`, `genre_ids`, `authors`, `publisher`, `published_date`, `price`, `page_count`, `isbn`, `image_url`);
 
-INSERT INTO `genre` (`name`, `description`) VALUES
+INSERT INTO `genres` (`name`, `description`) VALUES
 ('ミステリー', '謎解きや推理をテーマにした作品'),
 ('サスペンス', '緊張感や驚きを伴う作品'),
 ('ロマンス', '恋愛をテーマにした作品'),
@@ -68,6 +72,7 @@ my.cnf
 [mysqld]
 character-set-server=utf8mb4
 collation-server=utf8mb4_unicode_ci
+default-time-zone = 'Asia/Tokyo'
 
 [client]
 default-character-set=utf8mb4
@@ -76,23 +81,84 @@ default-character-set=utf8mb4
 default-character-set=utf8mb4
 
 --------------------------------------------------
-BookController
+settings.json
 
-package com.example.spring_boot_test.controller;
+{
+  // ミニマップを非表示にする
+  "editor.minimap.enabled": false,
 
+  // 制御文字を表示する
+  "editor.renderControlCharacters": true,
+
+  // コードフォーマット
+  "editor.defaultFormatter": "redhat.java",
+  "java.format.settings.url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml",
+  "java.format.settings.profile": "GoogleStyle",
+
+  // ファイル保存時にフォーマット
+  "[java]": {
+    "editor.formatOnSave": true
+  },
+
+  // コード補完機能を有効にするかどうか
+  "java.completion.enabled": true,
+
+  // Nullアノテーションタイプの解析を有効にする
+  "java.compile.nullAnalysis.mode": "automatic",
+  
+  // スペルチェックの対象外にするワード
+  "cSpell.words": [
+    "Cacheable",
+    "checkstyle",
+    "esbenp",
+    "initdb",
+    "mhutchie",
+    "mosapride",
+    "mysqld",
+    "Servlet",
+    "shengchen",
+    "vscjava",
+    "zenkaku"
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "remote.autoForwardPortsFallback": 0
+}
+
+--------------------------------------------------
+config/ModelMapperConfig.java
+
+package com.example.spring_boot_api.config;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class ModelMapperConfig {
+
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
+}
+
+--------------------------------------------------
+BookController.java
+
+package com.example.spring_boot_api.controller;
+
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.spring_boot_test.dto.BookDto;
-import com.example.spring_boot_test.dto.BookResponseDto;
-import com.example.spring_boot_test.service.BookService;
+import com.example.spring_boot_api.dto.book.BookDto;
+import com.example.spring_boot_api.dto.book.BookResponseDto;
+import com.example.spring_boot_api.service.BookService;
 
 @RestController
 @RequestMapping("/books")
@@ -101,50 +167,63 @@ public class BookController {
     @Autowired
     private BookService bookService;
 
-    @GetMapping
-    public List<BookDto> getBooks() {
-        return bookService.getBooks();
+    @GetMapping("")
+    public ResponseEntity<List<BookDto>> getBooks() {
+        List<BookDto> books = bookService.getBooks();
+        return ResponseEntity.ok(books);
     }
 
     @GetMapping("/{id}")
-    public BookDto getBookById(@PathVariable String id) {
-        return bookService.getBookById(id);
+    public ResponseEntity<BookDto> getBookById(@PathVariable String id) {
+        BookDto book = bookService.getBookById(id);
+        return ResponseEntity.ok(book);
     }
 
     @GetMapping("/search")
-    public BookResponseDto searchByTitle(@RequestParam String q, @PageableDefault(page = 0,
-            size = 20, sort = "title", direction = Direction.ASC) Pageable pageable) {
-        return bookService.searchByTitle(q, pageable);
+    public ResponseEntity<BookResponseDto> searchByTitle(@RequestParam String q,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        BookResponseDto bookResponse = bookService.searchByTitle(q, page, maxResults);
+        return ResponseEntity.ok(bookResponse);
     }
 
-    // @GetMapping("/discover")
-    // public BookResponseDto searchByGenreId(@RequestParam String genreId, @PageableDefault(page =
-    // 0,
-    // size = 20, sort = "title", direction = Direction.ASC) Pageable pageable) {
-    // return bookService.searchByGenreId(genreId, pageable);
-    // }
+    @GetMapping("/discover")
+    public ResponseEntity<BookResponseDto> searchByGenreId(@RequestParam String genreId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        List<String> genreIds = Arrays.asList(genreId.split(","));
+        BookResponseDto bookResponse = bookService.searchByGenreId(genreIds, page, maxResults);
+        return ResponseEntity.ok(bookResponse);
+    }
 
 }
 
 --------------------------------------------------
-GenreController
+GenreController.java
 
-package com.example.spring_boot_test.controller;
+package com.example.spring_boot_api.controller;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.spring_boot_test.dto.GenreDto;
-import com.example.spring_boot_test.model.Genre;
-import com.example.spring_boot_test.service.GenreService;
+import com.example.spring_boot_api.dto.genre.GenreCreateDto;
+import com.example.spring_boot_api.dto.genre.GenreDto;
+import com.example.spring_boot_api.dto.genre.GenreUpdateDto;
+import com.example.spring_boot_api.model.Genre;
+import com.example.spring_boot_api.service.GenreService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/genres")
@@ -153,31 +232,53 @@ public class GenreController {
     @Autowired
     private GenreService genreService;
 
-    @GetMapping
-    public List<GenreDto> getGenres() {
-        return genreService.getGenres();
+    @GetMapping("")
+    public ResponseEntity<List<GenreDto>> getGenres() {
+        List<GenreDto> genres = genreService.getGenres();
+        return ResponseEntity.ok(genres);
     }
 
     @GetMapping("/{id}")
-    public GenreDto getGenreById(@PathVariable Integer id) {
-        return genreService.getGenreById(id);
+    public ResponseEntity<GenreDto> getGenreById(@PathVariable Integer id) {
+        GenreDto genre = genreService.getGenreById(id);
+        return ResponseEntity.ok(genre);
     }
 
-    @PostMapping
-    public ResponseEntity<Genre> createTodoItem(@RequestBody Genre newGenre) {
-        Genre genre = genreService.saveGenre(newGenre);
+    @PostMapping("")
+    public ResponseEntity<GenreDto> createGenre(@Valid @RequestBody GenreCreateDto dto) {
+        GenreDto genre = genreService.createGenre(dto);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(genre.getId()).toUri();
         return ResponseEntity.created(location).body(genre);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<GenreDto> updateGenre(@PathVariable Integer id,
+            @Valid @RequestBody GenreUpdateDto dto) {
+        genreService.updateGenre(id, dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<GenreDto> patchGenre(@PathVariable Integer id,
+            @Valid @RequestBody Map<String, Object> updates) {
+        genreService.patchGenre(id, updates);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Genre> deleteGenre(@PathVariable Integer id) {
+        genreService.deleteGenre(id);
+        return ResponseEntity.noContent().build();
+    }
 }
 
 --------------------------------------------------
-BookDto
+BookDto.java
 
-package com.example.spring_boot_test.dto;
+package com.example.spring_boot_api.dto.book;
 
-import java.time.LocalDate;
+import java.sql.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -187,25 +288,23 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookDto {
-
-    private String id; // ID
-    private String title; // タイトル
-    private String description; // 概要
-    private List<Integer> genreIds; // ジャンルID
-    private List<String> authors; // 作者
-    private String publisher; // 出版社
-    private LocalDate publishedDate; // 出版日
-    private Integer price; // 価格
-    private Integer pageCount; // ページ数
-    private String isbn; // ISBN
-    private String imageUrl; // イメージ画像URL
-
+    private String id;
+    private String title;
+    private String description;
+    private List<Integer> genreIds;
+    private List<String> authors;
+    private String publisher;
+    private Date publishedDate;
+    private Integer price;
+    private Integer pageCount;
+    private String isbn;
+    private String imageUrl;
 }
 
 --------------------------------------------------
-BookResponseDto
+BookResponseDto.java
 
-package com.example.spring_boot_test.dto;
+package com.example.spring_boot_api.dto.book;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -216,16 +315,42 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookResponseDto {
+    private Integer page;
+    private Integer totalPages;
     private Integer totalItems;
     private List<BookDto> books;
 }
 
 --------------------------------------------------
-GenreDto
+GenreCreateDto.java
+GenreUpdateDto.java
 
-package com.example.spring_boot_test.dto;
+package com.example.spring_boot_api.dto.genre;
 
-import com.example.spring_boot_test.model.Genre;
+import org.hibernate.validator.constraints.Length;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class GenreCreateDto {
+    @NotNull
+    @Length(max = 50)
+    private String name;
+
+    @NotNull
+    @Length(max = 255)
+    private String description;
+}
+
+--------------------------------------------------
+GenreDto.java
+
+package com.example.spring_boot_api.dto.genre;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -234,57 +359,174 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GenreDto {
-
     private Integer id;
     private String name;
-
-    public GenreDto(Genre genre) {
-        this.id = genre.getId();
-        this.name = genre.getName();
-    }
 }
 
 
 --------------------------------------------------
-Book
+BookMapper.java
 
-package com.example.spring_boot_test.model;
+package com.example.spring_boot_api.mapper;
 
-import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
+import com.example.spring_boot_api.dto.book.BookDto;
+import com.example.spring_boot_api.dto.book.BookResponseDto;
+import com.example.spring_boot_api.model.Book;
+
+@Component
+public class BookMapper {
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    public BookDto toDto(Book book) {
+        BookDto bookDto = modelMapper.map(book, BookDto.class);
+
+        List<Integer> genreIds =
+                Arrays.stream(book.getGenreIds().split(",")).map(Integer::parseInt).toList();
+        bookDto.setGenreIds(genreIds);
+
+        List<String> authors = Arrays.asList(book.getAuthors().split(","));
+        bookDto.setAuthors(authors);
+
+        return bookDto;
+    }
+
+    public Book toEntity(BookDto bookDto) {
+        Book book = modelMapper.map(bookDto, Book.class);
+
+        String genreIds = bookDto.getGenreIds().stream().map(String::valueOf)
+                .collect(Collectors.joining(","));
+        book.setGenreIds(genreIds);
+
+        String authors = String.join(",", bookDto.getAuthors());
+        book.setAuthors(authors);
+
+        return book;
+    }
+
+    public List<BookDto> toDtoList(List<Book> books) {
+        return books.stream().map(book -> toDto(book)).toList();
+    }
+
+    public BookResponseDto toResponseDto(Page<Book> pageBook) {
+        Integer page = pageBook.getNumber();
+        Integer totalPages = pageBook.getTotalPages();
+        Integer totalItems = (int) pageBook.getTotalElements();
+        List<BookDto> booksDto = toDtoList(pageBook.getContent());
+        return new BookResponseDto(page, totalPages, totalItems, booksDto);
+    }
+}
+
+--------------------------------------------------
+GenreMapper.java
+
+package com.example.spring_boot_api.mapper;
+
+import java.util.List;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import com.example.spring_boot_api.dto.genre.GenreCreateDto;
+import com.example.spring_boot_api.dto.genre.GenreDto;
+import com.example.spring_boot_api.model.Genre;
+
+@Component
+public class GenreMapper {
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    public GenreDto toDto(Genre genre) {
+        return modelMapper.map(genre, GenreDto.class);
+    }
+
+    public Genre toEntity(GenreDto genreDto) {
+        return modelMapper.map(genreDto, Genre.class);
+    }
+
+    public List<GenreDto> toDtoList(List<Genre> genres) {
+        return genres.stream().map(genre -> toDto(genre)).toList();
+    }
+
+    public Genre CreateDtoToEntity(GenreCreateDto createGenreDto) {
+        return modelMapper.map(createGenreDto, Genre.class);
+    }
+}
+
+--------------------------------------------------
+Book.java
+
+package com.example.spring_boot_api.model;
+
+import java.sql.Date;
+import com.example.spring_boot_api.shared.EntityBase;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "book")
+@Table(name = "books")
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Book {
+public class Book extends EntityBase {
 
     @Id
-    private String id; // ID
-    private String title; // タイトル
-    private String description; // 概要
-    private String genreIds; // ジャンルID
-    private String authors; // 作者
-    private String publisher; // 出版社
-    private LocalDate publishedDate; // 出版日
-    private Integer price; // 価格
-    private Integer pageCount; // ページ数
-    private String isbn; // ISBN
-    private String imageUrl; // イメージ画像URL
+    @Column(name = "id", nullable = false)
+    private String id;
+
+    @Column(name = "title", nullable = false)
+    private String title;
+
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "genre_ids", nullable = false)
+    private String genreIds;
+
+    @Column(name = "authors", nullable = false)
+    private String authors;
+
+    @Column(name = "publisher", nullable = false)
+    private String publisher;
+
+    @Column(name = "published_date", nullable = false)
+    private Date publishedDate;
+
+    @Column(name = "price", nullable = false)
+    private Integer price;
+
+    @Column(name = "page_count", nullable = false)
+    private Integer pageCount;
+
+    @Column(name = "isbn", nullable = false)
+    private String isbn;
+
+    @Column(name = "image_url")
+    private String imageUrl;
 }
 
 --------------------------------------------------
-Genre
+Genre.java
 
-package com.example.spring_boot_test.model;
+package com.example.spring_boot_api.model;
 
-import java.sql.Timestamp;
+import com.example.spring_boot_api.shared.EntityBase;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -292,84 +534,49 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "genre")
+@Table(name = "genres")
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Genre {
+public class Genre extends EntityBase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Integer id;
+
+    @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "description", nullable = false)
     private String description;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
-    private Boolean isActive;
 }
 
 --------------------------------------------------
-BookRepository
+BookService.java
 
-package com.example.spring_boot_test.repository;
+package com.example.spring_boot_api.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import com.example.spring_boot_test.model.Book;
-
-@Repository
-public interface BookRepository extends JpaRepository<Book, String> {
-    Page<Book> findByTitleContaining(String q, Pageable pageable);
-
-    // Page<Book> findByGenreIdsLike(String genreIdPattern, Pageable pageable);
-
-    // @Query("SELECT b FROM Book b WHERE b.title LIKE %:q% ORDER BY b.publishedDate DESC, b.id
-    // DESC")
-    // Page<Book> findByTitleContainingOrderByPublishedDateAndIdDesc(String q, Pageable pageable);
-
-    // Spring Data JPAで自動的に生成する場合は以下の様に記述
-    // メソッド名はSpring Data JPAの命名規則に基づいて指定
-    // List<Book> findByTitleContaining(String q);
-    // ↓クエリ指定では以下
-    // @Query("SELECT b FROM Book b WHERE b.title LIKE %:q%")
-    // List<Book> searchByTitle(@RequestParam String q);
-}
-
---------------------------------------------------
-GenreRepository
-
-package com.example.spring_boot_test.repository;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import com.example.spring_boot_test.model.Genre;
-
-@Repository
-public interface GenreRepository extends JpaRepository<Genre, Integer> {
-}
-
---------------------------------------------------
-BookService
-
-package com.example.spring_boot_test.service;
-
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.spring_boot_test.dto.BookDto;
-import com.example.spring_boot_test.dto.BookResponseDto;
-import com.example.spring_boot_test.model.Book;
-import com.example.spring_boot_test.repository.BookRepository;
+import com.example.spring_boot_api.dto.book.BookDto;
+import com.example.spring_boot_api.dto.book.BookResponseDto;
+import com.example.spring_boot_api.exception.NotFoundException;
+import com.example.spring_boot_api.mapper.BookMapper;
+import com.example.spring_boot_api.model.Book;
+import com.example.spring_boot_api.repository.BookRepository;
+import com.example.spring_boot_api.repository.BookRepositoryCustom;
 
 @Service
 public class BookService {
@@ -377,99 +584,78 @@ public class BookService {
     @Autowired
     private BookRepository bookRepository;
 
-    @Transactional
+    @Autowired
+    private BookRepositoryCustom bookRepositoryCustom;
+
+    @Autowired
+    private BookMapper bookMapper;
+
+    private static final Integer DEFAULT_START_PAGE = 0;
+    private static final Integer DEFAULT_MAX_RESULTS = 20;
+    private static final Sort DEFAULT_SORT = Sort.by("title").ascending();
+
     public List<BookDto> getBooks() {
         List<Book> books = bookRepository.findAll();
-        List<BookDto> booksDto =
-                books.stream().map(this::convertToDto).collect(Collectors.toList());
+        List<BookDto> booksDto = bookMapper.toDtoList(books);
         return booksDto;
     }
 
-    @Transactional
     public BookDto getBookById(String id) {
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
-        BookDto bookDto = convertToDto(book);
+        Book book = findBookById(id);
+        BookDto bookDto = bookMapper.toDto(book);
         return bookDto;
     }
 
-    public BookResponseDto searchByTitle(String q, Pageable pageable) {
-        Page<Book> page = bookRepository.findByTitleContaining(q, pageable);
-
-        Integer totalItems = (int) page.getTotalElements();
-        List<Book> books = page.getContent();
-        List<BookDto> booksDto =
-                books.stream().map(this::convertToDto).collect(Collectors.toList());
-        BookResponseDto bookResponseDto = new BookResponseDto(totalItems, booksDto);
+    public BookResponseDto searchByTitle(String q, Integer page, Integer maxResults) {
+        Pageable pageable = createPageable(page, maxResults);
+        Page<Book> pageBook = bookRepository.findByTitleContaining(q, pageable);
+        BookResponseDto bookResponseDto = bookMapper.toResponseDto(pageBook);
         return bookResponseDto;
     }
 
-    // public BookResponseDto searchByGenreId(String genreId, Pageable pageable) {
-    // String genreIdPattern = "%" + genreId + "%";
-    // Page<Book> page = bookRepository.findByGenreIdsLike(genreIdPattern, pageable);
-
-    // Integer totalItems = (int) page.getTotalElements();
-    // List<Book> books = page.getContent();
-    // List<BookDto> booksDto =
-    // books.stream().map(this::convertToDto).collect(Collectors.toList());
-    // BookResponseDto bookResponseDto = new BookResponseDto(totalItems, booksDto);
-    // return bookResponseDto;
-    // }
-
-
-    private BookDto convertToDto(Book book) {
-        BookDto bookDto = new BookDto();
-        bookDto.setId(book.getId());
-        bookDto.setTitle(book.getTitle());
-        bookDto.setDescription(book.getDescription());
-        bookDto.setGenreIds(Arrays.stream(book.getGenreIds().split(",")).map(Integer::parseInt)
-                .collect(Collectors.toList()));
-        bookDto.setAuthors(Arrays.asList(book.getAuthors().split(",")));
-        bookDto.setPublisher(book.getPublisher());
-        bookDto.setPublishedDate(book.getPublishedDate());
-        bookDto.setPrice(book.getPrice());
-        bookDto.setPageCount(book.getPageCount());
-        bookDto.setIsbn(book.getIsbn());
-        bookDto.setImageUrl(book.getImageUrl());
-
-        return bookDto;
+    public BookResponseDto searchByGenreId(List<String> genreIds, Integer page,
+            Integer maxResults) {
+        Pageable pageable = createPageable(page, maxResults);
+        Page<Book> pageBook = bookRepositoryCustom.findByGenreIds(genreIds, pageable);
+        BookResponseDto bookResponseDto = bookMapper.toResponseDto(pageBook);
+        return bookResponseDto;
     }
 
-    // private Book convertToEntity(BookDto bookDto) {
-    // Book book = new Book();
-    // String id = RandomStringUtil.generateRandomString();
-    // book.setId(id);
-    // book.setTitle(bookDto.getTitle());
-    // book.setDescription(bookDto.getDescription());
-    // book.setAuthors(bookDto.getAuthors());
-    // book.setPublisher(book.getPublisher());
-    // book.setPublishedDate(bookDto.getPublishedDate());
-    // book.setPrice(bookDto.getPrice());
-    // book.setPageCount(bookDto.getPageCount());
-    // book.setIsbn(bookDto.getIsbn());
-    // book.setImageUrl("http://vsv-peridot.skygroup.local/my-books/images/" + id + ".jpg");
+    private Pageable createPageable(Integer page, Integer maxResults) {
+        page = (page != null) ? page : DEFAULT_START_PAGE;
+        maxResults = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
+        return PageRequest.of(page, maxResults, DEFAULT_SORT);
+    }
 
-    // book.setGenres(bookDto.getGenreIds().stream().map(genreId -> {
-    // Genre genre = new Genre();
-    // genre.setId(genreId);
-    // return genre;
-    // }).collect(Collectors.toSet()));
-    // return book;
-    // }
+    private Book findBookById(String id) {
+        Optional<Book> found = bookRepository.findById(id);
+        if (found.isEmpty()) {
+            throw new NotFoundException("Not found with this ID: " + id);
+        }
+        return found.get();
+    }
 }
 
 --------------------------------------------------
-GenreService
+GenreService.java
 
-package com.example.spring_boot_test.service;
+package com.example.spring_boot_api.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-import com.example.spring_boot_test.dto.GenreDto;
-import com.example.spring_boot_test.model.Genre;
-import com.example.spring_boot_test.repository.GenreRepository;
+import com.example.spring_boot_api.dto.genre.GenreCreateDto;
+import com.example.spring_boot_api.dto.genre.GenreDto;
+import com.example.spring_boot_api.dto.genre.GenreUpdateDto;
+import com.example.spring_boot_api.exception.NotFoundException;
+import com.example.spring_boot_api.mapper.GenreMapper;
+import com.example.spring_boot_api.model.Genre;
+import com.example.spring_boot_api.repository.GenreRepository;
 
 @Service
 public class GenreService {
@@ -477,102 +663,137 @@ public class GenreService {
     @Autowired
     private GenreRepository genreRepository;
 
+    @Autowired
+    private GenreMapper genreMapper;
+
+    @Cacheable("getGenres")
     public List<GenreDto> getGenres() {
         List<Genre> genres = genreRepository.findAll();
-        List<GenreDto> genresDto =
-                genres.stream().map(this::convertToDto).collect(Collectors.toList());
+        List<GenreDto> genresDto = genreMapper.toDtoList(genres);
         return genresDto;
     }
 
+    @Cacheable(value = "getGenreById", key = "#p0")
     public GenreDto getGenreById(Integer id) {
-        Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Genre not found"));
-        GenreDto genreDto = new GenreDto(genre);
+        Genre genre = findGenreById(id);
+        GenreDto genreDto = genreMapper.toDto(genre);
         return genreDto;
     }
 
-    public Genre saveGenre(Genre genre) {
-        return genreRepository.save(genre);
-    }
-
-    private GenreDto convertToDto(Genre genre) {
-        GenreDto genreDto = new GenreDto();
-        genreDto.setId(genre.getId());
-        genreDto.setName(genre.getName());
+    @CacheEvict(value = "getGenres", allEntries = true)
+    public GenreDto createGenre(GenreCreateDto dto) {
+        Genre genre = genreMapper.CreateDtoToEntity(dto);
+        Genre saveGenre = genreRepository.save(genre);
+        GenreDto genreDto = genreMapper.toDto(saveGenre);
         return genreDto;
     }
-}
 
---------------------------------------------------
-RandomStringUtil
+    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
+            @CacheEvict(value = "getGenres", allEntries = true)})
+    public void updateGenre(Integer id, GenreUpdateDto dto) {
+        Genre genre = findGenreById(id);
+        genre.setName(dto.getName());
+        genre.setDescription(dto.getDescription());
+        genreRepository.save(genre);
+    }
 
-package com.example.spring_boot_test.util;
+    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
+            @CacheEvict(value = "getGenres", allEntries = true)})
+    public void patchGenre(Integer id, Map<String, Object> updates) {
+        Genre genre = findGenreById(id);
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "name":
+                    genre.setName((String) value);
+                    break;
+                case "description":
+                    genre.setDescription((String) value);
+                    break;
+            }
+        });
+        genreRepository.save(genre);
+    }
 
-import java.security.SecureRandom;
+    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
+            @CacheEvict(value = "getGenres", allEntries = true)})
+    public void deleteGenre(Integer id) {
+        Genre genre = findGenreById(id);
+        genreRepository.delete(genre);
+    }
 
-public class RandomStringUtil {
-    // 使用する文字のセット
-    private static final String CHARACTERS =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    private static final int LENGTH = 12;
-    private static final SecureRandom RANDOM = new SecureRandom();
-
-    public static String generateRandomString() {
-        StringBuilder sb = new StringBuilder(LENGTH);
-        for (int i = 0; i < LENGTH; i++) {
-            int index = RANDOM.nextInt(CHARACTERS.length());
-            sb.append(CHARACTERS.charAt(index));
+    private Genre findGenreById(Integer id) {
+        Optional<Genre> found = genreRepository.findById(id);
+        if (found.isEmpty()) {
+            throw new NotFoundException("Not found with this ID: " + id);
         }
-        return sb.toString();
+        return found.get();
     }
 }
 
 --------------------------------------------------
-SpringBootTestApplication
+EntityBase.java
 
-package com.example.spring_boot_test;
+package com.example.spring_boot_api.shared;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import java.time.LocalDateTime;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import lombok.Data;
 
-@SpringBootApplication
-public class SpringBootTestApplication extends SpringBootServletInitializer {
+@Data
+@MappedSuperclass
+public class EntityBase {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SpringBootTestApplication.class, args);
-	}
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
-	@Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-		return application.sources(SpringBootTestApplication.class);
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
 
-	}
+    @PrePersist
+    protected void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }
 
 --------------------------------------------------
 application.properties
 
-spring.application.name=spring-boot-test
+spring.application.name=spring-boot-api
 
 spring.datasource.url=jdbc:mysql://localhost:3306/my-books-db
 spring.datasource.username=root
 spring.datasource.password=password
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
+spring.jpa.properties.hibernate.hbm2dll.create_namespaces=true
 spring.jpa.hibernate.ddl-auto=validate
+# update
 spring.jpa.show-sql=true
 spring.jpa.open-in-view=false
+
+# Hibernate Dialectを設定
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 
 --------------------------------------------------
 build.gradle
 
 plugins {
 	id 'java'
+	id 'war'
 	id 'org.springframework.boot' version '3.3.4'
 	id 'io.spring.dependency-management' version '1.1.6'
-	id 'war'
 }
 
 group = 'com.example'
@@ -584,25 +805,34 @@ java {
 	}
 }
 
-bootWar {
-    archiveFileName = 'my-books.war'
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
 }
 
 repositories {
 	mavenCentral()
 }
 
+bootWar {
+    archiveFileName = 'my-books.war'
+}
+
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok:1.18.24'
+	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	implementation 'mysql:mysql-connector-java:8.0.33'
-    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	annotationProcessor 'org.projectlombok:lombok'
 	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+	developmentOnly 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'org.modelmapper:modelmapper:3.1.0'
 }
 
 tasks.named('test') {
@@ -610,61 +840,8 @@ tasks.named('test') {
 }
 
 --------------------------------------------------
-docker-compose.yml
-
-services:
-  app:
-    build:
-      context: .
-      dockerfile: .devcontainer/Dockerfile
-    volumes:
-      - .:/workspace
-    tty: true
-    ports:
-      - 8080:8080
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-books-db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: password
-    depends_on:
-      - db
-
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: my-books-db
-    ports:
-      - 3306:3306
-    volumes:
-      - ./.devcontainer/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./.devcontainer/db/data.csv:/docker-entrypoint-initdb.d/data.csv
-      - ./.devcontainer/db/my.cnf:/etc/mysql/conf.d/my.cnf
-      - db_data:/var/lib/mysql
-    command: --secure-file-priv=/docker-entrypoint-initdb.d
-
-volumes:
-  db_data:
-
 --------------------------------------------------
 --------------------------------------------------
 --------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
---------------------------------------------------
-
-
 
 
