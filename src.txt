@@ -1,36 +1,115 @@
 ------------------------------------------------------------
-book-detail
+settings
 
-<TooltipTrigger asChild>
+{
+  // globals.cssの「@tailwind」の警告の波線を消す
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+
+  // ミニマップを非表示にする
+  "editor.minimap.enabled": false,
+
+  // 制御文字を表示する
+  "editor.renderControlCharacters": true,
+
+  // デフォルトのフォーマットはprettierを指定
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  // ファイル保存時にPrettierでフォーマット
+  "editor.formatOnSave": true,
+
+  // ファイル保存時
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit", // 未使用のimport文を削除し、import文の順番を並べ替え
+    "source.fixAll.eslint": "explicit" // ESLintに対応しているファイルはESLintでフォーマット
+  },
+
+  // 改行コードの規定値
+  "files.eol": "\n",
+
+  // ファイル保存時に行末に改行を挿入
+  "files.insertFinalNewline": true,
+
+  // ファイル保存時に最終行以降の空行を削除
+  "files.trimFinalNewlines": true,
+
+  // ファイル保存時に各行の末尾にある半角スペースを削除
+  "files.trimTrailingWhitespace": true,
+
+  // 絶対パスでAuto Importを行う（tsconfig.jsonに構成されているbseUrlまたはpathsに基づいて非相対インポートを優先）
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+
+  // スペルチェックの対象外にするワード
+  "cSpell.words": [
+    "clsx",
+    "Devcontainer",
+    "disp",
+    "lucide",
+    "shadcn",
+    "tailwindcss",
+    "zenkaku"
+  ]
+}
+
 
 ------------------------------------------------------------
 review-dialog
 
 import Rating from '@/components/rating';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export default function ReviewDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const [rating, setRating] = useState(0);
-  const commentRef = useRef<HTMLTextAreaElement | null>(null);
+  const [text, setText] = useState('');
+  const ref = useRef<HTMLTextAreaElement | null>(null);
   const { toast } = useToast();
+  const { confirmDialog } = useConfirmDialog();
 
   useEffect(() => {
     if (isOpen) {
-      if (commentRef.current) {
-        commentRef.current.value = '';
-      }
       setRating(0);
     }
   }, [isOpen]);
 
-  const handlePost = () => {
+  const handleAnimationStart = (e: React.AnimationEvent) => {
+    if (e.animationName === 'enter' && ref.current) {
+      setText('');
+      ref.current.focus();
+    }
+  };
+
+  const handlePost = async () => {
+    if (rating === 0) {
+      const { isCancel } = await confirmDialog({
+        icon: '?',
+        title: 'このまま投稿しますか？',
+        message: '星の数が「0」のままです。',
+      });
+      if (isCancel) return;
+    }
+
     toast({ description: 'レビューを投稿しました' });
+    setIsOpen(false);
+  };
+
+  const handleCloseDialog = async () => {
+    if (text) {
+      const { isCancel } = await confirmDialog({
+        icon: '?',
+        title: '本当に閉じますか？',
+        message: '入力されているコメントはまだ投稿していません。',
+        persistent: true,
+      });
+      if (isCancel) return;
+    }
     setIsOpen(false);
   };
 
@@ -51,23 +130,14 @@ export default function ReviewDialog() {
         </TooltipContent>
       </Tooltip>
 
-      <Tooltip>
-        <TooltipTrigger>レビューを書く</TooltipTrigger>
-        <TooltipContent>
-          <p>ログインしてこの本のレビューを書きましょう</p>
-        </TooltipContent>
-      </Tooltip>
-
-      <Dialog
-        className="w-1/2 min-w-[360px] max-w-[600px]"
-        open={isOpen}
-        onOpenChange={setIsOpen}
-      >
-        <DialogTrigger asChild>
-          <Button onClick={() => console.log('FFF')}>ボタン</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <div className="mb-3 flex items-start justify-between">
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent
+          className="w-1/2 min-w-[360px] max-w-[600px] p-4 md:p-6"
+          onEscapeKeyDown={handleCloseDialog}
+          onPointerDownOutside={handleCloseDialog}
+          onAnimationStart={handleAnimationStart}
+        >
+          <div className="flex items-start justify-between">
             <div>
               <p className="font-semibold leading-10">レビュー</p>
               <p className="text-xs text-muted-foreground md:text-sm">
@@ -82,13 +152,20 @@ export default function ReviewDialog() {
             </div>
           </div>
 
-          <Textarea className="mb-6" ref={commentRef} />
+          <Textarea ref={ref} onChange={(e) => setText(e.currentTarget.value)} />
 
-          <div className="flex justify-center">
-            <Button className="w-48 rounded-full" onClick={handlePost}>
+          <DialogFooter>
+            <Button className="rounded-full" variant="ghost" onClick={handleCloseDialog}>
+              閉じる
+            </Button>
+            <Button
+              className="rounded-full"
+              disabled={text === '' ? true : false}
+              onClick={handlePost}
+            >
               投稿する
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
@@ -97,62 +174,379 @@ export default function ReviewDialog() {
 
 
 ------------------------------------------------------------
-button
+header
 
+import LoginButton from '@/components/layout/login-button';
+import NavList from '@/components/layout/nav-list';
+import ThemeToggleButton from '@/components/layout/theme-toggle-button';
+import SearchBar from '@/components/search-bar';
 import { cn } from '@/lib/util';
-import React, { ButtonHTMLAttributes } from 'react';
 
-const variantList = {
-  default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-  outline:
-    'border border-primary/50 text-primary bg-background hover:bg-primary/20 hover:border-primary',
-  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-  ghost: 'bg-transparent text-foreground hover:bg-primary/20 hover:text-primary',
+type Props = {
+  className?: string;
 };
 
-const sizeList = {
-  default: 'h-10 px-4 py-2',
-  sm: 'h-9 rounded-md px-3',
-  lg: 'h-11 rounded-md px-8',
-  icon: 'size-10',
-};
-
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline' | 'secondary' | 'ghost';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
+export default function Header({ className }: Props) {
+  return (
+    <header className={cn('w-full bg-background/30 backdrop-blur-lg', className)}>
+      <div className="mx-auto max-w-7xl px-3 sm:px-6">
+        <div className="flex h-16 w-full items-center sm:gap-x-2">
+          <NavList />
+          <span className="flex-1"></span>
+          <SearchBar />
+          <LoginButton />
+          <ThemeToggleButton />
+        </div>
+      </div>
+    </header>
+  );
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, children, variant = 'default', size = 'default', ...props }, ref) => {
+------------------------------------------------------------
+hero
+
+import imgUrl from '@/assets/main-visual.png';
+import SearchBar from '@/components/search-bar';
+
+export default function Hero() {
+  return (
+    <div className="relative mb-4 flex h-[450px] w-full items-center gap-3 sm:mb-0 sm:gap-4 lg:h-[500px]">
+      <div className="flex w-3/4 flex-col justify-between lg:w-3/5">
+        <div>
+          <h1 className="w-fit text-5xl font-bold sm:text-6xl xl:text-7xl">
+            Let’s search for <span className="text-primary">Books</span> to discover new
+            knowledge.
+          </h1>
+          <p className="my-6 w-full break-words text-sm text-muted-foreground">
+            本の探索サイトへようこそ。多様なコレクションから、新しい知識を発見しましょう。厳選された書籍で、あなたの次の読書を見つけてください。知識の旅に一緒に出かけましょう。
+          </p>
+        </div>
+        <div className="flex h-full max-w-96 items-center">
+          <SearchBar />
+        </div>
+      </div>
+      <div className="absolute right-0 top-10 -z-10 w-[400px] opacity-40 sm:right-5 sm:w-[400px] lg:w-[450px] lg:opacity-100">
+        <img src={imgUrl} alt="main-visual-image" />
+      </div>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+login-button
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+
+export default function LoginButton() {
+  const [isLogin, setIsLogin] = useState(false);
+
+  const handleClickAvatar = () => {
+    console.log('avatar');
+  };
+
+  return (
+    <>
+      {isLogin ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Avatar className="cursor-pointer" onClick={handleClickAvatar}>
+              <AvatarImage src="/images/avatar05.png" alt="avatar-image" />
+              <AvatarFallback>P</AvatarFallback>
+            </Avatar>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p>プロフィールと一般設定</p>
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <Link to="/login">
+          <Button className="rounded-full" variant="ghost">
+            ログイン
+          </Button>
+        </Link>
+      )}
+    </>
+  );
+}
+
+
+------------------------------------------------------------
+menu-list
+
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/util';
+import { Link, useLocation } from 'react-router-dom';
+
+type Props = {
+  onClick?: () => void;
+};
+
+export default function MenuList({ onClick }: Props) {
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  const menuItems = [
+    { href: '/favorites', title: 'FAVORITES' },
+    { href: '/settings', title: 'SETTINGS' },
+  ];
+
+  return (
+    <ul className="flex flex-col gap-x-0 gap-y-2 md:flex-row">
+      {menuItems.map((item) => (
+        <li key={item.href}>
+          <Link to={item.href}>
+            <Button
+              className={cn(
+                'rounded-full w-full justify-center hover:bg-primary/20 hover:text-primary text-muted-foreground',
+                pathname === item.href && 'text-primary underline hover:text-primary'
+              )}
+              variant="ghost"
+              onClick={onClick}
+            >
+              {item.title}
+            </Button>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+
+------------------------------------------------------------
+nav-list
+
+import Logo from '@/components/layout/logo';
+import MenuList from '@/components/layout/menu-list';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useWindowSize } from '@/hooks/use-window-size';
+import { MenuIcon } from 'lucide-react';
+import { useState } from 'react';
+
+export default function NavList() {
+  const [isOpen, setIsOpen] = useState(false);
+  const { width } = useWindowSize(100);
+
+  if (isOpen && width >= 768) {
+    setIsOpen(false);
+  }
+
+  return (
+    <div>
+      <div className="hidden md:flex md:items-center md:gap-x-8">
+        <Logo />
+        <MenuList />
+      </div>
+
+      <div className="md:hidden">
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button className="rounded-full" variant="ghost" size="icon">
+              <MenuIcon className="size-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent className="w-fit p-8" side="left">
+            <div className="mb-8" onClick={() => setIsOpen(false)}>
+              <Logo />
+            </div>
+            <MenuList onClick={() => setIsOpen(false)} />
+          </SheetContent>
+        </Sheet>
+      </div>
+    </div>
+  );
+}
+
+
+------------------------------------------------------------
+review-list-skeleton
+
+import { Skeleton } from '@/components/ui/skeleton';
+
+export default function ReviewListSkeleton() {
+  return (
+    <>
+      <div className="flex flex-col gap-y-6 p-6">
+        {[...Array<number>(2)].map((_, index) => (
+          <div className="border-t border-t-muted" key={index}>
+            <div className="flex flex-col items-center justify-between gap-y-4 p-4 pb-0 sm:flex-row">
+              <div className="flex items-center gap-x-4">
+                <Skeleton className="size-16 rounded-full" />
+                <div>
+                  <Skeleton className="my-2 h-5 w-20 rounded-full" />
+                  <Skeleton className="my-2 h-5 w-32 rounded-full" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-40 rounded-full" />
+            </div>
+            <div className="p-4">
+              <Skeleton className="my-1 h-5 w-full rounded-full" />
+              <Skeleton className="my-1 h-5 w-3/4 rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+
+------------------------------------------------------------
+review-list
+
+import ReviewItem from '@/components/review-list/review-item';
+import { Review } from '@/types/book';
+
+type Props = {
+  reviews: Review[];
+};
+
+export default function ReviewList({ reviews }: Props) {
+  return (
+    <ul className="flex flex-col p-6">
+      {reviews.map((review) => (
+        <li className="border-t border-t-muted" key={review.id}>
+          <ReviewItem review={review} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+
+------------------------------------------------------------
+avatar
+
+import { cn } from '@/lib/util';
+import React, { useContext, useEffect, useState } from 'react';
+
+interface AvatarContextType {
+  imageError: boolean;
+  setImageError: (value: boolean) => void;
+}
+
+const AvatarContext = React.createContext<AvatarContextType | undefined>(undefined);
+
+// ----------------------------------------------------------------------------
+// Avatar
+// ----------------------------------------------------------------------------
+type AvatarProps = React.HTMLAttributes<HTMLDivElement>;
+
+const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
+  ({ children, className, ...props }, ref) => {
+    const [imageError, setImageError] = useState(false);
+
+    useEffect(() => {
+      // AvatarImageがなければ画像読み込みエラーとする
+      const image = React.Children.toArray(children).find(
+        (child) => React.isValidElement(child) && child.type === AvatarImage
+      );
+      if (!image) setImageError(true);
+    }, [children]);
+
     return (
-      <button
-        className={cn(
-          'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-          variantList[variant],
-          sizeList[size],
-          className
-        )}
-        ref={ref}
-        {...props}
-      >
-        {children}
-      </button>
+      <AvatarContext.Provider value={{ imageError, setImageError }}>
+        <div
+          ref={ref}
+          className={cn(
+            'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full',
+            className
+          )}
+          {...props}
+        >
+          {React.Children.map(children, (child) => {
+            if (React.isValidElement(child)) {
+              switch (child.type) {
+                case AvatarImage:
+                case AvatarFallback:
+                  return child;
+                default:
+                  return null;
+              }
+            }
+          })}
+        </div>
+      </AvatarContext.Provider>
     );
   }
 );
 
-export { Button };
+// ----------------------------------------------------------------------------
+// AvatarImage
+// ----------------------------------------------------------------------------
+interface AvatarImageProps extends React.HTMLAttributes<HTMLImageElement> {
+  src: string;
+  alt: string;
+}
+
+const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
+  ({ className, ...props }, ref) => {
+    const context = useContext(AvatarContext);
+
+    if (!context) {
+      throw new Error('AvatarImage must be used within Avatar');
+    }
+
+    if (context.imageError) return null;
+
+    return (
+      <img
+        ref={ref}
+        className={cn('aspect-square h-full w-full', className)}
+        {...props}
+        onError={() => context.setImageError(true)}
+      />
+    );
+  }
+);
+
+// ----------------------------------------------------------------------------
+// AvatarFallback
+// ----------------------------------------------------------------------------
+type AvatarFallbackProps = React.HTMLAttributes<HTMLDivElement>;
+
+const AvatarFallback = React.forwardRef<HTMLDivElement, AvatarFallbackProps>(
+  ({ className, ...props }, ref) => {
+    const context = useContext(AvatarContext);
+
+    if (!context) {
+      throw new Error('AvatarFallback must be used within Avatar');
+    }
+
+    if (!context.imageError) return null;
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'flex h-full w-full items-center justify-center rounded-full bg-muted',
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
+
+export { Avatar, AvatarFallback, AvatarImage };
+
 
 ------------------------------------------------------------
 dialog
 
 import { cn } from '@/lib/util';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 
 interface DialogContextType {
+  isOpen: boolean;
   openDialog: () => void;
   closeDialog: () => void;
-  isOpen: boolean;
 }
 
 const DialogContext = React.createContext<DialogContextType | undefined>(undefined);
@@ -165,7 +559,7 @@ interface DialogProps extends React.DialogHTMLAttributes<HTMLDialogElement> {
   onOpenChange?: (isOpen: boolean) => void;
 }
 
-const Dialog = ({ className, children, open, onOpenChange, ...props }: DialogProps) => {
+const Dialog = ({ children, open, onOpenChange }: DialogProps) => {
   // 外部からのopen状態を優先し、指定がない場合は内部状態を利用
   const [isOpen, setIsOpen] = useState(open ?? false);
 
@@ -173,16 +567,10 @@ const Dialog = ({ className, children, open, onOpenChange, ...props }: DialogPro
   useEffect(() => {
     if (open !== undefined) {
       setIsOpen(open);
-      if (open) {
-        ref.current?.showModal();
-      }
     }
   }, [open]);
 
-  const ref = useRef<HTMLDialogElement | null>(null);
-
   const openDialog = useCallback(() => {
-    ref.current?.showModal();
     if (onOpenChange) {
       onOpenChange(true);
     } else {
@@ -198,66 +586,19 @@ const Dialog = ({ className, children, open, onOpenChange, ...props }: DialogPro
     }
   }, [onOpenChange]);
 
-  // 閉じるアニメーションが終わったときにDialogをcloseする
-  // ref.current?.close()のタイミングが早すぎてパッと消えてしまうのを防ぐ
-  const handleTransitionEnd = (e: React.TransitionEvent<HTMLDialogElement>) => {
-    if (!isOpen && e.propertyName) {
-      ref.current?.close();
-    }
-  };
-
-  // バックドロップクリックで閉じる
-  const handleClickOutside = useCallback(
-    (e: React.MouseEvent<HTMLDialogElement>) => {
-      if (e.target === ref.current) {
-        closeDialog();
-      }
-    },
-    [closeDialog]
-  );
-
-  // ESCキーで閉じるための関数とイベントリスナーの登録
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        closeDialog();
-      }
-    },
-    [closeDialog, isOpen]
-  );
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown]);
-
-  // 子要素を分割
-  const trigger = React.Children.toArray(children).find(
-    (child) => React.isValidElement(child) && child.type === DialogTrigger
-  );
-  const content = React.Children.toArray(children).find(
-    (child) => React.isValidElement(child) && child.type === DialogContent
-  );
-
   return (
-    <DialogContext.Provider value={{ openDialog, closeDialog, isOpen }}>
-      {trigger}
-      {isOpen && <div className="fixed inset-0 z-50 bg-black/60" />}
-      <dialog
-        className={cn(
-          'fixed w-[300px] rounded-lg bg-background text-foreground',
-          'transition-all duration-200',
-          isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
-          className
-        )}
-        ref={ref}
-        {...props}
-        onClick={handleClickOutside} // バックドロップクリック時の処理
-        onTransitionEnd={handleTransitionEnd} // アニメーション終了時の処理
-      >
-        <div className="relative p-4 md:p-6">{content}</div>
-      </dialog>
+    <DialogContext.Provider value={{ isOpen, openDialog, closeDialog }}>
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          switch (child.type) {
+            case DialogTrigger:
+            case DialogContent:
+              return child;
+            default:
+              return null;
+          }
+        }
+      })}
     </DialogContext.Provider>
   );
 };
@@ -266,279 +607,43 @@ const Dialog = ({ className, children, open, onOpenChange, ...props }: DialogPro
 // DialogTrigger
 // ----------------------------------------------------------------------------
 interface DialogTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
-  children?: React.ReactNode;
-  asChild?: boolean;
-}
-const DialogTrigger = ({ children, asChild = false, ...props }: DialogTriggerProps) => {
-  const context = useContext(DialogContext);
-
-  if (!context) {
-    throw new Error('DialogTrigger must be used within Dialog');
-  }
-
-  const handleClick = () => {
-    context.openDialog();
-  };
-
-  if (asChild && React.isValidElement(children)) {
-    const childProps = {
-      ...props,
-      ...children.props,
-      onClick: (e: React.MouseEvent) => {
-        // 元々childに設定されていたイベントがあれば呼び出すようにする
-        if (children.props.onClick) {
-          children.props.onClick(e);
-        }
-        handleClick();
-      },
-    };
-    return React.cloneElement(children, childProps);
-  }
-
-  return (
-    <button type="button" {...props} onClick={handleClick}>
-      {children}
-    </button>
-  );
-};
-
-// ----------------------------------------------------------------------------
-// DialogContent
-// ----------------------------------------------------------------------------
-interface DialogContentProps {
-  children?: React.ReactNode;
-  className?: string;
-}
-const DialogContent = ({ children, className }: DialogContentProps) => {
-  const context = useContext(DialogContext);
-
-  if (!context) {
-    throw new Error('DialogContent must be used within Dialog');
-  }
-
-  return <div className={cn('relative', className)}>{children}</div>;
-};
-
-// ----------------------------------------------------------------------------
-// DialogHeader
-// ----------------------------------------------------------------------------
-interface DialogHeaderProps {
-  children?: React.ReactNode;
-  className?: string;
-}
-const DialogHeader = ({ children, className }: DialogHeaderProps) => {
-  return (
-    <div className={cn('mb-4 flex items-center justify-between', className)}>
-      {children}
-    </div>
-  );
-};
-
-// ----------------------------------------------------------------------------
-// DialogTitle
-// ----------------------------------------------------------------------------
-interface DialogTitleProps {
-  children?: React.ReactNode;
-  className?: string;
-}
-const DialogTitle = ({ children, className }: DialogTitleProps) => {
-  return <h2 className={cn('text-lg font-semibold', className)}>{children}</h2>;
-};
-
-// ----------------------------------------------------------------------------
-// DialogClose
-// ----------------------------------------------------------------------------
-interface DialogCloseProps {
-  children?: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-}
-const DialogClose = ({ children, className, onClick }: DialogCloseProps) => {
-  const context = useContext(DialogContext);
-
-  if (!context) {
-    throw new Error('DialogClose must be used within Dialog');
-  }
-
-  const props = {
-    onClick: () => {
-      context.closeDialog();
-      onClick?.();
-    },
-  };
-
-  return (
-    <button
-      className={cn('hover:opacity-80 transition-opacity', className)}
-      type="button"
-      {...props}
-    >
-      {children}
-    </button>
-  );
-};
-
-export { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger };
-
-
-------------------------------------------------------------
-tooltip
-
-import { cn } from '@/lib/util';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-
-type TooltipSideType = 'top' | 'bottom' | 'left' | 'right';
-
-interface TooltipContextType {
-  openTooltip: () => void;
-  closeTooltip: () => void;
-  isOpen: boolean;
-  side: TooltipSideType;
-}
-
-const TooltipContext = React.createContext<TooltipContextType | undefined>(undefined);
-
-// ----------------------------------------------------------------------------
-// Tooltip
-// ----------------------------------------------------------------------------
-interface TooltipProps extends React.HTMLAttributes<HTMLDivElement> {
-  open?: boolean;
-  onOpenChange?: (isOpen: boolean) => void;
-  side?: TooltipSideType;
-  sideOffset?: number;
-}
-
-const Tooltip = ({
-  className,
-  children,
-  open,
-  onOpenChange,
-  side = 'top',
-  sideOffset = 8,
-}: TooltipProps) => {
-  // 外部からのopen状態を優先し、指定がない場合は内部状態を利用
-  const [isOpen, setIsOpen] = useState(open ?? false);
-
-  // propsのopenが更新されたら内部状態も更新
-  useEffect(() => {
-    if (open !== undefined) {
-      setIsOpen(open);
-    }
-  }, [open]);
-
-  const openTooltip = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(true);
-    } else {
-      setIsOpen(true);
-    }
-  }, [onOpenChange]);
-
-  const closeTooltip = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(false);
-    } else {
-      setIsOpen(false);
-    }
-  }, [onOpenChange]);
-
-  // ポインタ（マウス、ペン、タッチ）が要素内に入った時のイベントで
-  // Tooltipを表示する座標の計算（style属性に指定する文字列作成）
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [transformStyle, setTransformStyle] = useState('');
-  const handlePointerEnter = () => {
-    if (ref.current) {
-      const { left, top, right, bottom, width, height } =
-        ref.current.getBoundingClientRect();
-      const positions = {
-        top: {
-          x: left + width / 2,
-          y: top,
-          offset: { x: '-50%', y: `-100% - ${sideOffset}px` },
-        },
-        bottom: {
-          x: left + width / 2,
-          y: bottom,
-          offset: { x: '-50%', y: `0% + ${sideOffset}px` },
-        },
-        left: {
-          x: left,
-          y: top + height / 2,
-          offset: { x: `-100% - ${sideOffset}px`, y: '-50%' },
-        },
-        right: {
-          x: right,
-          y: top + height / 2,
-          offset: { x: `0% + ${sideOffset}px`, y: '-50%' },
-        },
-      };
-      const pos = positions[side];
-
-      setTransformStyle(
-        `translate(calc(${pos.x}px + ${pos.offset.x}), calc(${pos.y}px + ${pos.offset.y}))`
-      );
-
-      openTooltip();
-    }
-  };
-
-  const handlePointerLeave = () => {
-    closeTooltip();
-  };
-
-  const handlePointerDown = () => {
-    closeTooltip();
-  };
-
-  // 子要素を分割
-  const trigger = React.Children.toArray(children).find(
-    (child) => React.isValidElement(child) && child.type === TooltipTrigger
-  );
-  const content = React.Children.toArray(children).find(
-    (child) => React.isValidElement(child) && child.type === TooltipContent
-  );
-
-  return (
-    <TooltipContext.Provider value={{ openTooltip, closeTooltip, isOpen, side }}>
-      <div
-        ref={ref}
-        onPointerEnter={handlePointerEnter}
-        onPointerLeave={handlePointerLeave}
-        onPointerDown={handlePointerDown}
-      >
-        {trigger}
-      </div>
-      {isOpen && (
-        <div
-          className={cn('z-50 fixed top-0 left-0', className)}
-          style={{ transform: transformStyle }}
-        >
-          {content}
-        </div>
-      )}
-    </TooltipContext.Provider>
-  );
-};
-
-// ----------------------------------------------------------------------------
-// TooltipTrigger
-// ----------------------------------------------------------------------------
-interface TooltipTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
 }
 
-const TooltipTrigger = React.forwardRef<HTMLButtonElement, TooltipTriggerProps>(
+const DialogTrigger = React.forwardRef<HTMLButtonElement, DialogTriggerProps>(
   ({ children, asChild = false, ...props }, ref) => {
+    const context = useContext(DialogContext);
+
+    if (!context) {
+      throw new Error('DialogTrigger must be used within Dialog');
+    }
+
     if (asChild && React.isValidElement(children)) {
-      const childProps = {
+      const mergeChildProps = {
         ...props,
         ...children.props,
+        onClick: (e: React.MouseEvent) => {
+          if (children.props.onClick) {
+            children.props.onClick(e);
+          }
+          context.openDialog();
+        },
       };
-      return React.cloneElement(children, { ...childProps, ref });
+      return React.cloneElement(children, { ...mergeChildProps, ref });
     }
 
+    const mergeProps = {
+      ...props,
+      onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+        if (props.onClick) {
+          props.onClick(e);
+        }
+        context.openDialog();
+      },
+    };
+
     return (
-      <button type="button" ref={ref} {...props}>
+      <button ref={ref} {...mergeProps}>
         {children}
       </button>
     );
@@ -546,36 +651,815 @@ const TooltipTrigger = React.forwardRef<HTMLButtonElement, TooltipTriggerProps>(
 );
 
 // ----------------------------------------------------------------------------
-// TooltipContent
+// DialogOverlay
 // ----------------------------------------------------------------------------
-type TooltipContentProps = React.HTMLAttributes<HTMLDivElement>;
+type DialogOverlayProps = React.HTMLAttributes<HTMLDivElement>;
 
-const TooltipContent = React.forwardRef<HTMLDivElement, TooltipContentProps>(
-  ({ children, className, ...props }, ref) => {
-    const context = useContext(TooltipContext);
+const DialogOverlay = ({ className, ...props }: DialogOverlayProps) => {
+  const context = useContext(DialogContext);
 
-    if (!context) {
-      throw new Error('TooltipContent must be used within Tooltip');
+  if (!context) {
+    throw new Error('DialogOverlay must be used within Dialog');
+  }
+
+  // 閉じるアニメーションが終わった時にopacity:0にする
+  // data-[state=closed]でopacity:0へのアニメーションはするが、
+  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
+  // これを防ぐ
+  const ref = useRef<HTMLDivElement | null>(null);
+  const handleAnimationEnd = (e: React.AnimationEvent) => {
+    if (e.animationName === 'exit' && ref.current) {
+      ref.current.style.opacity = '0';
     }
+  };
 
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        'fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+        className
+      )}
+      data-state={context.isOpen ? 'open' : 'closed'}
+      {...props}
+      onAnimationEnd={handleAnimationEnd}
+    ></div>
+  );
+};
+// ----------------------------------------------------------------------------
+// DialogContent
+// ----------------------------------------------------------------------------
+interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  onEscapeKeyDown?: () => void;
+  onPointerDownOutside?: () => void;
+}
+const DialogContent = ({
+  className,
+  children,
+  onEscapeKeyDown,
+  onPointerDownOutside,
+  ...props
+}: DialogContentProps) => {
+  const context = useContext(DialogContext);
+
+  if (!context) {
+    throw new Error('DialogContent must be used within Dialog');
+  }
+
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (context.isOpen) {
+      setIsVisible(true);
+    }
+  }, [context.isOpen]);
+
+  useEffect(() => {
+    // ESCキーで閉じるための関数とイベントリスナーの登録
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && context.isOpen) {
+        if (onEscapeKeyDown) {
+          onEscapeKeyDown();
+        } else {
+          context.closeDialog();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [context, onEscapeKeyDown]);
+
+  // バックドロップクリックで閉じる
+  const handleClickOutside = () => {
+    context.closeDialog();
+  };
+
+  // 閉じるアニメーションが終わった時にopacity:0にする
+  // data-[state=closed]でopacity:0へのアニメーションはするが、
+  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
+  // これを防ぐ
+  const ref = useRef<HTMLDivElement | null>(null);
+  const handleAnimationEnd = (e: React.AnimationEvent) => {
+    if (e.animationName === 'exit' && ref.current) {
+      ref.current.style.opacity = '0';
+      setIsVisible(false);
+    }
+  };
+
+  const mergeProps = {
+    ...props,
+    onAnimationEnd: (e: React.AnimationEvent<HTMLDivElement>) => {
+      if (props.onAnimationEnd) {
+        props.onAnimationEnd(e);
+      }
+      handleAnimationEnd(e);
+    },
+  };
+
+  return ReactDOM.createPortal(
+    <>
+      {isVisible && (
+        <>
+          <DialogOverlay onClick={onPointerDownOutside || handleClickOutside} />
+          <div
+            ref={ref}
+            className={cn(
+              'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
+              className
+            )}
+            data-state={context.isOpen ? 'open' : 'closed'}
+            {...mergeProps}
+          >
+            {children}
+          </div>
+        </>
+      )}
+    </>,
+    document.body
+  );
+};
+
+// ----------------------------------------------------------------------------
+// DialogHeader
+// ----------------------------------------------------------------------------
+const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)}
+    {...props}
+  />
+);
+
+// ----------------------------------------------------------------------------
+// DialogFooter
+// ----------------------------------------------------------------------------
+const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
+      className
+    )}
+    {...props}
+  />
+);
+
+// ----------------------------------------------------------------------------
+// DialogTitle
+// ----------------------------------------------------------------------------
+type DialogTitleProps = React.HTMLAttributes<HTMLDivElement>;
+const DialogTitle = React.forwardRef<HTMLDivElement, DialogTitleProps>(
+  ({ className, ...props }, ref) => {
     return (
       <div
-        className={cn(
-          'z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-          className
-        )}
-        data-state={context.isOpen ? 'open' : 'closed'}
-        data-side={context.side}
         ref={ref}
+        className={cn('text-lg font-semibold leading-none tracking-tight', className)}
         {...props}
-      >
-        {children}
-      </div>
+      />
     );
   }
 );
 
-export { Tooltip, TooltipContent, TooltipTrigger };
+// ----------------------------------------------------------------------------
+// DialogDescription
+// ----------------------------------------------------------------------------
+type DialogDescriptionProps = React.HTMLAttributes<HTMLDivElement>;
+const DialogDescription = React.forwardRef<HTMLDivElement, DialogDescriptionProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn('text-sm text-muted-foreground', className)}
+        {...props}
+      />
+    );
+  }
+);
+
+export {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogTitle,
+  DialogTrigger,
+};
 
 
 ------------------------------------------------------------
+confirm-dialog
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ConfirmDialogOptions } from '@/hooks/use-confirm-dialog';
+import {
+  AlertTriangleIcon,
+  CheckCircle2Icon,
+  HelpCircleIcon,
+  InfoIcon,
+  LucideProps,
+} from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/util';
+import React, { useEffect, useRef, useState } from 'react';
+
+type IconType = {
+  [key: string]: {
+    icon: React.ForwardRefExoticComponent<
+      Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
+    >;
+    variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
+    color: string;
+  };
+};
+
+const iconTypes: IconType = {
+  ['']: { icon: InfoIcon, variant: 'default', color: '' },
+  ['i']: { icon: InfoIcon, variant: 'default', color: '' },
+  ['?']: { icon: HelpCircleIcon, variant: 'default', color: '' },
+  ['!']: { icon: AlertTriangleIcon, variant: 'destructive', color: 'text-destructive' },
+  ['c']: { icon: CheckCircle2Icon, variant: 'default', color: '' },
+};
+
+const defaultOptions: ConfirmDialogOptions = {
+  icon: '',
+  title: '',
+  message: '',
+  actionLabel: 'OK',
+  actionOnly: false,
+  persistent: false,
+  showInput: false,
+  inputLabel: '',
+  inputPlaceholder: '',
+  inputRows: 1,
+};
+
+export const CONFIRM_DIALOG_EVENT = 'CONFIRM_DIALOG_EVENT';
+
+type SELECTED_BUTTON = 'action' | 'cancel' | undefined;
+
+const ConfirmDialog = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [options, setOptions] = useState<ConfirmDialogOptions>(defaultOptions);
+  const refTextarea = useRef<HTMLTextAreaElement | null>(null);
+  const Icon = iconTypes[options.icon].icon || InfoIcon;
+
+  // hooksから呼ぶためにイベントリスナー登録
+  useEffect(() => {
+    const handleEvent = (event: CustomEvent<ConfirmDialogOptions>) => {
+      setIsOpen(true);
+      setOptions({ ...defaultOptions, ...event.detail });
+    };
+    document.addEventListener(CONFIRM_DIALOG_EVENT, handleEvent as EventListener);
+    return () => {
+      document.removeEventListener(CONFIRM_DIALOG_EVENT, handleEvent as EventListener);
+    };
+  }, []);
+
+  // アニメーションフラグ（閉じれないことを伝えるためにぶるっとする）
+  const [isPersistentAnimation, setIsPersistentAnimation] = useState(false);
+  const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
+    if (e.propertyName === 'transform') {
+      setIsPersistentAnimation(false);
+    }
+  };
+
+  // ダイアログを閉じる時のイベント
+  const handleCloseDialog = () => {
+    if (options.persistent) {
+      setIsPersistentAnimation(true);
+      return;
+    }
+    handleClickCancel();
+  };
+
+  // 押したボタンによって、戻り値（resolveの引数も変更する）
+  const [selected, setSelected] = useState<SELECTED_BUTTON>();
+
+  const handleClickAction = () => {
+    setIsOpen(false);
+    setSelected('action');
+  };
+
+  const handleClickCancel = () => {
+    setIsOpen(false);
+    setSelected('cancel');
+  };
+
+  const handleAnimationEnd = (e: React.AnimationEvent) => {
+    if (e.animationName === 'exit') {
+      switch (selected) {
+        case 'action':
+          options.resolve?.({
+            isAction: true,
+            isCancel: false,
+            text: refTextarea.current?.value || '',
+          });
+          return;
+        case 'cancel':
+          options.resolve?.({
+            isAction: false,
+            isCancel: true,
+            text: '',
+          });
+          return;
+      }
+    }
+  };
+
+  return (
+    <>
+      <Dialog open={isOpen}>
+        <DialogContent
+          className={cn(
+            'w-[400px] transition-transform ease-in-out [transition-duration:25ms]',
+            isPersistentAnimation && 'scale-[1.02] transform'
+          )}
+          onTransitionEnd={handleTransitionEnd}
+          onEscapeKeyDown={handleCloseDialog}
+          onPointerDownOutside={handleCloseDialog}
+          onAnimationEnd={handleAnimationEnd}
+        >
+          <DialogHeader>
+            <DialogTitle className="my-2 flex items-center">
+              <Icon className={cn('mr-3 min-w-fit', iconTypes[options.icon].color)} />
+              <p className=" leading-6">{options.title}</p>
+            </DialogTitle>
+            {options.message && (
+              <DialogDescription className="pt-2">{options.message}</DialogDescription>
+            )}
+          </DialogHeader>
+
+          {options.showInput && (
+            <div className="mb-4 grid w-full items-center gap-1.5">
+              <p className="text-xs">{options.inputLabel}</p>
+              <Textarea
+                className="min-h-[16px] resize-none"
+                placeholder={options.inputPlaceholder}
+                rows={options.inputRows}
+                ref={refTextarea}
+              />
+            </div>
+          )}
+
+          <DialogFooter className="flex justify-end">
+            {!options.actionOnly && (
+              <Button
+                className="rounded-full"
+                variant="ghost"
+                onClick={handleClickCancel}
+              >
+                キャンセル
+              </Button>
+            )}
+            <Button
+              className={cn('rounded-full', options.actionLabel === 'OK' && 'sm:w-20')}
+              variant={iconTypes[options.icon].variant || 'default'}
+              onClick={handleClickAction}
+            >
+              {options.actionLabel}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export { ConfirmDialog };
+
+
+------------------------------------------------------------
+rating
+
+import { cn } from '@/lib/util';
+import { StarHalfIcon, StarIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+type Props = {
+  rating: number;
+  max?: number;
+  readOnly?: boolean;
+  onChange?: (rating: number) => void;
+};
+
+export default function Rating({ rating, max = 5, readOnly = false, onChange }: Props) {
+  const [currentRating, setCurrentRating] = useState(0);
+  const [dispRating, setDispRating] = useState(0);
+
+  // propsのratingが更新されたら内部状態も更新
+  useEffect(() => {
+    const initRating = rating > max ? max : rating; // 評価が最大を超えていたら、最大にする
+    setDispRating(initRating);
+    setCurrentRating(initRating);
+  }, [max, rating]);
+
+  const handleMouseClick = (newDispRating: number) => {
+    if (readOnly) return;
+    setDispRating(newDispRating);
+    setCurrentRating(newDispRating);
+    if (onChange) {
+      onChange(newDispRating);
+    }
+  };
+
+  const handleMouseEnter = (newDispRating: number) => {
+    if (readOnly) return;
+    setDispRating(newDispRating);
+  };
+
+  const handleMouseLeave = () => {
+    if (readOnly) return;
+    setDispRating(currentRating);
+  };
+
+  return (
+    <>
+      <div className="flex h-10 items-center text-foreground">
+        <p
+          className={cn(
+            'w-8',
+            currentRating !== dispRating
+              ? 'text-muted-foreground/50'
+              : 'text-muted-foreground',
+            !readOnly && 'cursor-pointer'
+          )}
+          onClick={() => handleMouseClick(0)}
+          onMouseEnter={() => handleMouseEnter(0)}
+          onMouseLeave={() => handleMouseLeave()}
+        >
+          {dispRating.toFixed(1)}
+        </p>
+
+        <div className="relative">
+          <div className="flex">
+            {[...Array<number>(max)].map((_, index) => (
+              <StarIcon
+                key={index}
+                style={{ fill: 'hsl(var(--foreground) / 0.1)' }}
+                strokeWidth={0}
+              />
+            ))}
+          </div>
+
+          <div className="absolute left-0 top-0 flex">
+            {[...Array<number>(Math.floor(dispRating))].map((_, index) => (
+              <StarIcon
+                key={index}
+                style={{ fill: 'hsl(var(--primary))' }}
+                strokeWidth={0}
+              />
+            ))}
+            {!Number.isInteger(dispRating) && (
+              <StarHalfIcon style={{ fill: 'hsl(var(--primary))' }} strokeWidth={0} />
+            )}
+          </div>
+
+          <div className="absolute left-0 top-0 flex">
+            {[...Array<number>(max)].map((_, index) => (
+              <div className="flex" key={index}>
+                <div
+                  className={cn('w-3 h-6 bg-transparent', !readOnly && 'cursor-pointer')}
+                  onClick={() => handleMouseClick(index + 1 - 0.5)}
+                  onMouseEnter={() => handleMouseEnter(index + 1 - 0.5)}
+                  onMouseLeave={() => handleMouseLeave()}
+                />
+                <div
+                  className={cn('w-3 h-6 bg-transparent', !readOnly && 'cursor-pointer')}
+                  onClick={() => handleMouseClick(index + 1)}
+                  onMouseEnter={() => handleMouseEnter(index + 1)}
+                  onMouseLeave={() => handleMouseLeave()}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+
+------------------------------------------------------------
+search-bar
+
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
+import { FormEvent, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+export default function SearchBar() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const query = params.get('q') ?? '';
+    setQuery(query);
+  }, [location.search]);
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!query) return;
+
+    const params = new URLSearchParams(location.search);
+    params.set('q', query);
+    params.set('page', '1');
+    navigate(`/search?${params.toString()}`);
+  };
+
+  return (
+    <div>
+      <form className="relative h-10 w-full" onSubmit={handleSubmit}>
+        <Input
+          className="rounded-full border-foreground/10 pl-10 pr-4"
+          type="search"
+          placeholder="検索"
+          name="query"
+          autoComplete="off"
+          spellCheck="false"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <Search className="absolute left-2.5 top-2.5 size-5" />
+      </form>
+    </div>
+  );
+}
+
+
+------------------------------------------------------------
+use-confirm-dialog
+
+import { CONFIRM_DIALOG_EVENT } from '@/components/confirm-dialog';
+
+// 確認ダイアログの引数
+type ConfirmDialogOptions = {
+  icon: string; // アイコンの種類（「''」「'i'」「'?'」「'!'」「'c'」）
+  title: string; // タイトル
+  message?: string; // メッセージ
+  actionLabel?: string; // アクションボタンの文字（デフォルト「OK」）
+  actionOnly?: boolean; // 「キャンセル」ボタンをなくす
+  persistent?: boolean; // 永続化するか（要素外クリック、ESCキーでも閉じないようにするか）
+  showInput?: boolean; // 入力欄を表示するか
+  inputLabel?: string; // 入力欄のラベル
+  inputPlaceholder?: string; // 入力欄のプレースホルダー
+  inputRows?: number; // 入力欄の行数
+  resolve?: (value: ConfirmDialogResult) => void;
+};
+
+// 確認ダイアログの戻り値
+type ConfirmDialogResult = {
+  isAction: boolean;
+  isCancel: boolean;
+  text: string;
+};
+
+const useConfirmDialog = () => {
+  const confirmDialog = (options: ConfirmDialogOptions): Promise<ConfirmDialogResult> => {
+    return new Promise((resolve) => {
+      const event = new CustomEvent(CONFIRM_DIALOG_EVENT, {
+        detail: { ...options, resolve },
+      });
+      document.dispatchEvent(event);
+    });
+  };
+  return { confirmDialog };
+};
+
+export { useConfirmDialog, type ConfirmDialogOptions, type ConfirmDialogResult };
+
+
+------------------------------------------------------------
+login/page
+
+import Logo from '@/components/layout/logo';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+export default function Page() {
+  const [account, setAccount] = useState('');
+  const [password, setPassword] = useState('');
+  const [isShownPassword, setIsShownPassword] = useState(false);
+  const ref = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.focus();
+    }
+  }, []);
+
+  return (
+    <div className="">
+      <div className="mt-6 flex flex-col items-center justify-items-center gap-y-4 sm:mt-16">
+        <Logo size="lg" />
+        <p className="font-semibold">ログイン</p>
+        <Card>
+          <CardContent className="p-6">
+            <form className="flex w-64 flex-col gap-y-4" action="">
+              <div>
+                <p className="text-xs">アカウント</p>
+                <Input
+                  className="my-2 rounded-full"
+                  value={account}
+                  ref={ref}
+                  onChange={(e) => setAccount(e.target.value)}
+                />
+              </div>
+              <div>
+                <p className="text-xs">パスワード</p>
+                <div className="relative">
+                  <Input
+                    className="my-2 rounded-full"
+                    type={isShownPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <Button
+                    className="absolute right-0 top-0 rounded-full hover:bg-transparent hover:text-foreground"
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    onClick={() => setIsShownPassword(!isShownPassword)}
+                  >
+                    {isShownPassword ? (
+                      <EyeIcon className="size-4" />
+                    ) : (
+                      <EyeOffIcon className="size-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <Button className="mt-6 w-full rounded-full" type="submit">
+                ログイン
+              </Button>
+            </form>
+            <div className="mt-6 flex justify-center gap-x-1 text-xs">
+              <p className="text-muted-foreground">アカウントをお持ちでない方はこちら</p>
+              <Link to={'/sign-up'}>
+                <p className="text-primary hover:underline">新規登録</p>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+
+------------------------------------------------------------
+sign-up/page
+
+import Logo from '@/components/layout/logo';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+export default function Page() {
+  const [account, setAccount] = useState('');
+  const [password, setPassword] = useState('');
+  const [isShownPassword, setIsShownPassword] = useState(false);
+  const ref = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.focus();
+    }
+  }, []);
+
+  return (
+    <div className="">
+      <div className="mt-6 flex flex-col items-center justify-items-center gap-y-4 sm:mt-16">
+        <Logo size="lg" />
+        <p className="font-semibold">アカウントの作成</p>
+        <Card>
+          <CardContent className="p-6">
+            <form className="flex w-64 flex-col gap-y-4" action="">
+              <div>
+                <p className="text-xs">アカウント</p>
+                <Input
+                  className="my-2 rounded-full"
+                  value={account}
+                  ref={ref}
+                  onChange={(e) => setAccount(e.target.value)}
+                />
+                {/* <p className="text-xs">error</p> */}
+              </div>
+              <div>
+                <p className="text-xs">パスワード</p>
+                <div className="relative">
+                  <Input
+                    className="my-2 rounded-full"
+                    type={isShownPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <Button
+                    className="absolute right-0 top-0 rounded-full hover:bg-transparent hover:text-foreground"
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    onClick={() => setIsShownPassword(!isShownPassword)}
+                  >
+                    {isShownPassword ? (
+                      <EyeIcon className="size-4" />
+                    ) : (
+                      <EyeOffIcon className="size-4" />
+                    )}
+                  </Button>
+                  {/* <p className="text-xs">error</p> */}
+                </div>
+              </div>
+              <Button className="mt-6 w-full rounded-full" type="submit">
+                新規登録
+              </Button>
+            </form>
+            <div className="mt-6 flex justify-center gap-x-1 text-xs">
+              <p className="text-muted-foreground">アカウントをお持ちですか？</p>
+              <Link to={'/login'}>
+                <p className="text-primary hover:underline">ログイン</p>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+
+------------------------------------------------------------
+route
+
+
+import BookIdPage from '@/routes/book/[bookId]/page';
+import DiscoverPage from '@/routes/discover/page';
+import FavoritesPage from '@/routes/favorite/page';
+import RootLayout from '@/routes/layout';
+import LoginPage from '@/routes/login/page';
+import RootPage from '@/routes/page';
+import SearchPage from '@/routes/search/page';
+import SettingsPage from '@/routes/settings/page';
+import SignUpPage from '@/routes/sign-up/page';
+import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
+
+export const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route>
+      <Route path="/" element={<RootLayout />}>
+        <Route index element={<RootPage />} loader={RootPage.loader} />
+
+        <Route path="book">
+          <Route path=":bookId" element={<BookIdPage />} loader={BookIdPage.loader} />
+        </Route>
+
+        <Route path="favorites">
+          <Route index element={<FavoritesPage />} />
+        </Route>
+
+        <Route path="settings">
+          <Route index element={<SettingsPage />} />
+        </Route>
+
+        <Route path="search">
+          <Route index element={<SearchPage />} loader={SearchPage.loader} />
+        </Route>
+
+        <Route path="discover">
+          <Route index element={<DiscoverPage />} loader={DiscoverPage.loader} />
+        </Route>
+
+        <Route path="login">
+          <Route index element={<LoginPage />} />
+        </Route>
+
+        <Route path="sign-up">
+          <Route index element={<SignUpPage />} />
+        </Route>
+      </Route>
+    </Route>
+  )
+);
+
+------------------------------------------------------------
+
