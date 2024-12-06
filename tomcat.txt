@@ -1,87 +1,145 @@
----------------------------------------
+------------------------------------------------------------
+apache/avatar/avatar00.png
+
+avatarsディレクトリにアバター画像入れる
+
+------------------------------------------------------------
 init.sql
 
-CREATE DATABASE IF NOT EXISTS `my-books-api`;
+DROP DATABASE IF EXISTS `my-books-db`;
+CREATE DATABASE `my-books-db`;
 
-USE `my-books-api`;
+USE `my-books-db`;
 
-DROP TABLE IF EXISTS `book`;
-
-CREATE TABLE `book` (
-  `id` varchar(32) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` text NOT NULL,
-  `authors` varchar(255) NOT NULL,
-  `publisher` varchar(255) NOT NULL,
-  `published_date` date NOT NULL,
-  `price` int(11) NOT NULL,
-  `page_count` int(11) NOT NULL,
-  `isbn` varchar(13) NOT NULL,
-  `image_url` varchar(255) NOT NULL,
+-- bookテーブルの削除と再作成
+DROP TABLE IF EXISTS `books`;
+CREATE TABLE `books` (
+  `id` VARCHAR(255) NOT NULL,
+  `title` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` TEXT NOT NULL,
+  `genre_ids` VARCHAR(255) NOT NULL DEFAULT '',
+  `authors` VARCHAR(255) NOT NULL DEFAULT '',
+  `publisher` VARCHAR(255) NOT NULL DEFAULT '',
+  `published_date` DATE NOT NULL,
+  `price` INT(11) NOT NULL DEFAULT 0,
+  `page_count` INT(11) NOT NULL DEFAULT 0,
+  `isbn` VARCHAR(255) NOT NULL DEFAULT '',
+  `image_url` VARCHAR(255) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
-LOAD DATA INFILE '/var/lib/mysql-files/data.csv'
-INTO TABLE book
+-- genreテーブルの削除と再作成
+DROP TABLE IF EXISTS `genres`;
+CREATE TABLE `genres` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` TEXT NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=10;
+
+-- userテーブルの削除と再作成
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `email` VARCHAR(255) NOT NULL DEFAULT '',
+  `avatar_url` VARCHAR(255) DEFAULT NULL,
+  `password` VARCHAR(255) NOT NULL DEFAULT '',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+);
+
+-- データのロード
+LOAD DATA INFILE '/docker-entrypoint-initdb.d/data.csv'
+INTO TABLE books
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
-LINES TERMINATED BY '\r\n';
----------------------------------------
-my.cnf
-[mysqld]
-secure-file-priv=/var/lib/mysql-files/
+LINES TERMINATED BY '\n'
+(`id`, `title`, `description`, `genre_ids`, `authors`, `publisher`, `published_date`, `price`, `page_count`, `isbn`, `image_url`);
 
----------------------------------------
-Dockerfile
-FROM tomcat:10-jdk17-openjdk-slim
+INSERT INTO `genres` (`name`, `description`) VALUES
+('ミステリー', '謎解きや推理をテーマにした作品'),
+('サスペンス', '緊張感や驚きを伴う作品'),
+('ロマンス', '恋愛をテーマにした作品'),
+('ファンタジー', '魔法や異世界を舞台にした作品'),
+('SF', '科学技術や未来をテーマにした作品'),
+('ホラー', '恐怖をテーマにした作品'),
+('歴史', '歴史的な出来事や人物をテーマにした作品'),
+('絵本', '子供向けのイラストが多い本'),
+('教科書', '教育機関で使用される教材'),
+('専門書', '特定の分野に特化した書籍'),
+('研究書', '学術的な研究をまとめた書籍'),
+('環境', '自然や環境問題をテーマにした作品'),
+('冒険', '冒険や探検をテーマにした作品'),
+('図鑑', '特定のテーマに関する情報を集めた書籍'),
+('音楽', '音楽に関する書籍'),
+('ドラマ', '人間関係や感情を描いた作品'),
+('教育', '教育に関する書籍');
 
-# WARファイルをコンテナ内のTomcatのwebappsディレクトリにコピー
-COPY ./docker/spring-boot/my-books.war /usr/local/tomcat/webapps/
+INSERT INTO `users` (`name`, `email`, `password`, `avatar_url`) VALUES
+('Julia', 'julia@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'http://localhost:18080/images/avatars/avatar02.jpg'),
+('Steve', 'steve@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'http://localhost:18080/images/avatars/avatar07.jpg');
 
-# 
-RUN cp -r /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps/
+------------------------------------------------------------
+docker-compose.yml
 
-# コンテナのポート8080を公開
-# EXPOSE 8080
-
-# # Tomcatを起動
-# CMD ["catalina.sh", "run"]
-
----------------------------------------
-docker-container.yml
 services:
-  web:
+  # リバースプロキシ用のApacheサーバー
+  apache:
+    image: httpd:2.4-alpine
+    container_name: apache
+    ports:
+      - "18080:80" # ホストの80番ポートで外部からアクセスできるように設定
+    volumes:
+      - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf # Apacheの設定ファイルをコンテナにマウント
+      - ./apache/images:/usr/local/apache2/htdocs/images/my-books # 書籍の画像ファイルをコンテナにマウント
+      - ./apache/avatars:/usr/local/apache2/htdocs/images/avatars # アバター画像ファイルをコンテナにマウント
+    depends_on:
+      - spring-boot-app
+
+  # Spring Bootアプリケーションのサービス
+  spring-boot-app:
     build:
       context: .
-      dockerfile: ./docker/spring-boot/Dockerfile
-    ports:
-      - 8080:8080
-    tty: true
+      dockerfile: ./app/Dockerfile
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-books-api
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-books-db
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: password
     depends_on:
       - db
 
+  # MySQLデータベースのサービス
   db:
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: my-books-api
-    ports:
-      - 3306:3306
+      MYSQL_DATABASE: my-books-db
     volumes:
-      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./docker/db/data.csv:/var/lib/mysql-files/data.csv
-      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/data.csv:/docker-entrypoint-initdb.d/data.csv
+      - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
       - db_data:/var/lib/mysql
+    command: --secure-file-priv=/docker-entrypoint-initdb.d
 
 volumes:
   db_data:
 
----------------------------------------
 
-
-
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
