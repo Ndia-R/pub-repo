@@ -1,2491 +1,1358 @@
 ------------------------------------------------------------
-book-pagination
 
-import { Pagination } from '@/components/pagination';
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+Spring Security
+https://www.docswell.com/s/MasatoshiTada/KGVY9K-spring-security-intro
 
-type Props = {
-  totalPages: number;
-};
+https://qiita.com/T-H9703EnAc/items/69cbc633335e62a12826
 
-export default function BookPagination({ totalPages }: Props) {
-  const location = useLocation();
-  const navigate = useNavigate();
 
-  const [page, setPage] = useState(1);
+Spring Security 見比べ
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = Number(params.get('page') ?? '1');
-    setPage(page);
-  }, [location.search]);
 
-  const handleChange = (page: number) => {
-    setPage(page);
-    const params = new URLSearchParams(location.search);
-    params.set('page', page.toString());
-    navigate(`${location.pathname}?${params.toString()}`);
-  };
+https://github.com/Ons-diweni/Spring-Security-6-JWT/blob/main/src/main/java/com/ons/securitylayerJwt/models/User.java
+https://github.com/EmbarkXOfficial/spring-security-masterclass/blob/main/src/main/java/com/secure/notes/models/User.java
+https://github.com/tericcabrel/blog-tutorials/blob/main/springboot-jwt-auth/src/main/java/com/tericcabrel/authapi/entities/User.java
+https://github.com/schezwansoftware/spring-security-jwt
 
-  if (totalPages === 0) return null;
+https://medium.com/@harshitb95/spring-security-integrating-jwt-with-spring-boot-3-spring-security-6-stateless-authentication-250d7610b479
+https://blog.devops.dev/spring-boot-3-spring-security-6-with-jwt-authentication-and-authorization-new-2024-989323f29b84
 
-  return (
-    <div className="flex justify-center">
-      <Pagination total={totalPages} page={page} onChangePage={handleChange} />
-    </div>
-  );
-}
+
 
 
 ------------------------------------------------------------
-genre-list
+init
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/util';
-import { Genre } from '@/types/book';
-import { Link } from 'react-router-dom';
+DROP DATABASE IF EXISTS `my-books-db`;
+CREATE DATABASE `my-books-db`;
 
-type Props = {
-  genres: Genre[];
-  className?: string;
-  variant?: 'default' | 'outline' | 'secondary' | 'ghost';
-};
+USE `my-books-db`;
 
-export default function GenreList({ genres, className, variant = 'default' }: Props) {
-  return (
-    <ul className={cn('flex flex-wrap', className)}>
-      {genres.map((genre) => (
-        <li key={genre.id}>
-          <Button className="rounded-full" variant={variant} size="sm" asChild>
-            <Link to={`/discover?genreId=${genre.id}`}>{genre.name}</Link>
-          </Button>
-        </li>
-      ))}
-    </ul>
-  );
-}
+-- bookテーブルの削除と再作成
+DROP TABLE IF EXISTS `books`;
+CREATE TABLE `books` (
+  `id` VARCHAR(255) NOT NULL,
+  `title` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` TEXT NOT NULL,
+  `genre_ids` VARCHAR(255) NOT NULL DEFAULT '',
+  `authors` VARCHAR(255) NOT NULL DEFAULT '',
+  `publisher` VARCHAR(255) NOT NULL DEFAULT '',
+  `published_date` DATE NOT NULL,
+  `price` INT(11) NOT NULL DEFAULT 0,
+  `page_count` INT(11) NOT NULL DEFAULT 0,
+  `isbn` VARCHAR(255) NOT NULL DEFAULT '',
+  `image_url` VARCHAR(255) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+);
 
+-- genreテーブルの削除と再作成
+DROP TABLE IF EXISTS `genres`;
+CREATE TABLE `genres` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` VARCHAR(255) NOT NULL DEFAULT '',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) AUTO_INCREMENT=10;
 
-------------------------------------------------------------
-login-button
+-- userテーブルの削除と再作成
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `email` VARCHAR(255) NOT NULL DEFAULT '',
+  `password` VARCHAR(255) NOT NULL DEFAULT '',
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `avatar_url` VARCHAR(255) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+);
 
-import { useAuth } from '@/auth/use-auth';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { MENU_LIST } from '@/constants/constants';
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+-- roleテーブルの削除と再作成
+DROP TABLE IF EXISTS `roles`;
+CREATE TABLE `roles` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` VARCHAR(255) NOT NULL DEFAULT '',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+);
 
-export default function LoginButton() {
-  const { isAuthenticated, user, logout } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+-- userとroleの関連テーブルの削除と再作成
+DROP TABLE IF EXISTS `user_roles`;
+CREATE TABLE `user_roles` (
+  `user_id` INT(11) NOT NULL,
+  `role_id` INT(11) NOT NULL,
+  PRIMARY KEY (`user_id`, `role_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE
+);
 
-  const [isOpen, setIsOpen] = useState(false);
+-- データのロード
+LOAD DATA INFILE '/docker-entrypoint-initdb.d/data.csv'
+INTO TABLE books
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+(`id`, `title`, `description`, `genre_ids`, `authors`, `publisher`, `published_date`, `price`, `page_count`, `isbn`, `image_url`);
 
-  const handleClickLogin = () => {
-    if (!isAuthenticated) {
-      navigate('/login', { state: { from: location } });
-    }
-  };
+INSERT INTO `genres` (`name`, `description`) VALUES
+('ミステリー', '謎解きや推理をテーマにした作品'),
+('サスペンス', '緊張感や驚きを伴う作品'),
+('ロマンス', '恋愛をテーマにした作品'),
+('ファンタジー', '魔法や異世界を舞台にした作品'),
+('SF', '科学技術や未来をテーマにした作品'),
+('ホラー', '恐怖をテーマにした作品'),
+('歴史', '歴史的な出来事や人物をテーマにした作品'),
+('絵本', '子供向けのイラストが多い本'),
+('教科書', '教育機関で使用される教材'),
+('専門書', '特定の分野に特化した書籍'),
+('研究書', '学術的な研究をまとめた書籍'),
+('環境', '自然や環境問題をテーマにした作品'),
+('冒険', '冒険や探検をテーマにした作品'),
+('図鑑', '特定のテーマに関する情報を集めた書籍'),
+('音楽', '音楽に関する書籍'),
+('ドラマ', '人間関係や感情を描いた作品'),
+('教育', '教育に関する書籍');
 
-  const handleClickLogout = async () => {
-    await logout();
-    setIsOpen(false);
-    navigate('/login', { state: { from: location } });
-  };
+INSERT INTO `users` (`name`, `email`, `password`, `avatar_url`) VALUES
+('Julia', 'julia@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'http://localhost:18080/images/avatars/avatar02.jpg'),
+('Steve', 'steve@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'http://localhost:18080/images/avatars/avatar07.jpg');
 
-  const handleClickItem = (href: string) => {
-    navigate(href);
-    setIsOpen(false);
-  };
+INSERT INTO `roles` (`name`, `description`) VALUES
+('ROLE_ADMIN', '管理者権限'),
+('ROLE_USER', 'ユーザー権限');
 
-  return (
-    <>
-      {user ? (
-        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-          <DropdownMenuTrigger className="ml-2 flex items-center justify-center" asChild>
-            <Button className="rounded-full" size="icon">
-              <Avatar>
-                <AvatarImage
-                  className="bg-primary"
-                  src={user.avatarUrl}
-                  alt="avatar-image"
-                />
-                <AvatarFallback className="font-semibold">
-                  {user.name.slice(0, 1)}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-40 p-2" side="bottom">
-            <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {MENU_LIST.map((item) => (
-              <DropdownMenuItem
-                onClick={() => handleClickItem(item.href)}
-                key={item.href}
-              >
-                {item.title}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleClickLogout}>ログアウト</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : (
-        <Button className="rounded-full" variant="ghost" onClick={handleClickLogin}>
-          ログイン
-        </Button>
-      )}
-    </>
-  );
-}
+INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
+(1, 1),
+(1, 2),
+(2, 2);
 
-
-------------------------------------------------------------
-logo
-
-import { Button } from '@/components/ui/button';
-import { LOGO_TITLE } from '@/constants/constants';
-import { cn } from '@/lib/util';
-import { Link } from 'react-router-dom';
-
-type Props = {
-  size?: 'sm' | 'md' | 'lg';
-};
-
-export default function Logo({ size = 'md' }: Props) {
-  const SIZE = {
-    sm: 'text-xl',
-    md: 'text-3xl',
-    lg: 'text-5xl h-20',
-  };
-
-  return (
-    <Button
-      className={cn(
-        'flex items-center justify-center text-primary hover:bg-transparent hover:text-primary/80',
-        SIZE[size]
-      )}
-      variant="ghost"
-      asChild
-    >
-      <Link to="/">
-        <h1 className="whitespace-nowrap font-['Alfa_Slab_One'] tracking-tighter">
-          {LOGO_TITLE}
-        </h1>
-      </Link>
-    </Button>
-  );
-}
 
 ------------------------------------------------------------
-menu-list
+Dockerfile
 
-import { Button } from '@/components/ui/button';
-import { MENU_LIST } from '@/constants/constants';
-import { cn } from '@/lib/util';
-import { Link, useLocation } from 'react-router-dom';
+FROM gradle:8.11-jdk17
 
-type Props = {
-  onClick?: () => void;
-};
+WORKDIR /my-books-backend
 
-export default function MenuList({ onClick }: Props) {
-  const location = useLocation();
-  const pathname = location.pathname;
-
-  return (
-    <ul className="flex flex-col gap-x-0 gap-y-2 md:flex-row">
-      {MENU_LIST.map((item) => (
-        <li key={item.href}>
-          <Button
-            className={cn(
-              'rounded-full w-full justify-center hover:bg-primary/20 hover:text-primary text-muted-foreground',
-              pathname === item.href && 'text-primary underline hover:text-primary'
-            )}
-            variant="ghost"
-            asChild
-          >
-            <Link to={item.href} onClick={onClick}>
-              {item.title}
-            </Link>
-          </Button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
+ENTRYPOINT ["sleep", "infinity"]
 ------------------------------------------------------------
-avatar
+AuthTokenFilter
 
-import { cn } from '@/lib/util';
-import React, { useContext, useEffect, useState } from 'react';
+package com.example.my_books_backend.config;
 
-interface AvatarContextType {
-  imageError: boolean;
-  setImageError: (value: boolean) => void;
-}
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-const AvatarContext = React.createContext<AvatarContextType | undefined>(undefined);
+import com.example.my_books_backend.service.impl.UserDetailsServiceImpl;
+import com.example.my_books_backend.util.JwtUtils;
 
-// ----------------------------------------------------------------------------
-// Avatar
-// ----------------------------------------------------------------------------
-type AvatarProps = React.HTMLAttributes<HTMLDivElement>;
+import java.io.IOException;
 
-const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
-  ({ children, className, ...props }, ref) => {
-    const [imageError, setImageError] = useState(false);
+@Component
+@RequiredArgsConstructor
+public class AuthTokenFilter extends OncePerRequestFilter {
 
-    useEffect(() => {
-      // AvatarImageがなければ画像読み込みエラーとする
-      const image = React.Children.toArray(children).find(
-        (child) => React.isValidElement(child) && child.type === AvatarImage
-      );
-      if (!image) setImageError(true);
-    }, [children]);
+    private final JwtUtils jwtUtils;
+    private final UserDetailsServiceImpl userDetailsService;
 
-    return (
-      <AvatarContext.Provider value={{ imageError, setImageError }}>
-        <div
-          ref={ref}
-          className={cn(
-            'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full',
-            className
-          )}
-          {...props}
-        >
-          {React.Children.map(children, (child) => {
-            if (React.isValidElement(child)) {
-              switch (child.type) {
-                case AvatarImage:
-                case AvatarFallback:
-                  return child;
-                default:
-                  return null;
-              }
+    @SuppressWarnings("null")
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        try {
+            String jwt = parseJwt(request);
+            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+                String username = jwtUtils.getUserNameFromJwtToken(jwt);
+
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities());
+
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-          })}
-        </div>
-      </AvatarContext.Provider>
-    );
-  }
-);
-
-// ----------------------------------------------------------------------------
-// AvatarImage
-// ----------------------------------------------------------------------------
-interface AvatarImageProps extends React.HTMLAttributes<HTMLImageElement> {
-  src: string;
-  alt: string;
-}
-
-const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
-  ({ className, ...props }, ref) => {
-    const context = useContext(AvatarContext);
-    if (!context) throw new Error('AvatarImage must be used within Avatar');
-
-    const { imageError, setImageError } = context;
-
-    if (imageError) return null;
-
-    return (
-      <img
-        ref={ref}
-        className={cn('aspect-square h-full w-full', className)}
-        {...props}
-        onError={() => setImageError(true)}
-      />
-    );
-  }
-);
-
-// ----------------------------------------------------------------------------
-// AvatarFallback
-// ----------------------------------------------------------------------------
-type AvatarFallbackProps = React.HTMLAttributes<HTMLDivElement>;
-
-const AvatarFallback = React.forwardRef<HTMLDivElement, AvatarFallbackProps>(
-  ({ className, ...props }, ref) => {
-    const context = useContext(AvatarContext);
-    if (!context) throw new Error('AvatarFallback must be used within Avatar');
-
-    const { imageError } = context;
-
-    if (!imageError) return null;
-
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          'flex h-full w-full items-center justify-center rounded-full bg-muted',
-          className
-        )}
-        {...props}
-      />
-    );
-  }
-);
-
-export { Avatar, AvatarFallback, AvatarImage };
-
-------------------------------------------------------------
-button
-
-import { cn } from '@/lib/util';
-import React, { ButtonHTMLAttributes } from 'react';
-
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
-  asChild?: boolean;
-}
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      className,
-      children,
-      variant = 'default',
-      size = 'default',
-      asChild = false,
-      ...props
-    },
-    ref
-  ) => {
-    const VARIANT = {
-      default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-      destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-      outline:
-        'border border-primary/50 text-primary bg-background hover:bg-primary/20 hover:border-primary',
-      secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-      ghost: 'bg-transparent text-foreground hover:bg-primary/20 hover:text-primary',
-    };
-
-    const SIZE = {
-      default: 'h-10 px-4 py-2',
-      sm: 'h-9 rounded-md px-3',
-      lg: 'h-11 rounded-md px-8',
-      icon: 'size-10',
-    };
-
-    if (asChild && React.isValidElement(children)) {
-      const mergeChildProps = {
-        ...children.props,
-        className: cn(
-          'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-          VARIANT[variant],
-          SIZE[size],
-          className
-        ),
-      };
-      return React.cloneElement(children, { ...mergeChildProps, ref });
-    }
-
-    return (
-      <button
-        ref={ref}
-        className={cn(
-          'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-          VARIANT[variant],
-          SIZE[size],
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </button>
-    );
-  }
-);
-
-export { Button };
-
-------------------------------------------------------------
-dialog
-
-import { cn } from '@/lib/util';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
-
-interface DialogContextType {
-  isOpen: boolean;
-  openDialog: () => void;
-  closeDialog: () => void;
-}
-
-const DialogContext = React.createContext<DialogContextType | undefined>(undefined);
-
-// ----------------------------------------------------------------------------
-// Dialog
-// ----------------------------------------------------------------------------
-interface DialogProps extends React.DialogHTMLAttributes<HTMLDialogElement> {
-  open?: boolean;
-  onOpenChange?: (isOpen: boolean) => void;
-}
-
-const Dialog = ({ children, open, onOpenChange }: DialogProps) => {
-  // 外部からの状態を優先し、指定がない場合は内部状態を利用
-  const [isOpen, setIsOpen] = useState(open ?? false);
-
-  // propsが更新されたら内部状態も更新
-  useEffect(() => {
-    if (open !== undefined) {
-      setIsOpen(open);
-    }
-  }, [open]);
-
-  const openDialog = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(true);
-    } else {
-      setIsOpen(true);
-    }
-  }, [onOpenChange]);
-
-  const closeDialog = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(false);
-    } else {
-      setIsOpen(false);
-    }
-  }, [onOpenChange]);
-
-  return (
-    <DialogContext.Provider value={{ isOpen, openDialog, closeDialog }}>
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          switch (child.type) {
-            case DialogTrigger:
-            case DialogContent:
-              return child;
-            default:
-              return null;
-          }
+        } catch (Exception e) {
+            logger.error("Cannot set user authentication: {}", e);
         }
-      })}
-    </DialogContext.Provider>
-  );
-};
 
-// ----------------------------------------------------------------------------
-// DialogTrigger
-// ----------------------------------------------------------------------------
-interface DialogTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
-  asChild?: boolean;
+        filterChain.doFilter(request, response);
+    }
+
+    private String parseJwt(HttpServletRequest request) {
+        String jwt = jwtUtils.getJwtFromHeader(request);
+        return jwt;
+    }
 }
+------------------------------------------------------------
+SecurityConfig
 
-const DialogTrigger = React.forwardRef<HTMLButtonElement, DialogTriggerProps>(
-  ({ children, asChild = false, ...props }, ref) => {
-    const context = useContext(DialogContext);
-    if (!context) throw new Error('DialogTrigger must be used within Dialog');
+package com.example.my_books_backend.config;
 
-    const { openDialog } = context;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 
-    if (asChild && React.isValidElement(children)) {
-      const mergeChildProps = {
-        ...children.props,
-        onClick: (e: React.MouseEvent) => {
-          children.props.onClick?.(e);
-          openDialog();
-        },
-      };
-      return React.cloneElement(children, { ...mergeChildProps, ref });
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final AuthTokenFilter authTokenFilter;
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        http.csrf(csrf -> csrf.disable());
+
+        http.sessionManagement(
+                session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/api/**").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                .permitAll().anyRequest().authenticated());
+
+        http.logout(logout -> logout.logoutUrl("/auth/logout").logoutSuccessUrl("/")
+                .invalidateHttpSession(true).deleteCookies("JSESSIONID"));
+
+        http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
-    const mergeProps = {
-      ...props,
-      onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
-        props.onClick?.(e);
-        openDialog();
-      },
-    };
-
-    return (
-      <button ref={ref} {...mergeProps}>
-        {children}
-      </button>
-    );
-  }
-);
-
-// ----------------------------------------------------------------------------
-// DialogOverlay
-// ----------------------------------------------------------------------------
-type DialogOverlayProps = React.HTMLAttributes<HTMLDivElement>;
-
-const DialogOverlay = ({ className, ...props }: DialogOverlayProps) => {
-  const context = useContext(DialogContext);
-  if (!context) throw new Error('DialogOverlay must be used within Dialog');
-
-  const { isOpen } = context;
-
-  // 閉じるアニメーションが終わった時にopacity:0にする
-  // data-[state=closed]でopacity:0へのアニメーションはするが、
-  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
-  // これを防ぐためにdisplay:'none'にする
-  const ref = useRef<HTMLDivElement | null>(null);
-  const handleAnimationEnd = (e: React.AnimationEvent) => {
-    if (e.animationName === 'exit' && ref.current) {
-      ref.current.style.display = 'none';
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
-  };
 
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        'fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-        className
-      )}
-      data-state={isOpen ? 'open' : 'closed'}
-      {...props}
-      onAnimationEnd={handleAnimationEnd}
-    ></div>
-  );
-};
-
-// ----------------------------------------------------------------------------
-// DialogContent
-// ----------------------------------------------------------------------------
-interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  onEscapeKeyDown?: () => void;
-  onPointerDownOutside?: () => void;
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 }
-const DialogContent = ({
-  className,
-  children,
-  onEscapeKeyDown,
-  onPointerDownOutside,
-  ...props
-}: DialogContentProps) => {
-  const context = useContext(DialogContext);
-  if (!context) throw new Error('DialogContent must be used within Dialog');
-
-  const { isOpen, closeDialog } = context;
-
-  const [isVisible, setIsVisible] = useState(false);
-
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
-  }, []);
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (!isOpen) return;
-
-      if (e.key === 'Escape') {
-        if (onEscapeKeyDown) {
-          onEscapeKeyDown();
-        } else {
-          closeDialog();
-        }
-      }
-    },
-    [closeDialog, isOpen, onEscapeKeyDown]
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true);
-      document.addEventListener('wheel', handleWheel, { passive: false });
-      document.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.removeEventListener('wheel', handleWheel);
-      document.removeEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener('wheel', handleWheel);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown, handleWheel, isOpen]);
-
-  const handlePointerDownOutside = () => {
-    if (onPointerDownOutside) {
-      onPointerDownOutside();
-    } else {
-      closeDialog();
-    }
-  };
-
-  // 閉じるアニメーションが終わった時にopacity:0にする
-  // data-[state=closed]でopacity:0へのアニメーションはするが、
-  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
-  // これを防ぐためにdisplay:'none'にする
-  const ref = useRef<HTMLDivElement | null>(null);
-  const handleAnimationEnd = (e: React.AnimationEvent) => {
-    if (e.animationName === 'exit' && ref.current) {
-      ref.current.style.display = 'none';
-      setIsVisible(false);
-    }
-  };
-
-  const mergeProps = {
-    ...props,
-    onAnimationEnd: (e: React.AnimationEvent<HTMLDivElement>) => {
-      props.onAnimationEnd?.(e);
-      handleAnimationEnd(e);
-    },
-  };
-
-  return ReactDOM.createPortal(
-    <>
-      {isVisible && (
-        <>
-          <DialogOverlay onClick={handlePointerDownOutside} />
-          <div
-            ref={ref}
-            className={cn(
-              'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
-              className
-            )}
-            data-state={isOpen ? 'open' : 'closed'}
-            {...mergeProps}
-          >
-            {children}
-          </div>
-        </>
-      )}
-    </>,
-    document.body
-  );
-};
-
-// ----------------------------------------------------------------------------
-// DialogHeader
-// ----------------------------------------------------------------------------
-const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)}
-    {...props}
-  />
-);
-
-// ----------------------------------------------------------------------------
-// DialogFooter
-// ----------------------------------------------------------------------------
-const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn(
-      'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
-      className
-    )}
-    {...props}
-  />
-);
-
-// ----------------------------------------------------------------------------
-// DialogTitle
-// ----------------------------------------------------------------------------
-type DialogTitleProps = React.HTMLAttributes<HTMLDivElement>;
-const DialogTitle = React.forwardRef<HTMLDivElement, DialogTitleProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn('text-lg font-semibold leading-none tracking-tight', className)}
-        {...props}
-      />
-    );
-  }
-);
-
-// ----------------------------------------------------------------------------
-// DialogDescription
-// ----------------------------------------------------------------------------
-type DialogDescriptionProps = React.HTMLAttributes<HTMLDivElement>;
-const DialogDescription = React.forwardRef<HTMLDivElement, DialogDescriptionProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn('text-sm text-muted-foreground', className)}
-        {...props}
-      />
-    );
-  }
-);
-
-export {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogOverlay,
-  DialogTitle,
-  DialogTrigger,
-};
 
 ------------------------------------------------------------
-dropdown-menu
+AuthController
 
-import { cn } from '@/lib/util';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
+package com.example.my_books_backend.controller;
 
-type DropdownMenuSideType = 'top' | 'right' | 'bottom' | 'left';
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.example.my_books_backend.dto.auth.LoginRequest;
+import com.example.my_books_backend.dto.auth.SignupRequest;
+import com.example.my_books_backend.exception.ConflictException;
+import com.example.my_books_backend.service.AuthService;
+import lombok.RequiredArgsConstructor;
 
-const DEFAULT_SIDE: DropdownMenuSideType = 'bottom';
-const DEFAULT_SIDE_OFFSET = 4;
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+public class AuthController {
 
-interface DropdownMenuContextType {
-  isOpen: boolean;
-  openDropdownMenu: () => void;
-  closeDropdownMenu: () => void;
-  triggerRef: React.MutableRefObject<HTMLDivElement | HTMLButtonElement | null>;
-  focusedIndex: number;
-  setFocusedIndex: (index: number) => void;
-  itemsRef: React.MutableRefObject<HTMLButtonElement[]>;
-}
+    private final AuthenticationManager authenticationManager;
+    private final AuthService authService;
 
-const DropdownMenuContext = React.createContext<DropdownMenuContextType | undefined>(
-  undefined
-);
-
-// ----------------------------------------------------------------------------
-// DropdownMenu
-// ----------------------------------------------------------------------------
-interface DropdownMenuProps extends React.HTMLAttributes<HTMLDivElement> {
-  open?: boolean;
-  onOpenChange?: (isOpen: boolean) => void;
-}
-
-const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
-  // 外部からの状態を優先し、指定がない場合は内部状態を利用
-  const [isOpen, setIsOpen] = useState(open ?? false);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-  const itemsRef = useRef<HTMLButtonElement[]>([]);
-
-  // propsが更新されたら内部状態も更新
-  useEffect(() => {
-    if (open !== undefined) {
-      setIsOpen(open);
-    }
-  }, [open]);
-
-  const openDropdownMenu = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(true);
-    } else {
-      setIsOpen(true);
-    }
-  }, [onOpenChange]);
-
-  const closeDropdownMenu = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(false);
-    } else {
-      setIsOpen(false);
-    }
-  }, [onOpenChange]);
-
-  const triggerRef = useRef<HTMLDivElement | null>(null);
-
-  return (
-    <DropdownMenuContext.Provider
-      value={{
-        isOpen,
-        openDropdownMenu,
-        closeDropdownMenu,
-        triggerRef,
-        focusedIndex,
-        setFocusedIndex,
-        itemsRef,
-      }}
-    >
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          switch (child.type) {
-            case DropdownMenuTrigger:
-            case DropdownMenuContent:
-              return child;
-            default:
-              return null;
-          }
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    request.getEmail(), request.getPassword()));
+            return ResponseEntity.ok("Login successful");
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Login failed: " + e.getMessage());
         }
-      })}
-    </DropdownMenuContext.Provider>
-  );
-};
 
-// ----------------------------------------------------------------------------
-// DropdownMenuTrigger
-// ----------------------------------------------------------------------------
-interface DropdownMenuTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
-  asChild?: boolean;
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<String> signup(@RequestBody SignupRequest request) {
+        try {
+            authService.signup(request.getEmail(), request.getPassword());
+            return ResponseEntity.ok("Signup successful");
+        } catch (ConflictException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Signup failed: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout() {
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Logout successful");
+    }
+
+    @GetMapping("/isAuthenticated")
+    public ResponseEntity<Boolean> isAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated = authentication != null && authentication.isAuthenticated();
+        return ResponseEntity.ok(isAuthenticated);
+    }
 }
-
-const DropdownMenuTrigger = React.forwardRef<HTMLButtonElement, DropdownMenuTriggerProps>(
-  ({ className, children, asChild = false, ...props }, ref) => {
-    const context = useContext(DropdownMenuContext);
-    if (!context) throw new Error('DropdownMenuContent must be used within DropdownMenu');
-
-    const { openDropdownMenu, triggerRef } = context;
-
-    if (asChild && React.isValidElement(children)) {
-      const mergeChildProps = {
-        ...children.props,
-        onClick: (e: React.MouseEvent) => {
-          children.props.onClick?.(e);
-          openDropdownMenu();
-        },
-      };
-      return (
-        <div
-          ref={triggerRef as React.MutableRefObject<HTMLDivElement>}
-          className={cn('w-fit', className)}
-        >
-          {React.cloneElement(children, { ...mergeChildProps, ref })}
-        </div>
-      );
-    }
-    const mergeProps = {
-      ...props,
-      onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
-        props.onClick?.(e);
-        openDropdownMenu();
-      },
-    };
-
-    return (
-      <button
-        ref={triggerRef as React.MutableRefObject<HTMLButtonElement>}
-        className={cn('w-fit', className)}
-        {...mergeProps}
-      >
-        {children}
-      </button>
-    );
-  }
-);
-
-// ----------------------------------------------------------------------------
-// DropdownMenuContent
-// ----------------------------------------------------------------------------
-interface DropdownMenuContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  side?: DropdownMenuSideType;
-  sideOffset?: number;
-  onEscapeKeyDown?: () => void;
-  onPointerDownOutside?: () => void;
-}
-
-const DropdownMenuContent = ({
-  children,
-  className,
-  side = DEFAULT_SIDE,
-  sideOffset = DEFAULT_SIDE_OFFSET,
-  onEscapeKeyDown,
-  onPointerDownOutside,
-  ...props
-}: DropdownMenuContentProps) => {
-  const context = useContext(DropdownMenuContext);
-  if (!context) throw new Error('DropdownMenuContent must be used within DropdownMenu');
-
-  const {
-    isOpen,
-    closeDropdownMenu,
-    triggerRef,
-    focusedIndex,
-    itemsRef,
-    setFocusedIndex,
-  } = context;
-
-  const [isVisible, setIsVisible] = useState(false);
-
-  const handleArrawNavigation = useCallback(
-    (key: string) => {
-      const isArrowUp = key === 'ArrowUp';
-      const itemCount = itemsRef.current.length;
-
-      let newIndex = focusedIndex;
-
-      if (focusedIndex === -1) {
-        newIndex = isArrowUp ? itemCount - 1 : 0;
-      } else {
-        newIndex = isArrowUp
-          ? (focusedIndex - 1 + itemCount) % itemCount
-          : (focusedIndex + 1) % itemCount;
-      }
-
-      setFocusedIndex(newIndex);
-      itemsRef.current[newIndex].focus();
-    },
-    [focusedIndex, itemsRef, setFocusedIndex]
-  );
-
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
-  }, []);
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (!isOpen) return;
-
-      switch (e.key) {
-        case 'Escape':
-          if (onEscapeKeyDown) {
-            onEscapeKeyDown();
-          } else {
-            closeDropdownMenu();
-          }
-          break;
-
-        case 'Tab':
-          e.preventDefault();
-          break;
-
-        case 'ArrowUp':
-        case 'ArrowDown':
-          e.preventDefault();
-          handleArrawNavigation(e.key);
-          break;
-      }
-    },
-    [closeDropdownMenu, handleArrawNavigation, isOpen, onEscapeKeyDown]
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true);
-      document.addEventListener('wheel', handleWheel, { passive: false });
-      document.addEventListener('keydown', handleKeyDown);
-    } else {
-      setFocusedIndex(-1);
-      document.removeEventListener('wheel', handleWheel);
-      document.removeEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener('wheel', handleWheel);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown, handleWheel, isOpen, setFocusedIndex]);
-
-  const handlePointerDownOutside = () => {
-    if (onPointerDownOutside) {
-      onPointerDownOutside();
-    } else {
-      closeDropdownMenu();
-    }
-  };
-
-  // 閉じるアニメーションが終わった時にopacity:0にする
-  // data-[state=closed]でopacity:0へのアニメーションはするが、
-  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
-  // これを防ぐためにdisplay:'none'にする
-  const ref = useRef<HTMLDivElement | null>(null);
-  const handleAnimationEnd = (e: React.AnimationEvent) => {
-    if (e.animationName === 'exit' && ref.current) {
-      ref.current.style.display = 'none';
-      setIsVisible(false);
-    }
-  };
-
-  const mergeProps = {
-    ...props,
-    onAnimationEnd: (e: React.AnimationEvent<HTMLDivElement>) => {
-      props.onAnimationEnd?.(e);
-      handleAnimationEnd(e);
-    },
-  };
-
-  const [transformStyle, setTransformStyle] = useState('');
-
-  useEffect(() => {
-    // triggerとなる要素からDropdownMenuを表示する座標を計算する
-    // （style属性に指定する文字列作成）
-    if (triggerRef.current) {
-      const { left, top, right, bottom, width, height } =
-        triggerRef.current.getBoundingClientRect();
-      const positions = {
-        top: {
-          x: left + width / 2,
-          y: top,
-          offset: { x: '-50%', y: `-100% - ${sideOffset}px` },
-        },
-        bottom: {
-          x: left + width / 2,
-          y: bottom,
-          offset: { x: '-50%', y: `0% + ${sideOffset}px` },
-        },
-        left: {
-          x: left,
-          y: top + height / 2,
-          offset: { x: `-100% - ${sideOffset}px`, y: '-50%' },
-        },
-        right: {
-          x: right,
-          y: top + height / 2,
-          offset: { x: `0% + ${sideOffset}px`, y: '-50%' },
-        },
-      };
-      const pos = positions[side];
-
-      setTransformStyle(
-        `translate(calc(${pos.x}px + ${pos.offset.x}), calc(${pos.y}px + ${pos.offset.y}))`
-      );
-    }
-  }, [context, triggerRef, side, sideOffset]);
-
-  let itemIndex = 0;
-  const innerChildren = React.Children.map(children, (child) => {
-    if (React.isValidElement(child)) {
-      switch (child.type) {
-        case DropdownMenuItem:
-          return React.cloneElement(child, { ...child.props, index: itemIndex++ });
-        default:
-          return child;
-      }
-    }
-  });
-
-  return ReactDOM.createPortal(
-    <>
-      {isVisible && (
-        <>
-          <div className="fixed inset-0 z-50" onClick={handlePointerDownOutside} />
-          <div className="fixed left-0 top-0 z-50" style={{ transform: transformStyle }}>
-            <div
-              ref={ref}
-              className={cn(
-                'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-                className
-              )}
-              data-state={isOpen ? 'open' : 'closed'}
-              data-side={side}
-              {...mergeProps}
-            >
-              {innerChildren}
-            </div>
-          </div>
-        </>
-      )}
-    </>,
-    document.body
-  );
-};
-
-// ----------------------------------------------------------------------------
-// DropdownMenuItem
-// ----------------------------------------------------------------------------
-interface DropdownMenuItemProps extends React.HTMLAttributes<HTMLButtonElement> {
-  index?: number;
-  inset?: boolean;
-}
-const DropdownMenuItem = ({
-  className,
-  children,
-  index = 0,
-  inset,
-  ...props
-}: DropdownMenuItemProps) => {
-  const context = useContext(DropdownMenuContext);
-  if (!context) throw new Error('DropdownMenuItem must be used within DropdownMenu');
-
-  const { itemsRef, closeDropdownMenu } = context;
-
-  const mergeProps = {
-    ...props,
-    onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => {
-      props.onMouseEnter?.(e);
-      itemsRef.current[index].focus();
-    },
-    onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
-      if (props.onClick) {
-        props.onClick(e);
-        return;
-      }
-      closeDropdownMenu();
-    },
-  };
-
-  return (
-    <button
-      ref={(el) => (itemsRef.current[index] = el as HTMLButtonElement)}
-      className={cn(
-        'relative w-full flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
-        inset && 'pl-8',
-        className
-      )}
-      tabIndex={-1}
-      {...mergeProps}
-    >
-      {children}
-    </button>
-  );
-};
-
-// ----------------------------------------------------------------------------
-// DropdownMenuSeparator
-// ----------------------------------------------------------------------------
-type DropdownMenuSeparatorProps = React.HTMLAttributes<HTMLDivElement>;
-const DropdownMenuSeparator = React.forwardRef<
-  HTMLDivElement,
-  DropdownMenuSeparatorProps
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('-mx-1 my-1 h-px bg-muted', className)} {...props} />
-));
-
-// ----------------------------------------------------------------------------
-// DropdownMenuLabel
-// ----------------------------------------------------------------------------
-interface DropdownMenuLabelProps extends React.HTMLAttributes<HTMLDivElement> {
-  inset?: boolean;
-}
-const DropdownMenuLabel = React.forwardRef<HTMLDivElement, DropdownMenuLabelProps>(
-  ({ className, inset, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('px-2 py-1.5 text-sm font-semibold', inset && 'pl-8', className)}
-      {...props}
-    />
-  )
-);
-
-export {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-};
 
 ------------------------------------------------------------
-radio-group
+BookController
 
-import { cn } from '@/lib/util';
-import { Circle } from 'lucide-react';
-import React, {
-  ButtonHTMLAttributes,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+package com.example.my_books_backend.controller;
 
-interface RadioGroupContextType {
-  checkedId: string | undefined;
-  setCheckedId: (value: string | undefined) => void;
-  innerValue: string;
-  setValue: (value: string) => void;
-}
+import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.example.my_books_backend.dto.book.BookDto;
+import com.example.my_books_backend.dto.book.BookResponseDto;
+import com.example.my_books_backend.service.BookService;
+import lombok.RequiredArgsConstructor;
 
-const RadioGroupContext = React.createContext<RadioGroupContextType | undefined>(
-  undefined
-);
+@RestController
+@RequestMapping("/api/books")
+@RequiredArgsConstructor
+public class BookController {
 
-interface RadioGroupProps extends React.HTMLAttributes<HTMLDivElement> {
-  value?: string;
-  onValueChange?: (value: string) => void;
-  defaultValue?: string;
-}
+    private final BookService bookService;
 
-const RadioGroup = ({
-  className,
-  children,
-  value,
-  onValueChange,
-  ...props
-}: RadioGroupProps) => {
-  // 外部からの状態を優先し、指定がない場合は内部状態を利用
-  const [innerValue, setInnerValue] = useState(value ?? '');
-
-  // propsが更新されたら内部状態も更新
-  useEffect(() => {
-    if (value !== undefined) {
-      setInnerValue(value);
+    @GetMapping("")
+    public ResponseEntity<List<BookDto>> getBooks() {
+        List<BookDto> books = bookService.getBooks();
+        return ResponseEntity.ok(books);
     }
-  }, [value]);
 
-  const setValue = useCallback(
-    (value: string) => {
-      if (onValueChange) {
-        onValueChange(value);
-      } else {
-        setInnerValue(value);
-      }
-    },
-    [onValueChange]
-  );
+    @GetMapping("/{id}")
+    public ResponseEntity<BookDto> getBookById(@PathVariable String id) {
+        BookDto book = bookService.getBookById(id);
+        return ResponseEntity.ok(book);
+    }
 
-  const [checkedId, setCheckedId] = useState<string | undefined>(undefined);
+    @GetMapping("/search")
+    public ResponseEntity<BookResponseDto> searchByTitle(@RequestParam String q,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        BookResponseDto bookResponse = bookService.searchByTitle(q, page, maxResults);
+        return ResponseEntity.ok(bookResponse);
+    }
 
-  return (
-    <RadioGroupContext.Provider
-      value={{
-        checkedId,
-        setCheckedId,
-        innerValue,
-        setValue,
-      }}
-    >
-      <div className={cn('grid gap-2', className)} {...props}>
-        {children}
-      </div>
-    </RadioGroupContext.Provider>
-  );
-};
+    @GetMapping("/discover")
+    public ResponseEntity<BookResponseDto> searchByGenreId(@RequestParam String genreId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        BookResponseDto bookResponse = bookService.searchByGenreId(genreId, page, maxResults);
+        return ResponseEntity.ok(bookResponse);
+    }
 
-type RadioGroupItemProps = ButtonHTMLAttributes<HTMLButtonElement>;
+    @GetMapping("/new-releases")
+    public ResponseEntity<List<BookDto>> getNewReleases() {
+        List<BookDto> books = bookService.getNewReleases();
+        return ResponseEntity.ok(books);
+    }
 
-const RadioGroupItem = React.forwardRef<HTMLButtonElement, RadioGroupItemProps>(
-  ({ className, ...props }, ref) => {
-    const context = useContext(RadioGroupContext);
-    if (!context) throw new Error('DialogTrigger must be used within Dialog');
-
-    const { setCheckedId, setValue, innerValue } = context;
-
-    const handleClick = () => {
-      setCheckedId(props.id);
-
-      const value = typeof props.value === 'string' ? props.value : '';
-      setValue(value);
-    };
-
-    return (
-      <button
-        ref={ref}
-        className={cn(
-          'aspect-square h-4 w-4 rounded-full border border-primary text-primary ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-          className
-        )}
-        type="button"
-        {...props}
-        onClick={handleClick}
-      >
-        {innerValue === props.value && (
-          <span className="flex items-center justify-center">
-            <Circle className="size-2.5 fill-current text-current" />
-          </span>
-        )}
-      </button>
-    );
-  }
-);
-
-export { RadioGroup, RadioGroupItem };
+}
 
 ------------------------------------------------------------
-select
+GenreController
 
-import { cn } from '@/lib/util';
-import { CheckIcon, ChevronDownIcon } from 'lucide-react';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
+package com.example.my_books_backend.controller;
 
-type SelectSideType = 'top' | 'right' | 'bottom' | 'left';
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import com.example.my_books_backend.dto.genre.GenreCreateDto;
+import com.example.my_books_backend.dto.genre.GenreDto;
+import com.example.my_books_backend.dto.genre.GenreUpdateDto;
+import com.example.my_books_backend.model.Genre;
+import com.example.my_books_backend.service.GenreService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
-const DEFAULT_SIDE: SelectSideType = 'bottom';
-const DEFAULT_SIDE_OFFSET = 4;
+@RestController
+@RequestMapping("/api/genres")
+@RequiredArgsConstructor
+public class GenreController {
 
-interface SelectContextType {
-  isOpen: boolean;
-  openSelect: () => void;
-  closeSelect: () => void;
-  triggerRef: React.MutableRefObject<HTMLDivElement | HTMLButtonElement | null>;
-  focusedIndex: number;
-  setFocusedIndex: (index: number) => void;
-  itemsRef: React.MutableRefObject<HTMLButtonElement[]>;
-  innerValue: string;
-  setValue: (value: string) => void;
+    private final GenreService genreService;
+
+    @GetMapping("")
+    public ResponseEntity<List<GenreDto>> getGenres() {
+        List<GenreDto> genres = genreService.getGenres();
+        return ResponseEntity.ok(genres);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<GenreDto> getGenreById(@PathVariable Integer id) {
+        GenreDto genre = genreService.getGenreById(id);
+        return ResponseEntity.ok(genre);
+    }
+
+    @PostMapping("")
+    public ResponseEntity<GenreDto> createGenre(@Valid @RequestBody GenreCreateDto dto) {
+        GenreDto genre = genreService.createGenre(dto);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                .buildAndExpand(genre.getId()).toUri();
+        return ResponseEntity.created(location).body(genre);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<GenreDto> updateGenre(@PathVariable Integer id,
+            @Valid @RequestBody GenreUpdateDto dto) {
+        genreService.updateGenre(id, dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<GenreDto> patchGenre(@PathVariable Integer id,
+            @Valid @RequestBody Map<String, Object> updates) {
+        genreService.patchGenre(id, updates);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Genre> deleteGenre(@PathVariable Integer id) {
+        genreService.deleteGenre(id);
+        return ResponseEntity.noContent().build();
+    }
 }
-
-const SelectContext = React.createContext<SelectContextType | undefined>(undefined);
-
-// ----------------------------------------------------------------------------
-// Select
-// ----------------------------------------------------------------------------
-interface SelectProps extends React.HTMLAttributes<HTMLDivElement> {
-  open?: boolean;
-  onOpenChange?: (isOpen: boolean) => void;
-  value?: string;
-  onValueChange?: (value: string) => void;
-}
-
-const Select = ({ children, open, onOpenChange, value, onValueChange }: SelectProps) => {
-  // 外部からの状態を優先し、指定がない場合は内部状態を利用
-  const [isOpen, setIsOpen] = useState(open ?? false);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-  const itemsRef = useRef<HTMLButtonElement[]>([]);
-  const [innerValue, setInnerValue] = useState(value ?? '');
-
-  // propsが更新されたら内部状態も更新
-  useEffect(() => {
-    if (open !== undefined) {
-      setIsOpen(open);
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (value !== undefined) {
-      setInnerValue(value);
-    }
-  }, [value]);
-
-  const openSelect = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(true);
-    } else {
-      setIsOpen(true);
-    }
-  }, [onOpenChange]);
-
-  const closeSelect = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(false);
-    } else {
-      setIsOpen(false);
-    }
-  }, [onOpenChange]);
-
-  const setValue = useCallback(
-    (value: string) => {
-      if (onValueChange) {
-        onValueChange(value);
-      } else {
-        setInnerValue(value);
-      }
-    },
-    [onValueChange]
-  );
-
-  const triggerRef = useRef<HTMLDivElement | null>(null);
-
-  return (
-    <SelectContext.Provider
-      value={{
-        isOpen,
-        openSelect,
-        closeSelect,
-        triggerRef,
-        focusedIndex,
-        setFocusedIndex,
-        itemsRef,
-        innerValue,
-        setValue,
-      }}
-    >
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          switch (child.type) {
-            case SelectTrigger:
-            case SelectContent:
-              return child;
-            default:
-              return null;
-          }
-        }
-      })}
-    </SelectContext.Provider>
-  );
-};
-
-// ----------------------------------------------------------------------------
-// SelectTrigger
-// ----------------------------------------------------------------------------
-interface SelectTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
-  asChild?: boolean;
-}
-
-const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerProps>(
-  ({ className, children, asChild = false, ...props }, ref) => {
-    const context = useContext(SelectContext);
-    if (!context) throw new Error('SelectContent must be used within Select');
-
-    const { openSelect, triggerRef } = context;
-
-    if (asChild && React.isValidElement(children)) {
-      const mergeChildProps = {
-        ...children.props,
-        onClick: (e: React.MouseEvent) => {
-          children.props.onClick?.(e);
-          openSelect();
-        },
-      };
-      return (
-        <div
-          ref={triggerRef as React.MutableRefObject<HTMLDivElement>}
-          className={cn('w-fit', className)}
-        >
-          {React.cloneElement(children, { ...mergeChildProps, ref })}
-        </div>
-      );
-    }
-
-    const mergeProps = {
-      ...props,
-      onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
-        props.onClick?.(e);
-        openSelect();
-      },
-    };
-
-    return (
-      <button
-        ref={triggerRef as React.MutableRefObject<HTMLButtonElement>}
-        className={cn(
-          'flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
-          className
-        )}
-        {...mergeProps}
-      >
-        {React.Children.map(children, (child) => {
-          if (React.isValidElement(child)) {
-            switch (child.type) {
-              case SelectValue:
-                return child;
-              default:
-                return null;
-            }
-          }
-        })}
-        <ChevronDownIcon className="size-4 opacity-50" />
-      </button>
-    );
-  }
-);
-
-// ----------------------------------------------------------------------------
-// SelectContent
-// ----------------------------------------------------------------------------
-interface SelectContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  side?: SelectSideType;
-  sideOffset?: number;
-  onEscapeKeyDown?: () => void;
-  onPointerDownOutside?: () => void;
-  position?: 'item-aligned' | 'popper';
-}
-
-const SelectContent = ({
-  children,
-  className,
-  side = DEFAULT_SIDE,
-  sideOffset = DEFAULT_SIDE_OFFSET,
-  onEscapeKeyDown,
-  onPointerDownOutside,
-  position = 'item-aligned',
-  ...props
-}: SelectContentProps) => {
-  const context = useContext(SelectContext);
-  if (!context) throw new Error('SelectContent must be used within Select');
-
-  const { isOpen, closeSelect, triggerRef, focusedIndex, itemsRef, setFocusedIndex } =
-    context;
-
-  const [isVisible, setIsVisible] = useState(false);
-
-  const handleArrawNavigation = useCallback(
-    (key: string) => {
-      const isArrowUp = key === 'ArrowUp';
-      const itemCount = itemsRef.current.length;
-
-      const newIndex = isArrowUp
-        ? (focusedIndex - 1 + itemCount) % itemCount
-        : (focusedIndex + 1) % itemCount;
-
-      setFocusedIndex(newIndex);
-      itemsRef.current[newIndex].focus();
-    },
-    [focusedIndex, itemsRef, setFocusedIndex]
-  );
-
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
-  }, []);
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (!isOpen) return;
-
-      switch (e.key) {
-        case 'Escape':
-          if (onEscapeKeyDown) {
-            onEscapeKeyDown();
-          } else {
-            closeSelect();
-          }
-          break;
-
-        case 'Tab':
-          e.preventDefault();
-          break;
-
-        case 'ArrowUp':
-        case 'ArrowDown':
-          e.preventDefault();
-          handleArrawNavigation(e.key);
-          break;
-      }
-    },
-    [closeSelect, handleArrawNavigation, isOpen, onEscapeKeyDown]
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true);
-      document.addEventListener('wheel', handleWheel, { passive: false });
-      document.addEventListener('keydown', handleKeyDown);
-    } else {
-      setFocusedIndex(-1);
-      document.removeEventListener('wheel', handleWheel);
-      document.removeEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener('wheel', handleWheel);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown, handleWheel, isOpen, setFocusedIndex]);
-
-  const handlePointerDownOutside = () => {
-    if (onPointerDownOutside) {
-      onPointerDownOutside();
-    } else {
-      closeSelect();
-    }
-  };
-
-  // 閉じるアニメーションが終わった時にopacity:0にする
-  // data-[state=closed]でopacity:0へのアニメーションはするが、
-  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
-  // これを防ぐためにdisplay:'none'にする
-  const ref = useRef<HTMLDivElement | null>(null);
-  const handleAnimationEnd = (e: React.AnimationEvent) => {
-    if (e.animationName === 'exit' && ref.current) {
-      ref.current.style.display = 'none';
-      setIsVisible(false);
-    }
-  };
-
-  const mergeProps = {
-    ...props,
-    onAnimationEnd: (e: React.AnimationEvent<HTMLDivElement>) => {
-      props.onAnimationEnd?.(e);
-      handleAnimationEnd(e);
-    },
-  };
-
-  const [transformStyle, setTransformStyle] = useState('');
-
-  useEffect(() => {
-    // triggerとなる要素からSelectを表示する座標を計算する
-    // （style属性に指定する文字列作成）
-    if (triggerRef.current) {
-      const { left, top, right, bottom, width, height } =
-        triggerRef.current.getBoundingClientRect();
-      const positions = {
-        top: {
-          x: left + width / 2,
-          y: top,
-          offset: { x: '-50%', y: `-100% - ${sideOffset}px` },
-        },
-        bottom: {
-          x: left + width / 2,
-          y: bottom,
-          offset: { x: '-50%', y: `0% + ${sideOffset}px` },
-        },
-        left: {
-          x: left,
-          y: top + height / 2,
-          offset: { x: `-100% - ${sideOffset}px`, y: '-50%' },
-        },
-        right: {
-          x: right,
-          y: top + height / 2,
-          offset: { x: `0% + ${sideOffset}px`, y: '-50%' },
-        },
-      };
-      const pos = positions[side];
-
-      setTransformStyle(
-        `translate(calc(${pos.x}px + ${pos.offset.x}), calc(${pos.y}px + ${pos.offset.y}))`
-      );
-    }
-  }, [context, triggerRef, side, sideOffset]);
-
-  let itemIndex = 0;
-  const innerChildren = React.Children.map(children, (child) => {
-    if (React.isValidElement(child)) {
-      switch (child.type) {
-        case SelectItem:
-          return React.cloneElement(child, { ...child.props, index: itemIndex++ });
-        default:
-          return child;
-      }
-    }
-  });
-
-  return ReactDOM.createPortal(
-    <>
-      {isVisible && (
-        <>
-          <div className="fixed inset-0 z-50" onClick={handlePointerDownOutside} />
-          <div className="fixed left-0 top-0 z-50" style={{ transform: transformStyle }}>
-            <div
-              ref={ref}
-              className={cn(
-                'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-                position === 'popper' &&
-                  'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
-                className
-              )}
-              style={{ minWidth: `${triggerRef.current?.offsetWidth}px` }}
-              data-state={isOpen ? 'open' : 'closed'}
-              data-side={side}
-              {...mergeProps}
-            >
-              <div
-                className={cn(
-                  'p-1',
-                  position === 'popper' &&
-                    'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
-                )}
-              >
-                {innerChildren}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </>,
-    document.body
-  );
-};
-
-// ----------------------------------------------------------------------------
-// SelectItem
-// ----------------------------------------------------------------------------
-interface SelectItemProps extends React.HTMLAttributes<HTMLButtonElement> {
-  index?: number;
-  value?: string;
-}
-const SelectItem = ({
-  className,
-  children,
-  index = 0,
-  value,
-  ...props
-}: SelectItemProps) => {
-  const context = useContext(SelectContext);
-  if (!context) throw new Error('SelectItem must be used within Select');
-
-  const { innerValue, itemsRef, setFocusedIndex, setValue, closeSelect } = context;
-
-  useEffect(() => {
-    if (innerValue === value) {
-      itemsRef.current[index].focus();
-      setFocusedIndex(index);
-    }
-  }, [index, innerValue, itemsRef, setFocusedIndex, value]);
-
-  const mergeProps = {
-    ...props,
-    onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => {
-      props.onMouseEnter?.(e);
-      itemsRef.current[index].focus();
-    },
-    onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
-      if (props.onClick) {
-        props.onClick(e);
-        return;
-      }
-      setValue(value ?? '');
-      closeSelect();
-    },
-  };
-
-  return (
-    <button
-      ref={(el) => (itemsRef.current[index] = el as HTMLButtonElement)}
-      className={cn(
-        'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-        className
-      )}
-      tabIndex={-1}
-      {...mergeProps}
-    >
-      <span className="absolute left-2 flex size-3.5 items-center justify-center">
-        {innerValue === value && <CheckIcon className="size-4" />}
-      </span>
-      {children}
-    </button>
-  );
-};
-// ----------------------------------------------------------------------------
-// SelectSeparator
-// ----------------------------------------------------------------------------
-type SelectSeparatorProps = React.HTMLAttributes<HTMLDivElement>;
-const SelectSeparator = React.forwardRef<HTMLDivElement, SelectSeparatorProps>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('-mx-1 my-1 h-px bg-muted', className)} {...props} />
-  )
-);
-
-// ----------------------------------------------------------------------------
-// SelectLabel
-// ----------------------------------------------------------------------------
-type SelectLabelProps = React.HTMLAttributes<HTMLDivElement>;
-const SelectLabel = React.forwardRef<HTMLDivElement, SelectLabelProps>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold', className)}
-      {...props}
-    />
-  )
-);
-
-// ----------------------------------------------------------------------------
-// SelectValue
-// ----------------------------------------------------------------------------
-interface SelectValueProps extends React.HTMLAttributes<HTMLDivElement> {
-  placeholder?: string;
-}
-const SelectValue = React.forwardRef<HTMLDivElement, SelectValueProps>(
-  ({ className, placeholder, ...props }, ref) => {
-    const context = useContext(SelectContext);
-    if (!context) throw new Error('SelectValue must be used within Select');
-
-    const { innerValue } = context;
-
-    return (
-      <span ref={ref} className={cn('', className)} {...props}>
-        {innerValue || placeholder}
-      </span>
-    );
-  }
-);
-
-export {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectLabel,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-};
 
 ------------------------------------------------------------
-sheet
+auth/LoginRequest
 
-import { cn } from '@/lib/util';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
+package com.example.my_books_backend.dto.auth;
 
-type SheetSideType = 'top' | 'right' | 'bottom' | 'left';
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-const DEFAULT_SIDE: SheetSideType = 'right';
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class LoginRequest {
 
-interface SheetContextType {
-  isOpen: boolean;
-  openSheet: () => void;
-  closeSheet: () => void;
+    @NotNull
+    @Email
+    private String email;
+
+    @NotNull
+    private String password;
 }
-
-const SheetContext = React.createContext<SheetContextType | undefined>(undefined);
-
-// ----------------------------------------------------------------------------
-// Sheet
-// ----------------------------------------------------------------------------
-interface SheetProps extends React.HTMLAttributes<HTMLDivElement> {
-  open?: boolean;
-  onOpenChange?: (isOpen: boolean) => void;
-}
-
-const Sheet = ({ children, open, onOpenChange }: SheetProps) => {
-  // 外部からの状態を優先し、指定がない場合は内部状態を利用
-  const [isOpen, setIsOpen] = useState(open ?? false);
-
-  // propsが更新されたら内部状態も更新
-  useEffect(() => {
-    if (open !== undefined) {
-      setIsOpen(open);
-    }
-  }, [open]);
-
-  const openSheet = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(true);
-    } else {
-      setIsOpen(true);
-    }
-  }, [onOpenChange]);
-
-  const closeSheet = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(false);
-    } else {
-      setIsOpen(false);
-    }
-  }, [onOpenChange]);
-
-  return (
-    <SheetContext.Provider value={{ isOpen, openSheet, closeSheet }}>
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          switch (child.type) {
-            case SheetTrigger:
-            case SheetContent:
-              return child;
-            default:
-              return null;
-          }
-        }
-      })}
-    </SheetContext.Provider>
-  );
-};
-
-// ----------------------------------------------------------------------------
-// SheetTrigger
-// ----------------------------------------------------------------------------
-interface SheetTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
-  asChild?: boolean;
-}
-const SheetTrigger = React.forwardRef<HTMLButtonElement, SheetTriggerProps>(
-  ({ children, asChild = false, ...props }, ref) => {
-    const context = useContext(SheetContext);
-    if (!context) throw new Error('SheetTrigger must be used within Sheet');
-
-    const { openSheet } = context;
-
-    if (asChild && React.isValidElement(children)) {
-      const mergeChildProps = {
-        ...children.props,
-        onClick: (e: React.MouseEvent) => {
-          children.props.onClick?.(e);
-          openSheet();
-        },
-      };
-      return React.cloneElement(children, { ...mergeChildProps, ref });
-    }
-
-    const mergeProps = {
-      ...props,
-      onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
-        props.onClick?.(e);
-        openSheet();
-      },
-    };
-
-    return (
-      <button ref={ref} {...mergeProps}>
-        {children}
-      </button>
-    );
-  }
-);
-
-// ----------------------------------------------------------------------------
-// SheetOverlay
-// ----------------------------------------------------------------------------
-type SheetOverlayProps = React.HTMLAttributes<HTMLDivElement>;
-
-const SheetOverlay = ({ className, ...props }: SheetOverlayProps) => {
-  const context = useContext(SheetContext);
-  if (!context) throw new Error('SheetOverlay must be used within Sheet');
-
-  const { isOpen } = context;
-
-  // 閉じるアニメーションが終わった時にopacity:0にする
-  // data-[state=closed]でopacity:0へのアニメーションはするが、
-  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
-  // これを防ぐためにdisplay:'none'にする
-  const ref = useRef<HTMLDivElement | null>(null);
-  const handleAnimationEnd = (e: React.AnimationEvent) => {
-    if (e.animationName === 'exit' && ref.current) {
-      ref.current.style.display = 'none';
-    }
-  };
-
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        'fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-        className
-      )}
-      data-state={isOpen ? 'open' : 'closed'}
-      {...props}
-      onAnimationEnd={handleAnimationEnd}
-    ></div>
-  );
-};
-// ----------------------------------------------------------------------------
-// SheetContent
-// ----------------------------------------------------------------------------
-interface SheetContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  side?: SheetSideType;
-  onEscapeKeyDown?: () => void;
-  onPointerDownOutside?: () => void;
-}
-
-const POSITION_LIST = {
-  top: 'inset-x-0 top-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top',
-  bottom:
-    'inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
-  left: 'inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm',
-  right:
-    'inset-y-0 right-0 h-full w-3/4  border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm',
-};
-
-const SheetContent = ({
-  className,
-  children,
-  side = DEFAULT_SIDE,
-  onEscapeKeyDown,
-  onPointerDownOutside,
-  ...props
-}: SheetContentProps) => {
-  const context = useContext(SheetContext);
-  if (!context) throw new Error('SheetContent must be used within Sheet');
-
-  const { isOpen, closeSheet } = context;
-
-  const [isVisible, setIsVisible] = useState(false);
-
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
-  }, []);
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (!isOpen) return;
-
-      if (e.key === 'Escape') {
-        if (onEscapeKeyDown) {
-          onEscapeKeyDown();
-        } else {
-          closeSheet();
-        }
-      }
-    },
-    [closeSheet, isOpen, onEscapeKeyDown]
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true);
-      document.addEventListener('wheel', handleWheel, { passive: false });
-      document.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.removeEventListener('wheel', handleWheel);
-      document.removeEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener('wheel', handleWheel);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown, handleWheel, isOpen]);
-
-  const handlePointerDownOutside = () => {
-    if (onPointerDownOutside) {
-      onPointerDownOutside();
-    } else {
-      closeSheet();
-    }
-  };
-
-  // 閉じるアニメーションが終わった時にopacity:0にする
-  // data-[state=closed]でopacity:0へのアニメーションはするが、
-  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
-  // これを防ぐためにdisplay:'none'にする
-  const ref = useRef<HTMLDivElement | null>(null);
-  const handleAnimationEnd = (e: React.AnimationEvent) => {
-    if (e.animationName === 'exit' && ref.current) {
-      ref.current.style.display = 'none';
-      setIsVisible(false);
-    }
-  };
-
-  const mergeProps = {
-    ...props,
-    onAnimationEnd: (e: React.AnimationEvent<HTMLDivElement>) => {
-      props.onAnimationEnd?.(e);
-      handleAnimationEnd(e);
-    },
-  };
-
-  return ReactDOM.createPortal(
-    <>
-      {isVisible && (
-        <>
-          <SheetOverlay onClick={handlePointerDownOutside} />
-          <div
-            ref={ref}
-            className={cn(
-              'fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
-              POSITION_LIST[side],
-              className
-            )}
-            data-state={isOpen ? 'open' : 'closed'}
-            {...mergeProps}
-          >
-            {children}
-          </div>
-        </>
-      )}
-    </>,
-    document.body
-  );
-};
-
-export { Sheet, SheetContent, SheetOverlay, SheetTrigger };
 
 ------------------------------------------------------------
-tooltip
+auth/SignupRequest
 
-import { cn } from '@/lib/util';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+package com.example.my_books_backend.dto.auth;
 
-type TooltipSideType = 'top' | 'right' | 'bottom' | 'left';
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-const DEFAULT_SIDE: TooltipSideType = 'top';
-const DEFAULT_SIDE_OFFSET = 8;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class SignupRequest {
 
-interface TooltipContextType {
-  isOpen: boolean;
-  openTooltip: () => void;
-  closeTooltip: () => void;
-  triggerRef: React.MutableRefObject<HTMLDivElement | null>;
+    @NotNull
+    @NotBlank(message = "メールアドレスは必須です")
+    @Email(message = "無効なメールアドレスです")
+    private String email;
+
+    @NotNull
+    @NotBlank(message = "パスワードは必須です")
+    @Size(min = 6, message = "パスワードは6文字以上で入力してください")
+    private String password;
 }
-
-const TooltipContext = React.createContext<TooltipContextType | undefined>(undefined);
-
-// ----------------------------------------------------------------------------
-// Tooltip
-// ----------------------------------------------------------------------------
-interface TooltipProps extends React.HTMLAttributes<HTMLDivElement> {
-  open?: boolean;
-  onOpenChange?: (isOpen: boolean) => void;
-}
-
-const Tooltip = ({ children, open, onOpenChange }: TooltipProps) => {
-  // 外部からの状態を優先し、指定がない場合は内部状態を利用
-  const [isOpen, setIsOpen] = useState(open ?? false);
-
-  // propsが更新されたら内部状態も更新
-  useEffect(() => {
-    if (open !== undefined) {
-      setIsOpen(open);
-    }
-  }, [open]);
-
-  const openTooltip = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(true);
-    } else {
-      setIsOpen(true);
-    }
-  }, [onOpenChange]);
-
-  const closeTooltip = useCallback(() => {
-    if (onOpenChange) {
-      onOpenChange(false);
-    } else {
-      setIsOpen(false);
-    }
-  }, [onOpenChange]);
-
-  const triggerRef = useRef<HTMLDivElement | null>(null);
-
-  return (
-    <TooltipContext.Provider value={{ isOpen, openTooltip, closeTooltip, triggerRef }}>
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          switch (child.type) {
-            case TooltipTrigger:
-            case TooltipContent:
-              return child;
-            default:
-              return null;
-          }
-        }
-      })}
-    </TooltipContext.Provider>
-  );
-};
-
-// ----------------------------------------------------------------------------
-// TooltipTrigger
-// ----------------------------------------------------------------------------
-interface TooltipTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
-  asChild?: boolean;
-}
-
-const TooltipTrigger = React.forwardRef<HTMLButtonElement, TooltipTriggerProps>(
-  ({ children, asChild = false, ...props }, ref) => {
-    const context = useContext(TooltipContext);
-    if (!context) throw new Error('TooltipContent must be used within Tooltip');
-
-    const { triggerRef, openTooltip, closeTooltip } = context;
-
-    if (asChild && React.isValidElement(children)) {
-      const mergeChildProps = {
-        ...children.props,
-      };
-      return (
-        <div
-          ref={triggerRef}
-          className="w-fit"
-          onPointerEnter={openTooltip}
-          onPointerLeave={closeTooltip}
-          onPointerDown={closeTooltip}
-        >
-          {React.cloneElement(children, { ...mergeChildProps, ref })}
-        </div>
-      );
-    }
-
-    return (
-      <div
-        ref={triggerRef}
-        className="w-fit"
-        onPointerEnter={openTooltip}
-        onPointerLeave={closeTooltip}
-        onPointerDown={closeTooltip}
-      >
-        <button ref={ref} {...props}>
-          {children}
-        </button>
-      </div>
-    );
-  }
-);
-
-// ----------------------------------------------------------------------------
-// TooltipContent
-// ----------------------------------------------------------------------------
-interface TooltipContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  side?: TooltipSideType;
-  sideOffset?: number;
-}
-
-const TooltipContent = React.forwardRef<HTMLDivElement, TooltipContentProps>(
-  (
-    {
-      children,
-      className,
-      side = DEFAULT_SIDE,
-      sideOffset = DEFAULT_SIDE_OFFSET,
-      ...props
-    },
-    ref
-  ) => {
-    const context = useContext(TooltipContext);
-    if (!context) throw new Error('TooltipContent must be used within Tooltip');
-
-    const { isOpen, closeTooltip, triggerRef } = context;
-
-    const [transformStyle, setTransformStyle] = useState('');
-
-    const handleWheel = useCallback(
-      (e: WheelEvent) => {
-        e.preventDefault();
-        closeTooltip();
-      },
-      [closeTooltip]
-    );
-
-    useEffect(() => {
-      if (isOpen) {
-        document.addEventListener('wheel', handleWheel, { passive: false });
-      } else {
-        document.removeEventListener('wheel', handleWheel);
-      }
-      return () => {
-        document.removeEventListener('wheel', handleWheel);
-      };
-    }, [handleWheel, isOpen]);
-
-    useEffect(() => {
-      // triggerとなる要素からTooltipを表示する座標を計算する
-      // （style属性に指定する文字列作成）
-      if (triggerRef.current) {
-        const { left, top, right, bottom, width, height } =
-          triggerRef.current.getBoundingClientRect();
-        const positions = {
-          top: {
-            x: left + width / 2,
-            y: top,
-            offset: { x: '-50%', y: `-100% - ${sideOffset}px` },
-          },
-          bottom: {
-            x: left + width / 2,
-            y: bottom,
-            offset: { x: '-50%', y: `0% + ${sideOffset}px` },
-          },
-          left: {
-            x: left,
-            y: top + height / 2,
-            offset: { x: `-100% - ${sideOffset}px`, y: '-50%' },
-          },
-          right: {
-            x: right,
-            y: top + height / 2,
-            offset: { x: `0% + ${sideOffset}px`, y: '-50%' },
-          },
-        };
-        const pos = positions[side];
-
-        setTransformStyle(
-          `translate(calc(${pos.x}px + ${pos.offset.x}), calc(${pos.y}px + ${pos.offset.y}))`
-        );
-      }
-    }, [context, triggerRef, side, sideOffset]);
-
-    return (
-      <>
-        {isOpen && (
-          <div className="fixed left-0 top-0 z-50" style={{ transform: transformStyle }}>
-            <div
-              ref={ref}
-              className={cn(
-                'z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-                className
-              )}
-              data-state={isOpen ? 'open' : 'closed'}
-              data-side={side}
-              {...props}
-            >
-              {children}
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-);
-
-export { Tooltip, TooltipContent, TooltipTrigger };
 
 ------------------------------------------------------------
-pagination
+ExceptionControllerAdvice
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/util';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { HTMLAttributes } from 'react';
+package com.example.my_books_backend.exception;
 
-interface PaginationProps extends HTMLAttributes<HTMLUListElement> {
-  total: number;
-  page: number;
-  onChangePage: (page: number) => void;
-}
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-const Pagination = ({
-  total,
-  page,
-  onChangePage,
-  className,
-  ...props
-}: PaginationProps) => {
-  const pageNumbers = createPageNumbers(page, total);
+@ControllerAdvice
+public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
+        @ExceptionHandler({ NotFoundException.class })
+        public ResponseEntity<Object> handleNotFound(NotFoundException ex, WebRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()), HttpStatus.NOT_FOUND);
+                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
+                                HttpStatus.NOT_FOUND, request);
+        }
 
-  return (
-    <ul className={cn('flex', className)} {...props}>
-      <Button
-        className="size-8 rounded-full"
-        variant="ghost"
-        size="icon"
-        disabled={page <= 1}
-        onClick={() => onChangePage(page - 1)}
-      >
-        <ChevronLeft className="size-5" />
-      </Button>
+        @ExceptionHandler({ BadRequestException.class })
+        public ResponseEntity<Object> handleBadRequest(BadRequestException ex, WebRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()), HttpStatus.BAD_REQUEST);
+                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
+                                HttpStatus.BAD_REQUEST, request);
+        }
 
-      {pageNumbers.map((pageNumber, index) => (
-        <li key={`${pageNumber}-${index}`}>
-          {pageNumber === 0 ? (
-            <div className="size-8 text-center">...</div>
-          ) : (
-            <Button
-              className="size-8 rounded-full"
-              variant={page === pageNumber ? 'secondary' : 'ghost'}
-              size="icon"
-              onClick={() => {
-                if (page !== pageNumber) {
-                  onChangePage(pageNumber);
+        @ExceptionHandler({ ConflictException.class })
+        public ResponseEntity<Object> handleConflict(ConflictException ex, WebRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()), HttpStatus.CONFLICT);
+                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
+                                HttpStatus.CONFLICT, request);
+        }
+
+        @Override
+        @SuppressWarnings("null")
+        protected ResponseEntity<Object> handleMethodArgumentNotValid(
+                        MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status,
+                        WebRequest request) {
+                ErrorResponse errorResponse = buildErrorResponse(ex.getBindingResult());
+                return this.handleExceptionInternal(ex, errorResponse, headers, HttpStatus.BAD_REQUEST,
+                                request);
+        }
+
+        private ErrorResponse buildErrorResponse(BindingResult bindingResult) {
+                List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+                List<String> errorMessages = new ArrayList<>();
+                for (final FieldError error : fieldErrors) {
+                        errorMessages.add(error.getField() + ": " + error.getDefaultMessage());
                 }
-              }}
-            >
-              {pageNumber}
-            </Button>
-          )}
-        </li>
-      ))}
-
-      <Button
-        className="size-8 rounded-full"
-        variant="ghost"
-        size="icon"
-        disabled={page >= total}
-        onClick={() => onChangePage(page + 1)}
-      >
-        <ChevronRight className="size-5" />
-      </Button>
-    </ul>
-  );
-};
-
-export { Pagination };
-
-const createPageNumbers = (page: number, total: number) => {
-  const pages = [];
-  const maxPages = 7;
-
-  if (page <= 4) {
-    for (let i = 1; i <= Math.min(5, total); i++) {
-      pages.push(i);
-    }
-    if (total > 5) {
-      pages.push(0, total);
-    }
-  } else if (page >= total - 3) {
-    pages.push(1, 0);
-    for (let i = total - 4; i <= total; i++) {
-      pages.push(i);
-    }
-  } else {
-    pages.push(1, 0);
-    for (let i = page - 1; i <= page + 1; i++) {
-      pages.push(i);
-    }
-    pages.push(0, total);
-  }
-
-  return pages.slice(0, maxPages);
-};
-
-------------------------------------------------------------
-routes/login/page
-
-import { useAuth } from '@/auth/use-auth';
-import Logo from '@/components/layout/logo';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { EyeIcon, EyeOffIcon, Loader2Icon } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-
-export default function Page() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isShownPassword, setIsShownPassword] = useState(false);
-  const ref = useRef<HTMLInputElement | null>(null);
-
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { isLoading, login } = useAuth();
-
-  useEffect(() => {
-    ref.current?.focus();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    await login({ email, password });
-
-    const pathname = location.state?.from?.pathname || '/';
-    const query = location.state?.from?.search || '';
-    navigate(pathname + query, { replace: true });
-  };
-
-  return (
-    <div>
-      <div className="mt-3 flex flex-col items-center justify-items-center gap-y-3 sm:mt-16">
-        <Logo size="lg" />
-        <p className="font-semibold">ログイン</p>
-        <Card className="rounded-3xl">
-          <CardContent className="p-6">
-            <form className="flex w-72 flex-col gap-y-4" onSubmit={handleSubmit}>
-              <div>
-                <Label className="text-xs" htmlFor="email">
-                  メールアドレス
-                </Label>
-                <Input
-                  ref={ref}
-                  className="my-2 rounded-full"
-                  id="email"
-                  value={email}
-                  name="email"
-                  autoComplete="off"
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label className="text-xs" htmlFor="password">
-                  パスワード
-                </Label>
-                <div className="relative">
-                  <Input
-                    className="my-2 rounded-full"
-                    id="password"
-                    type={isShownPassword ? 'text' : 'password'}
-                    value={password}
-                    name="password"
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <Button
-                    className="absolute right-0 top-0 rounded-full hover:bg-transparent hover:text-foreground"
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    onClick={() => setIsShownPassword(!isShownPassword)}
-                  >
-                    {isShownPassword ? (
-                      <EyeIcon className="size-4" />
-                    ) : (
-                      <EyeOffIcon className="size-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-              <Button
-                className="mt-6 w-full rounded-full"
-                type="submit"
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2Icon className="animate-spin" /> : 'ログイン'}
-              </Button>
-            </form>
-
-            <div className="mt-6 flex justify-center gap-x-1 text-xs">
-              <p className="text-muted-foreground">アカウントをお持ちでない方はこちら</p>
-              <Link to={'/sign-up'}>
-                <p className="text-primary hover:underline">新規登録</p>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+                ErrorResponse errorResponse = new ErrorResponse(errorMessages, HttpStatus.BAD_REQUEST);
+                return errorResponse;
+        }
 }
 
 ------------------------------------------------------------
+BookMapper
+
+package com.example.my_books_backend.mapper;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
+import com.example.my_books_backend.dto.book.BookDto;
+import com.example.my_books_backend.dto.book.BookResponseDto;
+import com.example.my_books_backend.model.Book;
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class BookMapper {
+
+    private final ModelMapper modelMapper;
+
+    public BookDto toDto(Book book) {
+        BookDto bookDto = modelMapper.map(book, BookDto.class);
+
+        List<Integer> genreIds = Arrays.stream(book.getGenreIds().split(",")).map(Integer::parseInt).toList();
+        bookDto.setGenreIds(genreIds);
+
+        List<String> authors = Arrays.asList(book.getAuthors().split(","));
+        bookDto.setAuthors(authors);
+
+        return bookDto;
+    }
+
+    public Book toEntity(BookDto bookDto) {
+        Book book = modelMapper.map(bookDto, Book.class);
+
+        String genreIds = bookDto.getGenreIds().stream().map(String::valueOf)
+                .collect(Collectors.joining(","));
+        book.setGenreIds(genreIds);
+
+        String authors = String.join(",", bookDto.getAuthors());
+        book.setAuthors(authors);
+
+        return book;
+    }
+
+    public List<BookDto> toDtoList(List<Book> books) {
+        return books.stream().map(book -> toDto(book)).toList();
+    }
+
+    public BookResponseDto toResponseDto(Page<Book> pageBook) {
+        Integer page = pageBook.getNumber();
+        Integer totalPages = pageBook.getTotalPages();
+        Integer totalItems = (int) pageBook.getTotalElements();
+        List<BookDto> booksDto = toDtoList(pageBook.getContent());
+        return new BookResponseDto(page, totalPages, totalItems, booksDto);
+    }
+}
+
 ------------------------------------------------------------
+GenreMapper
+
+package com.example.my_books_backend.mapper;
+
+import java.util.List;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Component;
+import com.example.my_books_backend.dto.genre.GenreCreateDto;
+import com.example.my_books_backend.dto.genre.GenreDto;
+import com.example.my_books_backend.model.Genre;
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class GenreMapper {
+
+    private final ModelMapper modelMapper;
+
+    public GenreDto toDto(Genre genre) {
+        return modelMapper.map(genre, GenreDto.class);
+    }
+
+    public Genre toEntity(GenreDto genreDto) {
+        return modelMapper.map(genreDto, Genre.class);
+    }
+
+    public Genre toEntity(GenreCreateDto createGenreDto) {
+        return modelMapper.map(createGenreDto, Genre.class);
+    }
+
+    public List<GenreDto> toDtoList(List<Genre> genres) {
+        return genres.stream().map(genre -> toDto(genre)).toList();
+    }
+}
+
 ------------------------------------------------------------
+shardをmodelに移動
 ------------------------------------------------------------
+Role
+
+package com.example.my_books_backend.model;
+
+import com.example.my_books_backend.model.shared.EntityBase;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "roles")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class Role extends EntityBase {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
+
+    @Column(name = "description", nullable = false)
+    private String description;
+}
+
 ------------------------------------------------------------
+User
+
+package com.example.my_books_backend.model;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import com.example.my_books_backend.model.shared.EntityBase;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "users")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class User extends EntityBase implements UserDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
+
+    @JsonIgnore
+    @Column(name = "password", nullable = false)
+    private String password;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
+    public User(String name, String email, String password) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        this.roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
+        return authorities;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+
 ------------------------------------------------------------
+BookRepository
+
+package com.example.my_books_backend.repository;
+
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.example.my_books_backend.model.Book;
+
+@Repository
+public interface BookRepository extends JpaRepository<Book, String> {
+
+    Page<Book> findByTitleContaining(String q, Pageable pageable);
+
+    List<Book> findTop10ByOrderByPublishedDateDesc();
+}
+
 ------------------------------------------------------------
+UserRepository
+
+package com.example.my_books_backend.repository;
+
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.example.my_books_backend.model.User;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Integer> {
+
+    Optional<User> findByEmail(String email);
+
+    Boolean existsByEmail(String email);
+}
+
 ------------------------------------------------------------
+BookServiceImpl
+
+package com.example.my_books_backend.service.impl;
+
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import com.example.my_books_backend.dto.book.BookDto;
+import com.example.my_books_backend.dto.book.BookResponseDto;
+import com.example.my_books_backend.exception.NotFoundException;
+import com.example.my_books_backend.mapper.BookMapper;
+import com.example.my_books_backend.model.Book;
+import com.example.my_books_backend.repository.BookRepository;
+import com.example.my_books_backend.repository.BookRepositoryCustom;
+import com.example.my_books_backend.service.BookService;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class BookServiceImpl implements BookService {
+
+    private final BookRepository bookRepository;
+    private final BookRepositoryCustom bookRepositoryCustom;
+    private final BookMapper bookMapper;
+
+    private static final Integer DEFAULT_START_PAGE = 0;
+    private static final Integer DEFAULT_MAX_RESULTS = 20;
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "publishedDate");
+
+    @Override
+    public List<BookDto> getBooks() {
+        List<Book> books = bookRepository.findAll();
+        List<BookDto> booksDto = bookMapper.toDtoList(books);
+        return booksDto;
+    }
+
+    @Override
+    public BookDto getBookById(String id) {
+        Book book = findBookById(id);
+        BookDto bookDto = bookMapper.toDto(book);
+        return bookDto;
+    }
+
+    @Override
+    public BookResponseDto searchByTitle(String q, Integer page, Integer maxResults) {
+        Pageable pageable = createPageable(page, maxResults);
+        Page<Book> pageBook = bookRepository.findByTitleContaining(q, pageable);
+        BookResponseDto bookResponseDto = bookMapper.toResponseDto(pageBook);
+        return bookResponseDto;
+    }
+
+    @Override
+    public BookResponseDto searchByGenreId(String genreId, Integer page, Integer maxResults) {
+        Pageable pageable = createPageable(page, maxResults);
+        Page<Book> pageBook = bookRepositoryCustom.findByGenreIds(genreId, pageable);
+        BookResponseDto bookResponseDto = bookMapper.toResponseDto(pageBook);
+        return bookResponseDto;
+    }
+
+    @Override
+    public List<BookDto> getNewReleases() {
+        List<Book> books = bookRepository.findTop10ByOrderByPublishedDateDesc();
+        List<BookDto> booksDto = bookMapper.toDtoList(books);
+        return booksDto;
+    }
+
+    private Pageable createPageable(Integer page, Integer maxResults) {
+        page = (page != null) ? page : DEFAULT_START_PAGE;
+        maxResults = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
+        return PageRequest.of(page, maxResults, DEFAULT_SORT);
+    }
+
+    private Book findBookById(String id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Not found with this ID: " + id));
+        return book;
+    }
+}
+
 ------------------------------------------------------------
+GenreServiceImpl
+
+package com.example.my_books_backend.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.stereotype.Service;
+import com.example.my_books_backend.dto.genre.GenreCreateDto;
+import com.example.my_books_backend.dto.genre.GenreDto;
+import com.example.my_books_backend.dto.genre.GenreUpdateDto;
+import com.example.my_books_backend.exception.NotFoundException;
+import com.example.my_books_backend.mapper.GenreMapper;
+import com.example.my_books_backend.model.Genre;
+import com.example.my_books_backend.repository.GenreRepository;
+import com.example.my_books_backend.service.GenreService;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class GenreServiceImpl implements GenreService {
+
+    private final GenreRepository genreRepository;
+    private final GenreMapper genreMapper;
+
+    @Override
+    @Cacheable("getGenres")
+    public List<GenreDto> getGenres() {
+        List<Genre> genres = genreRepository.findAll();
+        List<GenreDto> genresDto = genreMapper.toDtoList(genres);
+        return genresDto;
+    }
+
+    @Override
+    @Cacheable(value = "getGenreById", key = "#p0")
+    public GenreDto getGenreById(Integer id) {
+        Genre genre = findGenreById(id);
+        GenreDto genreDto = genreMapper.toDto(genre);
+        return genreDto;
+    }
+
+    @Override
+    @CacheEvict(value = "getGenres", allEntries = true)
+    public GenreDto createGenre(GenreCreateDto dto) {
+        Genre genre = genreMapper.toEntity(dto);
+        Genre saveGenre = genreRepository.save(genre);
+        GenreDto genreDto = genreMapper.toDto(saveGenre);
+        return genreDto;
+    }
+
+    @Override
+    @Caching(evict = { @CacheEvict(value = "getGenreById", key = "#p0"),
+            @CacheEvict(value = "getGenres", allEntries = true) })
+    public void updateGenre(Integer id, GenreUpdateDto dto) {
+        Genre genre = findGenreById(id);
+        genre.setName(dto.getName());
+        genre.setDescription(dto.getDescription());
+        genreRepository.save(genre);
+    }
+
+    @Override
+    @Caching(evict = { @CacheEvict(value = "getGenreById", key = "#p0"),
+            @CacheEvict(value = "getGenres", allEntries = true) })
+    public void patchGenre(Integer id, Map<String, Object> updates) {
+        Genre genre = findGenreById(id);
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "name":
+                    genre.setName((String) value);
+                    break;
+                case "description":
+                    genre.setDescription((String) value);
+                    break;
+            }
+        });
+        genreRepository.save(genre);
+    }
+
+    @Override
+    @Caching(evict = { @CacheEvict(value = "getGenreById", key = "#p0"),
+            @CacheEvict(value = "getGenres", allEntries = true) })
+    public void deleteGenre(Integer id) {
+        Genre genre = findGenreById(id);
+        genreRepository.delete(genre);
+    }
+
+    private Genre findGenreById(Integer id) {
+        Genre genre = genreRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Not found with this ID: " + id));
+        return genre;
+    }
+
+}
+
 ------------------------------------------------------------
+UserDetailsServiceImpl
+
+package com.example.my_books_backend.service.impl;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import com.example.my_books_backend.model.User;
+import com.example.my_books_backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class UserDetailsServiceImpl implements UserDetailsService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new UsernameNotFoundException("User Not Found with email: " + email));
+        return user;
+    }
+}
+
+------------------------------------------------------------
+AuthService
+
+package com.example.my_books_backend.service;
+
+import java.util.HashSet;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import com.example.my_books_backend.exception.ConflictException;
+import com.example.my_books_backend.model.User;
+import com.example.my_books_backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+
+    public User signup(String email, String password) {
+        if (userRepository.existsByEmail(email)) {
+            throw new ConflictException("User already exists: " + email);
+        }
+
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRoles(new HashSet<>());
+
+        return userRepository.save(user);
+    }
+}
+
+------------------------------------------------------------
+BookService
+
+package com.example.my_books_backend.service;
+
+import java.util.List;
+import com.example.my_books_backend.dto.book.BookDto;
+import com.example.my_books_backend.dto.book.BookResponseDto;
+
+public interface BookService {
+
+    List<BookDto> getBooks();
+
+    BookDto getBookById(String id);
+
+    BookResponseDto searchByTitle(String q, Integer page, Integer maxResults);
+
+    BookResponseDto searchByGenreId(String genreId, Integer page, Integer maxResults);
+
+    List<BookDto> getNewReleases();
+}
+
+------------------------------------------------------------
+GenreService
+
+package com.example.my_books_backend.service;
+
+import java.util.List;
+import java.util.Map;
+import com.example.my_books_backend.dto.genre.GenreCreateDto;
+import com.example.my_books_backend.dto.genre.GenreDto;
+import com.example.my_books_backend.dto.genre.GenreUpdateDto;
+
+public interface GenreService {
+
+        List<GenreDto> getGenres();
+
+        GenreDto getGenreById(Integer id);
+
+        GenreDto createGenre(GenreCreateDto dto);
+
+        void updateGenre(Integer id, GenreUpdateDto dto);
+
+        void patchGenre(Integer id, Map<String, Object> updates);
+
+        void deleteGenre(Integer id);
+}
+
+------------------------------------------------------------
+JwtUtils
+
+package com.example.my_books_backend.util;
+
+import java.security.Key;
+import java.util.Date;
+import java.util.stream.Collectors;
+import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import com.example.my_books_backend.model.User;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+
+@Component
+public class JwtUtils {
+
+    @Value("${spring.app.jwtSecret}")
+    private String jwtSecret;
+
+    @Value("${spring.app.jwtExpirationMs}")
+    private int jwtExpirationMs;
+
+    public String getJwtFromHeader(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7); // Remove Bearer prefix
+        }
+        return null;
+    }
+
+    public String generateTokenFromUsername(User userDetails) {
+        String username = userDetails.getUsername();
+        String roles = userDetails.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .collect(Collectors.joining(","));
+        return Jwts.builder()
+                .subject(username)
+                .claim("roles", roles)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .signWith(key())
+                .compact();
+    }
+
+    public String getUserNameFromJwtToken(String token) {
+        return Jwts.parser()
+                .verifyWith((SecretKey) key())
+                .build().parseSignedClaims(token)
+                .getPayload().getSubject();
+    }
+
+    private Key key() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+    }
+
+    public boolean validateJwtToken(String authToken) {
+        try {
+            Jwts.parser().verifyWith((SecretKey) key())
+                    .build().parseSignedClaims(authToken);
+            return true;
+        } catch (JwtException e) {
+            return false;
+        }
+    }
+}
+
+------------------------------------------------------------
+RandomStringUtil
+
+package com.example.my_books_backend.util;
+
+import java.security.SecureRandom;
+import org.springframework.stereotype.Component;
+
+@Component
+public class RandomStringUtil {
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final int LENGTH = 12;
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    public static String generateRandomString() {
+        StringBuilder sb = new StringBuilder(LENGTH);
+        for (int i = 0; i < LENGTH; i++) {
+            int index = RANDOM.nextInt(CHARACTERS.length());
+            sb.append(CHARACTERS.charAt(index));
+        }
+        return sb.toString();
+    }
+}
+
+------------------------------------------------------------
+application.properties
+
+spring.application.name=my-books-backend
+
+# spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.hbm2dll.create_namespaces=true
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.open-in-view=false
+
+# DB
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+
+# JWT
+spring.app.jwtSecret=${SPRING_APP_JWT_SECRET}
+spring.app.jwtExpirationMs=${SPRING_APP_JWT_EXPIRATION_MS}
+------------------------------------------------------------
+build.gradle
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.5'
+	id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+// 作成されるjarファイル名を指定
+bootJar{
+    archiveFileName = 'my-books.jar'
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	developmentOnly 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+	implementation 'org.modelmapper:modelmapper:3.1.0'
+	implementation 'io.swagger.core.v3:swagger-annotations:2.1.10'
+    implementation 'io.swagger.core.v3:swagger-models:2.1.10'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+------------------------------------------------------------
+docker-compose
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/my-books-backend
+    tty: true
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-books-db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_APP_JWT_SECRET: your_jwt_secret_key
+      SPRING_APP_JWT_EXPIRATION_MS: 36000
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: my-books-db
+    ports:
+      - 3306:3306
+    volumes:
+      - ./.devcontainer/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./.devcontainer/db/data.csv:/docker-entrypoint-initdb.d/data.csv
+      - ./.devcontainer/db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - db_data:/var/lib/mysql
+    command: --secure-file-priv=/docker-entrypoint-initdb.d
+
+volumes:
+  db_data:
+------------------------------------------------------------
+
