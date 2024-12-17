@@ -1,152 +1,14 @@
 ------------------------------------------------------------
+gradle-wrapper.properties
 
-Spring Security
-https://www.docswell.com/s/MasatoshiTada/KGVY9K-spring-security-intro
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.11.1-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
 
-https://qiita.com/T-H9703EnAc/items/69cbc633335e62a12826
-
-
-Spring Security 見比べ
-
-
-https://github.com/Ons-diweni/Spring-Security-6-JWT/blob/main/src/main/java/com/ons/securitylayerJwt/models/User.java
-https://github.com/EmbarkXOfficial/spring-security-masterclass/blob/main/src/main/java/com/secure/notes/models/User.java
-https://github.com/tericcabrel/blog-tutorials/blob/main/springboot-jwt-auth/src/main/java/com/tericcabrel/authapi/entities/User.java
-https://github.com/schezwansoftware/spring-security-jwt
-
-https://medium.com/@harshitb95/spring-security-integrating-jwt-with-spring-boot-3-spring-security-6-stateless-authentication-250d7610b479
-https://blog.devops.dev/spring-boot-3-spring-security-6-with-jwt-authentication-and-authorization-new-2024-989323f29b84
-
-
-
-
-------------------------------------------------------------
-init
-
-DROP DATABASE IF EXISTS `my-books-db`;
-CREATE DATABASE `my-books-db`;
-
-USE `my-books-db`;
-
--- bookテーブルの削除と再作成
-DROP TABLE IF EXISTS `books`;
-CREATE TABLE `books` (
-  `id` VARCHAR(255) NOT NULL,
-  `title` VARCHAR(255) NOT NULL DEFAULT '',
-  `description` TEXT NOT NULL,
-  `genre_ids` VARCHAR(255) NOT NULL DEFAULT '',
-  `authors` VARCHAR(255) NOT NULL DEFAULT '',
-  `publisher` VARCHAR(255) NOT NULL DEFAULT '',
-  `published_date` DATE NOT NULL,
-  `price` INT(11) NOT NULL DEFAULT 0,
-  `page_count` INT(11) NOT NULL DEFAULT 0,
-  `isbn` VARCHAR(255) NOT NULL DEFAULT '',
-  `image_url` VARCHAR(255) DEFAULT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`)
-);
-
--- genreテーブルの削除と再作成
-DROP TABLE IF EXISTS `genres`;
-CREATE TABLE `genres` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NOT NULL DEFAULT '',
-  `description` VARCHAR(255) NOT NULL DEFAULT '',
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`)
-) AUTO_INCREMENT=10;
-
--- userテーブルの削除と再作成
-DROP TABLE IF EXISTS `users`;
-CREATE TABLE `users` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `email` VARCHAR(255) NOT NULL DEFAULT '',
-  `password` VARCHAR(255) NOT NULL DEFAULT '',
-  `name` VARCHAR(255) NOT NULL DEFAULT '',
-  `avatar_url` VARCHAR(255) DEFAULT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`)
-);
-
--- roleテーブルの削除と再作成
-DROP TABLE IF EXISTS `roles`;
-CREATE TABLE `roles` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NOT NULL DEFAULT '',
-  `description` VARCHAR(255) NOT NULL DEFAULT '',
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name_UNIQUE` (`name`)
-);
-
--- userとroleの関連テーブルの削除と再作成
-DROP TABLE IF EXISTS `user_roles`;
-CREATE TABLE `user_roles` (
-  `user_id` INT(11) NOT NULL,
-  `role_id` INT(11) NOT NULL,
-  PRIMARY KEY (`user_id`, `role_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE
-);
-
--- データのロード
-LOAD DATA INFILE '/docker-entrypoint-initdb.d/data.csv'
-INTO TABLE books
-FIELDS TERMINATED BY ','
-ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-(`id`, `title`, `description`, `genre_ids`, `authors`, `publisher`, `published_date`, `price`, `page_count`, `isbn`, `image_url`);
-
-INSERT INTO `genres` (`name`, `description`) VALUES
-('ミステリー', '謎解きや推理をテーマにした作品'),
-('サスペンス', '緊張感や驚きを伴う作品'),
-('ロマンス', '恋愛をテーマにした作品'),
-('ファンタジー', '魔法や異世界を舞台にした作品'),
-('SF', '科学技術や未来をテーマにした作品'),
-('ホラー', '恐怖をテーマにした作品'),
-('歴史', '歴史的な出来事や人物をテーマにした作品'),
-('絵本', '子供向けのイラストが多い本'),
-('教科書', '教育機関で使用される教材'),
-('専門書', '特定の分野に特化した書籍'),
-('研究書', '学術的な研究をまとめた書籍'),
-('環境', '自然や環境問題をテーマにした作品'),
-('冒険', '冒険や探検をテーマにした作品'),
-('図鑑', '特定のテーマに関する情報を集めた書籍'),
-('音楽', '音楽に関する書籍'),
-('ドラマ', '人間関係や感情を描いた作品'),
-('教育', '教育に関する書籍');
-
-INSERT INTO `users` (`name`, `email`, `password`, `avatar_url`) VALUES
-('Julia', 'julia@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'http://localhost:18080/images/avatars/avatar02.jpg'),
-('Steve', 'steve@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'http://localhost:18080/images/avatars/avatar07.jpg');
-
-INSERT INTO `roles` (`name`, `description`) VALUES
-('ROLE_ADMIN', '管理者権限'),
-('ROLE_USER', 'ユーザー権限');
-
-INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
-(1, 1),
-(1, 2),
-(2, 2);
-
-
-------------------------------------------------------------
-Dockerfile
-
-FROM gradle:8.11-jdk17
-
-WORKDIR /my-books-backend
-
-ENTRYPOINT ["sleep", "infinity"]
 ------------------------------------------------------------
 AuthTokenFilter
 
@@ -157,42 +19,44 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import com.example.my_books_backend.service.impl.UserDetailsServiceImpl;
-import com.example.my_books_backend.util.JwtUtils;
+import com.example.my_books_backend.util.JwtUtil;
 
 import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
 public class AuthTokenFilter extends OncePerRequestFilter {
+    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
-    private final JwtUtils jwtUtils;
     private final UserDetailsServiceImpl userDetailsService;
+    private final JwtUtil jwtUtil;
 
-    @SuppressWarnings("null")
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            String jwt = parseJwt(request);
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-                String username = jwtUtils.getUserNameFromJwtToken(jwt);
+            String jwt = getJwtFromHeader(request);
+            if (jwt != null && jwtUtil.validateToken(jwt)) {
+                String email = jwtUtil.getSubjectFromToken(jwt);
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails, null,
+                                userDetails.getAuthorities());
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities());
-
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                authentication
+                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
@@ -203,11 +67,16 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String parseJwt(HttpServletRequest request) {
-        String jwt = jwtUtils.getJwtFromHeader(request);
-        return jwt;
+    private String getJwtFromHeader(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
+
 }
+
 ------------------------------------------------------------
 SecurityConfig
 
@@ -215,8 +84,11 @@ package com.example.my_books_backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -224,29 +96,34 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final AuthTokenFilter authTokenFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.cors(Customizer.withDefaults());
 
         http.csrf(csrf -> csrf.disable());
 
         http.sessionManagement(
                 session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/api/**").permitAll()
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-                .permitAll().anyRequest().authenticated());
-
-        http.logout(logout -> logout.logoutUrl("/auth/logout").logoutSuccessUrl("/")
-                .invalidateHttpSession(true).deleteCookies("JSESSIONID"));
+        http.authorizeHttpRequests(
+                authorize -> authorize
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/books/**").permitAll()
+                        .requestMatchers("/api/genres/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                        .permitAll().anyRequest().authenticated());
 
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -263,6 +140,20 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(@NonNull CorsRegistry registry) {
+                registry.addMapping("/api/**")
+                        .allowedOrigins("http://localhost:3000") // ReactアプリのURL
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+            }
+        };
+    }
 }
 
 ------------------------------------------------------------
@@ -270,21 +161,15 @@ AuthController
 
 package com.example.my_books_backend.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.auth.LoginRequest;
-import com.example.my_books_backend.dto.auth.SignupRequest;
-import com.example.my_books_backend.exception.ConflictException;
+import com.example.my_books_backend.dto.auth.LoginDto;
+import com.example.my_books_backend.dto.auth.LoginResponseDto;
+import com.example.my_books_backend.dto.auth.SignupDto;
+import com.example.my_books_backend.dto.user.UserDto;
 import com.example.my_books_backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 
@@ -293,189 +178,70 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    request.getEmail(), request.getPassword()));
-            return ResponseEntity.ok("Login successful");
-        } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Login failed: " + e.getMessage());
-        }
-
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto loginDto) {
+        LoginResponseDto loginResponseDto = authService.login(loginDto);
+        return ResponseEntity.ok(loginResponseDto);
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody SignupRequest request) {
-        try {
-            authService.signup(request.getEmail(), request.getPassword());
-            return ResponseEntity.ok("Signup successful");
-        } catch (ConflictException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Signup failed: " + e.getMessage());
-        }
+    public ResponseEntity<UserDto> signup(@RequestBody SignupDto signupDto) {
+        UserDto user = authService.signup(signupDto);
+        return ResponseEntity.ok(user);
+    }
+}
+
+------------------------------------------------------------
+UserController
+
+package com.example.my_books_backend.controller;
+
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.example.my_books_backend.dto.user.UserDto;
+import com.example.my_books_backend.model.User;
+import com.example.my_books_backend.service.UserService;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
+public class UserController {
+
+    private final UserService userService;
+
+    @GetMapping("")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<List<UserDto>> getUsers() {
+        List<UserDto> users = userService.getUsers();
+        return ResponseEntity.ok(users);
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout() {
-        SecurityContextHolder.clearContext();
-        return ResponseEntity.ok("Logout successful");
-    }
-
-    @GetMapping("/isAuthenticated")
-    public ResponseEntity<Boolean> isAuthenticated() {
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = authentication != null && authentication.isAuthenticated();
-        return ResponseEntity.ok(isAuthenticated);
+
+        User currentUser = (User) authentication.getPrincipal();
+        UserDto userDto = userService.getUserById(currentUser.getId());
+        return ResponseEntity.ok(userDto);
     }
 }
 
 ------------------------------------------------------------
-BookController
-
-package com.example.my_books_backend.controller;
-
-import java.util.List;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.book.BookDto;
-import com.example.my_books_backend.dto.book.BookResponseDto;
-import com.example.my_books_backend.service.BookService;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("/api/books")
-@RequiredArgsConstructor
-public class BookController {
-
-    private final BookService bookService;
-
-    @GetMapping("")
-    public ResponseEntity<List<BookDto>> getBooks() {
-        List<BookDto> books = bookService.getBooks();
-        return ResponseEntity.ok(books);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<BookDto> getBookById(@PathVariable String id) {
-        BookDto book = bookService.getBookById(id);
-        return ResponseEntity.ok(book);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<BookResponseDto> searchByTitle(@RequestParam String q,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookResponseDto bookResponse = bookService.searchByTitle(q, page, maxResults);
-        return ResponseEntity.ok(bookResponse);
-    }
-
-    @GetMapping("/discover")
-    public ResponseEntity<BookResponseDto> searchByGenreId(@RequestParam String genreId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookResponseDto bookResponse = bookService.searchByGenreId(genreId, page, maxResults);
-        return ResponseEntity.ok(bookResponse);
-    }
-
-    @GetMapping("/new-releases")
-    public ResponseEntity<List<BookDto>> getNewReleases() {
-        List<BookDto> books = bookService.getNewReleases();
-        return ResponseEntity.ok(books);
-    }
-
-}
-
-------------------------------------------------------------
-GenreController
-
-package com.example.my_books_backend.controller;
-
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.genre.GenreCreateDto;
-import com.example.my_books_backend.dto.genre.GenreDto;
-import com.example.my_books_backend.dto.genre.GenreUpdateDto;
-import com.example.my_books_backend.model.Genre;
-import com.example.my_books_backend.service.GenreService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("/api/genres")
-@RequiredArgsConstructor
-public class GenreController {
-
-    private final GenreService genreService;
-
-    @GetMapping("")
-    public ResponseEntity<List<GenreDto>> getGenres() {
-        List<GenreDto> genres = genreService.getGenres();
-        return ResponseEntity.ok(genres);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<GenreDto> getGenreById(@PathVariable Integer id) {
-        GenreDto genre = genreService.getGenreById(id);
-        return ResponseEntity.ok(genre);
-    }
-
-    @PostMapping("")
-    public ResponseEntity<GenreDto> createGenre(@Valid @RequestBody GenreCreateDto dto) {
-        GenreDto genre = genreService.createGenre(dto);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(genre.getId()).toUri();
-        return ResponseEntity.created(location).body(genre);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<GenreDto> updateGenre(@PathVariable Integer id,
-            @Valid @RequestBody GenreUpdateDto dto) {
-        genreService.updateGenre(id, dto);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<GenreDto> patchGenre(@PathVariable Integer id,
-            @Valid @RequestBody Map<String, Object> updates) {
-        genreService.patchGenre(id, updates);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Genre> deleteGenre(@PathVariable Integer id) {
-        genreService.deleteGenre(id);
-        return ResponseEntity.noContent().build();
-    }
-}
-
-------------------------------------------------------------
-auth/LoginRequest
+LoginResponseDto
 
 package com.example.my_books_backend.dto.auth;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -483,375 +249,146 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequest {
+public class LoginResponseDto {
 
-    @NotNull
-    @Email
-    private String email;
-
-    @NotNull
-    private String password;
+    private String accessToken;
+    private String username;
+    private List<String> roles;
 }
 
 ------------------------------------------------------------
-auth/SignupRequest
+BookRepositoryCustomImpl
 
-package com.example.my_books_backend.dto.auth;
-
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class SignupRequest {
-
-    @NotNull
-    @NotBlank(message = "メールアドレスは必須です")
-    @Email(message = "無効なメールアドレスです")
-    private String email;
-
-    @NotNull
-    @NotBlank(message = "パスワードは必須です")
-    @Size(min = 6, message = "パスワードは6文字以上で入力してください")
-    private String password;
-}
-
-------------------------------------------------------------
-ExceptionControllerAdvice
-
-package com.example.my_books_backend.exception;
+package com.example.my_books_backend.repository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-
-@ControllerAdvice
-public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
-        @ExceptionHandler({ NotFoundException.class })
-        public ResponseEntity<Object> handleNotFound(NotFoundException ex, WebRequest request) {
-                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()), HttpStatus.NOT_FOUND);
-                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
-                                HttpStatus.NOT_FOUND, request);
-        }
-
-        @ExceptionHandler({ BadRequestException.class })
-        public ResponseEntity<Object> handleBadRequest(BadRequestException ex, WebRequest request) {
-                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()), HttpStatus.BAD_REQUEST);
-                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
-                                HttpStatus.BAD_REQUEST, request);
-        }
-
-        @ExceptionHandler({ ConflictException.class })
-        public ResponseEntity<Object> handleConflict(ConflictException ex, WebRequest request) {
-                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()), HttpStatus.CONFLICT);
-                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
-                                HttpStatus.CONFLICT, request);
-        }
-
-        @Override
-        @SuppressWarnings("null")
-        protected ResponseEntity<Object> handleMethodArgumentNotValid(
-                        MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status,
-                        WebRequest request) {
-                ErrorResponse errorResponse = buildErrorResponse(ex.getBindingResult());
-                return this.handleExceptionInternal(ex, errorResponse, headers, HttpStatus.BAD_REQUEST,
-                                request);
-        }
-
-        private ErrorResponse buildErrorResponse(BindingResult bindingResult) {
-                List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-                List<String> errorMessages = new ArrayList<>();
-                for (final FieldError error : fieldErrors) {
-                        errorMessages.add(error.getField() + ": " + error.getDefaultMessage());
-                }
-                ErrorResponse errorResponse = new ErrorResponse(errorMessages, HttpStatus.BAD_REQUEST);
-                return errorResponse;
-        }
-}
-
-------------------------------------------------------------
-BookMapper
-
-package com.example.my_books_backend.mapper;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.dto.book.BookDto;
-import com.example.my_books_backend.dto.book.BookResponseDto;
-import com.example.my_books_backend.model.Book;
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
-public class BookMapper {
-
-    private final ModelMapper modelMapper;
-
-    public BookDto toDto(Book book) {
-        BookDto bookDto = modelMapper.map(book, BookDto.class);
-
-        List<Integer> genreIds = Arrays.stream(book.getGenreIds().split(",")).map(Integer::parseInt).toList();
-        bookDto.setGenreIds(genreIds);
-
-        List<String> authors = Arrays.asList(book.getAuthors().split(","));
-        bookDto.setAuthors(authors);
-
-        return bookDto;
-    }
-
-    public Book toEntity(BookDto bookDto) {
-        Book book = modelMapper.map(bookDto, Book.class);
-
-        String genreIds = bookDto.getGenreIds().stream().map(String::valueOf)
-                .collect(Collectors.joining(","));
-        book.setGenreIds(genreIds);
-
-        String authors = String.join(",", bookDto.getAuthors());
-        book.setAuthors(authors);
-
-        return book;
-    }
-
-    public List<BookDto> toDtoList(List<Book> books) {
-        return books.stream().map(book -> toDto(book)).toList();
-    }
-
-    public BookResponseDto toResponseDto(Page<Book> pageBook) {
-        Integer page = pageBook.getNumber();
-        Integer totalPages = pageBook.getTotalPages();
-        Integer totalItems = (int) pageBook.getTotalElements();
-        List<BookDto> booksDto = toDtoList(pageBook.getContent());
-        return new BookResponseDto(page, totalPages, totalItems, booksDto);
-    }
-}
-
-------------------------------------------------------------
-GenreMapper
-
-package com.example.my_books_backend.mapper;
-
-import java.util.List;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.dto.genre.GenreCreateDto;
-import com.example.my_books_backend.dto.genre.GenreDto;
-import com.example.my_books_backend.model.Genre;
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
-public class GenreMapper {
-
-    private final ModelMapper modelMapper;
-
-    public GenreDto toDto(Genre genre) {
-        return modelMapper.map(genre, GenreDto.class);
-    }
-
-    public Genre toEntity(GenreDto genreDto) {
-        return modelMapper.map(genreDto, Genre.class);
-    }
-
-    public Genre toEntity(GenreCreateDto createGenreDto) {
-        return modelMapper.map(createGenreDto, Genre.class);
-    }
-
-    public List<GenreDto> toDtoList(List<Genre> genres) {
-        return genres.stream().map(genre -> toDto(genre)).toList();
-    }
-}
-
-------------------------------------------------------------
-shardをmodelに移動
-------------------------------------------------------------
-Role
-
-package com.example.my_books_backend.model;
-
-import com.example.my_books_backend.model.shared.EntityBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Table(name = "roles")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Role extends EntityBase {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Integer id;
-
-    @Column(name = "name", nullable = false, unique = true)
-    private String name;
-
-    @Column(name = "description", nullable = false)
-    private String description;
-}
-
-------------------------------------------------------------
-User
-
-package com.example.my_books_backend.model;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import com.example.my_books_backend.model.shared.EntityBase;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Table(name = "users")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-public class User extends EntityBase implements UserDetails {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Integer id;
-
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
-
-    @JsonIgnore
-    @Column(name = "password", nullable = false)
-    private String password;
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles = new HashSet<>();
-
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @Column(name = "avatar_url")
-    private String avatarUrl;
-
-    public User(String name, String email, String password) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        Set<GrantedAuthority> authorities = new HashSet<>();
-        this.roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
-        return authorities;
-    }
-
-    @Override
-    public String getUsername() {
-        return this.email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-}
-
-------------------------------------------------------------
-BookRepository
-
-package com.example.my_books_backend.repository;
-
-import java.util.List;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import com.example.my_books_backend.model.Book;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 
 @Repository
-public interface BookRepository extends JpaRepository<Book, String> {
+public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 
-    Page<Book> findByTitleContaining(String q, Pageable pageable);
+    @PersistenceContext
+    private EntityManager entityManager;
 
-    List<Book> findTop10ByOrderByPublishedDateDesc();
-}
+    // // 基本的な呼び出し
+    // List<String> genres = Arrays.asList("ミステリー", "サスペンス");
+    // Pageable pageable = PageRequest.of(0, 10); // 1ページ目、10件ずつ
+    // Page<Book> result = bookRepository.findByGenreIds(genres, pageable);
 
-------------------------------------------------------------
-UserRepository
+    // // ソート条件付きの呼び出し
+    // Pageable pageableWithSort = PageRequest.of(
+    // 0,
+    // 10,
+    // Sort.by(Sort.Direction.DESC, "publishedDate")
+    // );
+    // Page<Book> sortedResult = bookRepository.findByGenreIds(genres,
+    // pageableWithSort);
 
-package com.example.my_books_backend.repository;
+    @Override
+    public Page<Book> findByGenreIds(String genreIdsParam, Pageable pageable) {
+        // AND条件とOR条件を解析
+        List<String> andConditions = Arrays.asList(genreIdsParam.split(","));
+        List<List<String>> orConditions = new ArrayList<>();
+        for (String andCondition : andConditions) {
+            orConditions.add(Arrays.asList(andCondition.split("\\|")));
+        }
 
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.model.User;
+        // SQLクエリ作成
+        String sql = buildQueryWithGenres("SELECT * FROM books WHERE ", orConditions);
 
-@Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+        // ソート条件を適用
+        sql += buildOrderByClause(pageable);
 
-    Optional<User> findByEmail(String email);
+        // ページングクエリの実行
+        Query query = entityManager.createNativeQuery(sql, Book.class);
+        setParameters(query, orConditions);
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
 
-    Boolean existsByEmail(String email);
+        @SuppressWarnings("unchecked")
+        List<Book> books = query.getResultList(); // ここで型の警告がでるので、アノテーション指定または型キャストする
+
+        // 総件数取得用のクエリを作成
+        String countSql = buildQueryWithGenres("SELECT COUNT(*) FROM books WHERE ", orConditions);
+        Query countQuery = entityManager.createNativeQuery(countSql);
+        setParameters(countQuery, orConditions);
+        Long total = ((Number) countQuery.getSingleResult()).longValue();
+
+        // 結果をPageオブジェクトで返却
+        return new PageImpl<>(books, pageable, total);
+    }
+
+    // SQLクエリのWHERE句を、ジャンルIDのリストに基づいて動的に構築
+    private String buildQueryWithGenres(String baseQuery, List<List<String>> orConditions) {
+        StringBuilder query = new StringBuilder(baseQuery);
+        for (int i = 0; i < orConditions.size(); i++) {
+            if (i > 0) {
+                query.append(" AND ");
+            }
+            query.append("(");
+            List<String> orCondition = orConditions.get(i);
+            for (int j = 0; j < orCondition.size(); j++) {
+                if (j > 0) {
+                    query.append(" OR ");
+                }
+                query.append("FIND_IN_SET(:genre_id").append(i).append("_").append(j)
+                        .append(", genre_ids) > 0");
+            }
+            query.append(")");
+        }
+        return query.toString();
+    }
+
+    // SortオブジェクトからORDER BY句を作成
+    private String buildOrderByClause(Pageable pageable) {
+        Sort sort = pageable.getSort().isSorted() ? pageable.getSort()
+                : Sort.by(Sort.Direction.ASC, "title");
+        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
+        sort.forEach(order -> {
+            // エンティティのフィールド名をデータベースのカラム名に変換
+            String columnName = convertToColumnName(order.getProperty());
+            orderBy.append(columnName).append(" ").append(order.isAscending() ? "ASC" : "DESC")
+                    .append(", ");
+        });
+        orderBy.setLength(orderBy.length() - 2); // 最後のカンマを削除
+        return orderBy.toString();
+    }
+
+    // ジャンルIDのリストをクエリのパラメータに設定
+    private void setParameters(Query query, List<List<String>> orConditions) {
+        for (int i = 0; i < orConditions.size(); i++) {
+            List<String> orCondition = orConditions.get(i);
+            for (int j = 0; j < orCondition.size(); j++) {
+                query.setParameter("genre_id" + i + "_" + j, orCondition.get(j));
+            }
+        }
+    }
+
+    // エンティティのフィールド名をデータベースのカラム名に変換する
+    private String convertToColumnName(String fieldName) {
+        switch (fieldName) {
+            case "genreIds":
+                return "genre_ids";
+            case "publishedDate":
+                return "published_date";
+            case "pageCount":
+                return "page_count";
+            case "imageUrl":
+                return "image_url";
+            default:
+                return fieldName;
+        }
+    }
 }
 
 ------------------------------------------------------------
@@ -890,38 +427,33 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<BookDto> getBooks() {
         List<Book> books = bookRepository.findAll();
-        List<BookDto> booksDto = bookMapper.toDtoList(books);
-        return booksDto;
+        return bookMapper.toDtoList(books);
     }
 
     @Override
     public BookDto getBookById(String id) {
         Book book = findBookById(id);
-        BookDto bookDto = bookMapper.toDto(book);
-        return bookDto;
+        return bookMapper.toDto(book);
     }
 
     @Override
     public BookResponseDto searchByTitle(String q, Integer page, Integer maxResults) {
         Pageable pageable = createPageable(page, maxResults);
         Page<Book> pageBook = bookRepository.findByTitleContaining(q, pageable);
-        BookResponseDto bookResponseDto = bookMapper.toResponseDto(pageBook);
-        return bookResponseDto;
+        return bookMapper.toResponseDto(pageBook);
     }
 
     @Override
     public BookResponseDto searchByGenreId(String genreId, Integer page, Integer maxResults) {
         Pageable pageable = createPageable(page, maxResults);
         Page<Book> pageBook = bookRepositoryCustom.findByGenreIds(genreId, pageable);
-        BookResponseDto bookResponseDto = bookMapper.toResponseDto(pageBook);
-        return bookResponseDto;
+        return bookMapper.toResponseDto(pageBook);
     }
 
     @Override
     public List<BookDto> getNewReleases() {
         List<Book> books = bookRepository.findTop10ByOrderByPublishedDateDesc();
-        List<BookDto> booksDto = bookMapper.toDtoList(books);
-        return booksDto;
+        return bookMapper.toDtoList(books);
     }
 
     private Pageable createPageable(Integer page, Integer maxResults) {
@@ -944,7 +476,6 @@ package com.example.my_books_backend.service.impl;
 
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -970,16 +501,14 @@ public class GenreServiceImpl implements GenreService {
     @Cacheable("getGenres")
     public List<GenreDto> getGenres() {
         List<Genre> genres = genreRepository.findAll();
-        List<GenreDto> genresDto = genreMapper.toDtoList(genres);
-        return genresDto;
+        return genreMapper.toDtoList(genres);
     }
 
     @Override
     @Cacheable(value = "getGenreById", key = "#p0")
     public GenreDto getGenreById(Integer id) {
         Genre genre = findGenreById(id);
-        GenreDto genreDto = genreMapper.toDto(genre);
-        return genreDto;
+        return genreMapper.toDto(genre);
     }
 
     @Override
@@ -987,13 +516,12 @@ public class GenreServiceImpl implements GenreService {
     public GenreDto createGenre(GenreCreateDto dto) {
         Genre genre = genreMapper.toEntity(dto);
         Genre saveGenre = genreRepository.save(genre);
-        GenreDto genreDto = genreMapper.toDto(saveGenre);
-        return genreDto;
+        return genreMapper.toDto(saveGenre);
     }
 
     @Override
-    @Caching(evict = { @CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getGenres", allEntries = true) })
+    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
+            @CacheEvict(value = "getGenres", allEntries = true)})
     public void updateGenre(Integer id, GenreUpdateDto dto) {
         Genre genre = findGenreById(id);
         genre.setName(dto.getName());
@@ -1002,8 +530,8 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    @Caching(evict = { @CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getGenres", allEntries = true) })
+    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
+            @CacheEvict(value = "getGenres", allEntries = true)})
     public void patchGenre(Integer id, Map<String, Object> updates) {
         Genre genre = findGenreById(id);
         updates.forEach((key, value) -> {
@@ -1020,8 +548,8 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    @Caching(evict = { @CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getGenres", allEntries = true) })
+    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
+            @CacheEvict(value = "getGenres", allEntries = true)})
     public void deleteGenre(Integer id) {
         Genre genre = findGenreById(id);
         genreRepository.delete(genre);
@@ -1032,32 +560,131 @@ public class GenreServiceImpl implements GenreService {
                 .orElseThrow(() -> new NotFoundException("Not found with this ID: " + id));
         return genre;
     }
-
 }
 
 ------------------------------------------------------------
-UserDetailsServiceImpl
+UserServiceImpl
 
 package com.example.my_books_backend.service.impl;
 
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.example.my_books_backend.dto.user.UserCreateDto;
+import com.example.my_books_backend.dto.user.UserDto;
+import com.example.my_books_backend.dto.user.UserUpdateDto;
+import com.example.my_books_backend.exception.NotFoundException;
+import com.example.my_books_backend.mapper.UserMapper;
+import com.example.my_books_backend.model.Role;
+import com.example.my_books_backend.model.RoleName;
 import com.example.my_books_backend.model.User;
+import com.example.my_books_backend.repository.RoleRepository;
 import com.example.my_books_backend.repository.UserRepository;
+import com.example.my_books_backend.service.UserService;
+import com.example.my_books_backend.util.RandomStringUtil;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
+    private final RandomStringUtil randomStringUtil;
+
+    private final String DEFAULT_AVATAR_URL = "http://localhost:18080/images/avatars/avatar00.jpg";
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new UsernameNotFoundException("User Not Found with email: " + email));
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public List<UserDto> getUsers() {
+        List<User> users = userRepository.findAll();
+        return userMapper.toDtoList(users);
+    }
+
+    @Override
+    public UserDto getUserById(Integer id) {
+        User user = findUserById(id);
+        return userMapper.toDto(user);
+    }
+
+    @Override
+    public UserDto createUser(UserCreateDto dto) {
+        User user = userMapper.toEntity(dto);
+
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+
+        if (user.getRoles() == null) {
+            Role role = roleRepository.findByName(RoleName.ROLE_USER);
+            user.setRoles(Collections.singletonList(role));
+        }
+
+        if (user.getName() == null) {
+            String name = "USER_" + randomStringUtil.generateRandomString();
+            user.setName(name);
+        }
+
+        if (user.getAvatarUrl() == null) {
+            String avatarUrl = DEFAULT_AVATAR_URL;
+            user.setAvatarUrl(avatarUrl);
+        }
+
+        User saveUser = userRepository.save(user);
+        return userMapper.toDto(saveUser);
+    }
+
+    @Override
+    public void updateUser(Integer id, UserUpdateDto dto) {
+        User user = findUserById(id);
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+        user.setAvatarUrl(dto.getAvatarUrl());
+        userRepository.save(user);
+    }
+
+    @Override
+    public void patchUser(Integer id, Map<String, Object> updates) {
+        User user = findUserById(id);
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "name":
+                    user.setName((String) value);
+                    break;
+                case "email":
+                    user.setEmail((String) value);
+                    break;
+                case "password":
+                    user.setPassword(passwordEncoder.encode((String) value));
+                    break;
+                case "avatarUrl":
+                    user.setAvatarUrl((String) value);
+                    break;
+            }
+        });
+        userRepository.save(user);
+    }
+
+    @Override
+    public void deleteUser(Integer id) {
+        User user = findUserById(id);
+        userRepository.delete(user);
+    }
+
+    private User findUserById(Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Not found with this ID: " + id));
         return user;
     }
 }
@@ -1067,177 +694,198 @@ AuthService
 
 package com.example.my_books_backend.service;
 
-import java.util.HashSet;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.List;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import com.example.my_books_backend.dto.auth.LoginDto;
+import com.example.my_books_backend.dto.auth.LoginResponseDto;
+import com.example.my_books_backend.dto.auth.SignupDto;
+import com.example.my_books_backend.dto.user.UserCreateDto;
+import com.example.my_books_backend.dto.user.UserDto;
 import com.example.my_books_backend.exception.ConflictException;
+import com.example.my_books_backend.exception.UnAuthorizedException;
 import com.example.my_books_backend.model.User;
 import com.example.my_books_backend.repository.UserRepository;
+import com.example.my_books_backend.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final UserService userService;
+    private final JwtUtil jwtUtil;
 
-    public User signup(String email, String password) {
-        if (userRepository.existsByEmail(email)) {
-            throw new ConflictException("User already exists: " + email);
+    public LoginResponseDto login(LoginDto loginDto) {
+        Authentication authentication;
+        try {
+            authentication =
+                    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                            loginDto.getEmail(), loginDto.getPassword()));
+        } catch (AuthenticationException e) {
+            throw new UnAuthorizedException("Login failed: Invalid email or password.");
         }
 
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setRoles(new HashSet<>());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return userRepository.save(user);
+        User user = (User) authentication.getPrincipal();
+
+        String accessToken = jwtUtil.generateToken(user);
+        String name = user.getName();
+        List<String> roles = user.getRoles().stream().map(role -> role.getName()).toList();
+
+        return new LoginResponseDto(accessToken, name, roles);
+    }
+
+    public UserDto signup(SignupDto signupDto) {
+        if (userRepository.existsByEmail(signupDto.getEmail())) {
+            throw new ConflictException("User already exists: " + signupDto.getEmail());
+        }
+
+        UserCreateDto dto = new UserCreateDto();
+        dto.setEmail(signupDto.getEmail());
+        dto.setPassword(signupDto.getPassword());
+
+        return userService.createUser(dto);
     }
 }
 
 ------------------------------------------------------------
-BookService
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import com.example.my_books_backend.dto.book.BookDto;
-import com.example.my_books_backend.dto.book.BookResponseDto;
-
-public interface BookService {
-
-    List<BookDto> getBooks();
-
-    BookDto getBookById(String id);
-
-    BookResponseDto searchByTitle(String q, Integer page, Integer maxResults);
-
-    BookResponseDto searchByGenreId(String genreId, Integer page, Integer maxResults);
-
-    List<BookDto> getNewReleases();
-}
-
-------------------------------------------------------------
-GenreService
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import java.util.Map;
-import com.example.my_books_backend.dto.genre.GenreCreateDto;
-import com.example.my_books_backend.dto.genre.GenreDto;
-import com.example.my_books_backend.dto.genre.GenreUpdateDto;
-
-public interface GenreService {
-
-        List<GenreDto> getGenres();
-
-        GenreDto getGenreById(Integer id);
-
-        GenreDto createGenre(GenreCreateDto dto);
-
-        void updateGenre(Integer id, GenreUpdateDto dto);
-
-        void patchGenre(Integer id, Map<String, Object> updates);
-
-        void deleteGenre(Integer id);
-}
-
-------------------------------------------------------------
-JwtUtils
+JwtUtil
 
 package com.example.my_books_backend.util;
 
 import java.security.Key;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import com.example.my_books_backend.model.User;
-import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
+import com.example.my_books_backend.model.Role;
+import com.example.my_books_backend.model.User;
 
 @Component
-public class JwtUtils {
+public class JwtUtil {
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
     @Value("${spring.app.jwtSecret}")
-    private String jwtSecret;
+    private String secret;
 
     @Value("${spring.app.jwtExpirationMs}")
-    private int jwtExpirationMs;
+    private int expiration;
 
-    public String getJwtFromHeader(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // Remove Bearer prefix
-        }
-        return null;
+    // トークン生成
+    public String generateToken(User user) {
+        String email = user.getEmail();
+        String username = user.getName();
+        String roles = user.getRoles().stream().map(Role::getName).collect(Collectors.joining(","));
+
+        return Jwts.builder().subject(email).claim("username", username).claim("roles", roles)
+                .issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(key()).compact();
     }
 
-    public String generateTokenFromUsername(User userDetails) {
-        String username = userDetails.getUsername();
-        String roles = userDetails.getAuthorities().stream()
-                .map(authority -> authority.getAuthority())
-                .collect(Collectors.joining(","));
-        return Jwts.builder()
-                .subject(username)
-                .claim("roles", roles)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(key())
-                .compact();
-    }
-
-    public String getUserNameFromJwtToken(String token) {
-        return Jwts.parser()
-                .verifyWith((SecretKey) key())
-                .build().parseSignedClaims(token)
-                .getPayload().getSubject();
-    }
-
+    // 秘密鍵の生成
     private Key key() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public boolean validateJwtToken(String authToken) {
+    // トークンの検証
+    public boolean validateToken(String token) {
         try {
-            Jwts.parser().verifyWith((SecretKey) key())
-                    .build().parseSignedClaims(authToken);
+            Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(token);
             return true;
-        } catch (JwtException e) {
-            return false;
+        } catch (MalformedJwtException e) {
+            logger.error("Invalid JWT token: {}", e.getMessage());
+        } catch (ExpiredJwtException e) {
+            logger.error("JWT token is expired: {}", e.getMessage());
+        } catch (UnsupportedJwtException e) {
+            logger.error("JWT token is unsupported: {}", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logger.error("JWT claims string is empty: {}", e.getMessage());
         }
+        return false;
+    }
+
+    // トークンからサブジェクトを取得
+    public String getSubjectFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.getSubject());
+    }
+
+    // トークンのロールを取得
+    public List<String> getRolesFromToken(String token) {
+        return getClaimFromToken(token, claims -> {
+            String rolesString = claims.get("roles", String.class);
+            return rolesString != null ? Arrays.asList(rolesString.split(","))
+                    : Collections.emptyList();
+        });
+    }
+
+    // トークンの有効期限を取得
+    public Date getExpirationDateFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.getExpiration());
+    }
+
+    // トークンの有効期限チェック
+    public Boolean isTokenExpired(String token) {
+        return getExpirationDateFromToken(token).before(new Date());
+    }
+
+    // 汎用的なクレーム取得メソッド
+    private <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = getAllClaimsFromToken(token);
+        return claimsResolver.apply(claims);
+    }
+
+    // すべてのクレームを取得
+    private Claims getAllClaimsFromToken(String token) {
+        return Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(token)
+                .getPayload();
     }
 }
 
-------------------------------------------------------------
-RandomStringUtil
-
-package com.example.my_books_backend.util;
-
-import java.security.SecureRandom;
-import org.springframework.stereotype.Component;
-
-@Component
-public class RandomStringUtil {
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    private static final int LENGTH = 12;
-    private static final SecureRandom RANDOM = new SecureRandom();
-
-    public static String generateRandomString() {
-        StringBuilder sb = new StringBuilder(LENGTH);
-        for (int i = 0; i < LENGTH; i++) {
-            int index = RANDOM.nextInt(CHARACTERS.length());
-            sb.append(CHARACTERS.charAt(index));
-        }
-        return sb.toString();
-    }
-}
+// ---------------------------------------------------------------------------
+// JWT秘密鍵
+// @Value("${spring.app.jwtSecret}")
+// private String secret;
+//
+// 以下のようなプログラムで生成した値を環境変数に設定
+// import java.security.SecureRandom;
+// import java.util.Base64;
+//
+// public class JwtSecretGenerator {
+// public static void main(String[] args) {
+// // 256ビット（32バイト）のランダムな秘密鍵を生成
+// byte[] keyBytes = new byte[32];
+// new SecureRandom().nextBytes(keyBytes);
+//
+// // Base64エンコード
+// String base64EncodedSecret = Base64.getEncoder().encodeToString(keyBytes);
+//
+// System.out.println("生成されたBase64エンコード秘密鍵:");
+// System.out.println(base64EncodedSecret);
+// }
+// }
 
 ------------------------------------------------------------
 application.properties
@@ -1257,65 +905,8 @@ spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
 
 # JWT
 spring.app.jwtSecret=${SPRING_APP_JWT_SECRET}
-spring.app.jwtExpirationMs=${SPRING_APP_JWT_EXPIRATION_MS}
-------------------------------------------------------------
-build.gradle
-
-plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.3.5'
-	id 'io.spring.dependency-management' version '1.1.6'
-}
-
-group = 'com.example'
-version = '0.0.1-SNAPSHOT'
-
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
-}
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
-repositories {
-	mavenCentral()
-}
-
-// 作成されるjarファイル名を指定
-bootJar{
-    archiveFileName = 'my-books.jar'
-}
-
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-cache'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.mysql:mysql-connector-j'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	developmentOnly 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
-	implementation 'org.modelmapper:modelmapper:3.1.0'
-	implementation 'io.swagger.core.v3:swagger-annotations:2.1.10'
-    implementation 'io.swagger.core.v3:swagger-models:2.1.10'
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
-    implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
-    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.6'
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
-}
-
+# spring.app.jwtExpirationMs=${SPRING_APP_JWT_EXPIRATION_MS}
+spring.app.jwtExpirationMs=60000
 ------------------------------------------------------------
 docker-compose
 
@@ -1333,8 +924,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-books-db
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: password
-      SPRING_APP_JWT_SECRET: your_jwt_secret_key
-      SPRING_APP_JWT_EXPIRATION_MS: 36000
+      SPRING_APP_JWT_SECRET: Ry9CqEZVzQH7k1234abcdefghijklmnopqrstuvwxyzABCD+/=
+      SPRING_APP_JWT_EXPIRATION_MS: 86400000
     depends_on:
       - db
 
@@ -1355,4 +946,22 @@ services:
 volumes:
   db_data:
 ------------------------------------------------------------
-
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
