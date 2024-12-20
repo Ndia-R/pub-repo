@@ -1,162 +1,4 @@
 ------------------------------------------------------------
-gradle-wrapper.properties
-
-distributionBase=GRADLE_USER_HOME
-distributionPath=wrapper/dists
-distributionUrl=https\://services.gradle.org/distributions/gradle-8.11.1-bin.zip
-networkTimeout=10000
-validateDistributionUrl=true
-zipStoreBase=GRADLE_USER_HOME
-zipStorePath=wrapper/dists
-
-------------------------------------------------------------
-AuthTokenFilter
-
-package com.example.my_books_backend.config;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.lang.NonNull;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-import com.example.my_books_backend.service.impl.UserDetailsServiceImpl;
-import com.example.my_books_backend.util.JwtUtil;
-
-import java.io.IOException;
-
-@Component
-@RequiredArgsConstructor
-public class AuthTokenFilter extends OncePerRequestFilter {
-    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
-
-    private final UserDetailsServiceImpl userDetailsService;
-    private final JwtUtil jwtUtil;
-
-    @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
-            throws ServletException, IOException {
-        try {
-            String jwt = getJwtFromHeader(request);
-            if (jwt != null && jwtUtil.validateToken(jwt)) {
-                String email = jwtUtil.getSubjectFromToken(jwt);
-
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null,
-                                userDetails.getAuthorities());
-
-                authentication
-                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-        } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}", e);
-        }
-
-        filterChain.doFilter(request, response);
-    }
-
-    private String getJwtFromHeader(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
-
-}
-
-------------------------------------------------------------
-SecurityConfig
-
-package com.example.my_books_backend.config;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.NonNull;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import lombok.RequiredArgsConstructor;
-
-@Configuration
-@EnableWebSecurity
-@RequiredArgsConstructor
-@EnableMethodSecurity(prePostEnabled = true)
-public class SecurityConfig {
-
-    private final AuthTokenFilter authTokenFilter;
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults());
-
-        http.csrf(csrf -> csrf.disable());
-
-        http.sessionManagement(
-                session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http.authorizeHttpRequests(
-                authorize -> authorize
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/books/**").permitAll()
-                        .requestMatchers("/api/genres/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-                        .permitAll().anyRequest().authenticated());
-
-        http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(@NonNull CorsRegistry registry) {
-                registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:3000") // ReactアプリのURL
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
-    }
-}
-
-------------------------------------------------------------
 AuthController
 
 package com.example.my_books_backend.controller;
@@ -166,30 +8,173 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.auth.LoginDto;
-import com.example.my_books_backend.dto.auth.LoginResponseDto;
-import com.example.my_books_backend.dto.auth.SignupDto;
-import com.example.my_books_backend.dto.user.UserDto;
+import com.example.my_books_backend.dto.auth.LoginRequest;
+import com.example.my_books_backend.dto.auth.LoginResponse;
+import com.example.my_books_backend.dto.auth.SignupRequest;
+import com.example.my_books_backend.dto.auth.TokenRefreshRequest;
+import com.example.my_books_backend.dto.auth.TokenRefreshResponse;
+import com.example.my_books_backend.dto.user.UserResponse;
 import com.example.my_books_backend.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class AuthController {
-
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto loginDto) {
-        LoginResponseDto loginResponseDto = authService.login(loginDto);
-        return ResponseEntity.ok(loginResponseDto);
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+        LoginResponse loginResponse = authService.login(loginRequest);
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserDto> signup(@RequestBody SignupDto signupDto) {
-        UserDto user = authService.signup(signupDto);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignupRequest signupRequest) {
+        UserResponse userResponse = authService.signup(signupRequest);
+        return ResponseEntity.ok(userResponse);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<TokenRefreshResponse> refreshToken(
+            @RequestBody TokenRefreshRequest tokenRefreshRequest) {
+        TokenRefreshResponse tokenRefreshResponse = authService.refreshToken(tokenRefreshRequest);
+        return ResponseEntity.ok(tokenRefreshResponse);
+    }
+}
+
+
+------------------------------------------------------------
+BookController
+
+package com.example.my_books_backend.controller;
+
+import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.example.my_books_backend.dto.book.BookResponse;
+import com.example.my_books_backend.dto.book.PaginatedBookResponse;
+import com.example.my_books_backend.service.BookService;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/v1/books")
+@RequiredArgsConstructor
+public class BookController {
+    private final BookService bookService;
+
+    @GetMapping("")
+    public ResponseEntity<List<BookResponse>> getAllBooks() {
+        List<BookResponse> books = bookService.getAllBooks();
+        return ResponseEntity.ok(books);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BookResponse> getBookById(@PathVariable String id) {
+        BookResponse book = bookService.getBookById(id);
+        return ResponseEntity.ok(book);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<PaginatedBookResponse> searchByTitle(@RequestParam String q,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        PaginatedBookResponse paginatedBookResponse =
+                bookService.searchByTitle(q, page, maxResults);
+        return ResponseEntity.ok(paginatedBookResponse);
+    }
+
+    @GetMapping("/discover")
+    public ResponseEntity<PaginatedBookResponse> searchByGenreId(@RequestParam String genreId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        PaginatedBookResponse paginatedBookResponse =
+                bookService.searchByGenreId(genreId, page, maxResults);
+        return ResponseEntity.ok(paginatedBookResponse);
+    }
+
+    @GetMapping("/new-releases")
+    public ResponseEntity<List<BookResponse>> getNewReleases() {
+        List<BookResponse> books = bookService.getNewReleases();
+        return ResponseEntity.ok(books);
+    }
+}
+
+------------------------------------------------------------
+GenreController
+
+package com.example.my_books_backend.controller;
+
+import java.net.URI;
+import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import com.example.my_books_backend.dto.genre.CreateGenreRequest;
+import com.example.my_books_backend.dto.genre.GenreResponse;
+import com.example.my_books_backend.dto.genre.UpdateGenreRequest;
+import com.example.my_books_backend.service.GenreService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/v1/genres")
+@RequiredArgsConstructor
+public class GenreController {
+    private final GenreService genreService;
+
+    @GetMapping("")
+    public ResponseEntity<List<GenreResponse>> getAllGenres() {
+        List<GenreResponse> genres = genreService.getAllGenres();
+        return ResponseEntity.ok(genres);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<GenreResponse> getGenreById(@PathVariable Integer id) {
+        GenreResponse genre = genreService.getGenreById(id);
+        return ResponseEntity.ok(genre);
+    }
+
+    @PostMapping("")
+    public ResponseEntity<GenreResponse> createGenre(
+            @Valid @RequestBody CreateGenreRequest createGenreRequest) {
+        GenreResponse genre = genreService.createGenre(createGenreRequest);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                .buildAndExpand(genre.getId()).toUri();
+        return ResponseEntity.created(location).body(genre);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> putGenre(@PathVariable Integer id,
+            @Valid @RequestBody UpdateGenreRequest updateGenreRequest) {
+        genreService.putGenre(id, updateGenreRequest);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> patchGenre(@PathVariable Integer id,
+            @Valid @RequestBody UpdateGenreRequest updateGenreRequest) {
+        genreService.patchGenre(id, updateGenreRequest);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGenre(@PathVariable Integer id) {
+        genreService.deleteGenre(id);
+        return ResponseEntity.noContent().build();
     }
 }
 
@@ -199,45 +184,103 @@ UserController
 package com.example.my_books_backend.controller;
 
 import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.user.UserDto;
-import com.example.my_books_backend.model.User;
+import com.example.my_books_backend.dto.user.EmailChangeRequest;
+import com.example.my_books_backend.dto.user.PasswordChangeRequest;
+import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.dto.user.UpdateUserRequest;
 import com.example.my_books_backend.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
-
     private final UserService userService;
 
     @GetMapping("")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<List<UserDto>> getUsers() {
-        List<UserDto> users = userService.getUsers();
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        List<UserResponse> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<UserDto> authenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Integer id) {
+        UserResponse user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
+    }
 
-        User currentUser = (User) authentication.getPrincipal();
-        UserDto userDto = userService.getUserById(currentUser.getId());
-        return ResponseEntity.ok(userDto);
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        UserResponse user = userService.getCurrentUser();
+        return ResponseEntity.ok(user);
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<Void> updateCurrentUser(
+            @Valid @RequestBody UpdateUserRequest updateUserRequest) {
+        userService.updateCurrentUser(updateUserRequest);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/me/email")
+    public ResponseEntity<Void> changeEmail(
+            @Valid @RequestBody EmailChangeRequest emailChangeRequest) {
+        userService.changeEmail(emailChangeRequest);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+            @Valid @RequestBody PasswordChangeRequest passwordChangeRequest) {
+        userService.changePassword(passwordChangeRequest);
+        return ResponseEntity.noContent().build();
     }
 }
 
 ------------------------------------------------------------
-LoginResponseDto
+LoginRequest
+
+package com.example.my_books_backend.dto.auth;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class LoginRequest {
+    @NotNull
+    @Email(message = "無効なメールアドレスです")
+    private String email;
+
+    @NotNull
+    private String password;
+}
+
+------------------------------------------------------------
+LoginResponse
 
 package com.example.my_books_backend.dto.auth;
 
@@ -249,11 +292,851 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginResponseDto {
-
+public class LoginResponse {
     private String accessToken;
+    private String refreshToken;
     private String username;
     private List<String> roles;
+}
+
+------------------------------------------------------------
+SignupRequest
+
+package com.example.my_books_backend.dto.auth;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class SignupRequest {
+    @NotNull
+    @NotBlank(message = "メールアドレスは必須です")
+    @Email(message = "有効なメールアドレスを入力してください")
+    private String email;
+
+    @NotNull
+    @NotBlank(message = "パスワードは必須です")
+    @Size(min = 4, message = "パスワードは4文字以上で入力してください")
+    private String password;
+
+    @NotBlank(message = "確認パスワードは必須です")
+    private String confirmPassword;
+}
+
+------------------------------------------------------------
+TokenRefreshRequest
+
+package com.example.my_books_backend.dto.auth;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TokenRefreshRequest {
+    private String refreshToken;
+}
+
+------------------------------------------------------------
+TokenRefreshResponse
+
+package com.example.my_books_backend.dto.auth;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TokenRefreshResponse {
+    private String accessToken;
+    private String refreshToken;
+}
+
+------------------------------------------------------------
+BookResponse
+
+package com.example.my_books_backend.dto.book;
+
+import java.sql.Date;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class BookResponse {
+    private String id;
+    private String title;
+    private String description;
+    private List<Integer> genreIds;
+    private List<String> authors;
+    private String publisher;
+    private Date publishedDate;
+    private Integer price;
+    private Integer pageCount;
+    private String isbn;
+    private String imageUrl;
+}
+
+------------------------------------------------------------
+PaginatedBookResponse
+
+package com.example.my_books_backend.dto.book;
+
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class PaginatedBookResponse {
+    private Integer page;
+    private Integer totalPages;
+    private Integer totalItems;
+    private List<BookResponse> books;
+}
+
+------------------------------------------------------------
+CreateGenreRequest
+
+package com.example.my_books_backend.dto.genre;
+
+import org.hibernate.validator.constraints.Length;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateGenreRequest {
+    @NotNull
+    @Length(max = 50)
+    private String name;
+
+    @NotNull
+    @Length(max = 255)
+    private String description;
+}
+
+------------------------------------------------------------
+GenreResponse
+
+package com.example.my_books_backend.dto.genre;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class GenreResponse {
+    private Integer id;
+    private String name;
+}
+
+------------------------------------------------------------
+UpdateGenreRequest
+
+package com.example.my_books_backend.dto.genre;
+
+import org.hibernate.validator.constraints.Length;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UpdateGenreRequest {
+    @NotNull
+    @Length(max = 50)
+    private String name;
+
+    @NotNull
+    @Length(max = 255)
+    private String description;
+}
+
+------------------------------------------------------------
+CreateUserRequest
+
+package com.example.my_books_backend.dto.user;
+
+import java.util.List;
+import com.example.my_books_backend.entity.Role;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateUserRequest {
+    @NotNull
+    @Email
+    private String email;
+
+    @NotNull
+    private String password;
+
+    private List<Role> roles;
+    private String name;
+    private String avatarUrl;
+}
+
+------------------------------------------------------------
+EmailChangeRequest
+
+package com.example.my_books_backend.dto.user;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+
+@Getter
+public class EmailChangeRequest {
+    @NotBlank(message = "新しいメールアドレスは必須です")
+    @Email
+    private String newEmail;
+}
+
+------------------------------------------------------------
+PasswordChangeRequest
+
+package com.example.my_books_backend.dto.user;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+
+@Getter
+public class PasswordChangeRequest {
+    @NotBlank(message = "現在のパスワードは必須です")
+    private String currentPassword;
+
+    @NotBlank(message = "新しいパスワードは必須です")
+    @Size(min = 6, message = "パスワードは6文字以上で入力してください")
+    private String newPassword;
+
+    @NotBlank(message = "確認用パスワードは必須です")
+    private String confirmNewPassword;
+}
+
+------------------------------------------------------------
+UpdateUserRequest
+
+package com.example.my_books_backend.dto.user;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UpdateUserRequest {
+    private String name;
+    private String avatarUrl;
+}
+
+------------------------------------------------------------
+UserResponse
+
+package com.example.my_books_backend.dto.user;
+
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserResponse {
+    private Integer id;
+    private String email;
+    private List<String> roles;
+    private String name;
+    private String avatarUrl;
+}
+
+------------------------------------------------------------
+EntityBase
+
+package com.example.my_books_backend.entity.shared;
+
+import java.time.LocalDateTime;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import lombok.Data;
+
+@Data
+@MappedSuperclass
+public class EntityBase {
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
+    @PrePersist
+    protected void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+}
+
+------------------------------------------------------------
+Book
+
+package com.example.my_books_backend.entity;
+
+import java.sql.Date;
+import com.example.my_books_backend.entity.shared.EntityBase;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "books")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class Book extends EntityBase {
+    @Id
+    @Column(name = "id", nullable = false)
+    private String id;
+
+    @Column(name = "title", nullable = false)
+    private String title;
+
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "genre_ids", nullable = false)
+    private String genreIds;
+
+    @Column(name = "authors", nullable = false)
+    private String authors;
+
+    @Column(name = "publisher", nullable = false)
+    private String publisher;
+
+    @Column(name = "published_date", nullable = false)
+    private Date publishedDate;
+
+    @Column(name = "price", nullable = false)
+    private Integer price;
+
+    @Column(name = "page_count", nullable = false)
+    private Integer pageCount;
+
+    @Column(name = "isbn", nullable = false)
+    private String isbn;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+}
+
+------------------------------------------------------------
+Genre
+
+package com.example.my_books_backend.entity;
+
+import com.example.my_books_backend.entity.shared.EntityBase;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "genres")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class Genre extends EntityBase {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "description", nullable = false)
+    private String description;
+}
+
+------------------------------------------------------------
+Role
+
+package com.example.my_books_backend.entity;
+
+import com.example.my_books_backend.entity.shared.EntityBase;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "roles")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class Role extends EntityBase {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @Column(name = "name", nullable = false, unique = true)
+    @Enumerated(EnumType.STRING)
+    private RoleName name;
+
+    @Column(name = "description", nullable = false)
+    private String description;
+
+    public Role(RoleName name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name.toString();
+    }
+}
+
+------------------------------------------------------------
+RoleName
+
+package com.example.my_books_backend.entity;
+
+public enum RoleName {
+    ROLE_ADMIN, ROLE_USER
+}
+
+------------------------------------------------------------
+User
+
+package com.example.my_books_backend.entity;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import com.example.my_books_backend.entity.shared.EntityBase;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "users")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class User extends EntityBase implements UserDetails {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
+
+    @JsonIgnore
+    @Column(name = "password", nullable = false)
+    private String password;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private List<Role> roles;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
+    // 以下はUserDetailsインターフェースでOverrideする必要があるメソッド
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        this.roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
+        return authorities;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email; // emailをSpring Securityの内部的なユーザー名として使用
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+
+------------------------------------------------------------
+ConflictException
+
+package com.example.my_books_backend.exception;
+
+public class ConflictException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
+    public ConflictException() {}
+
+    public ConflictException(String message) {
+        super(message);
+    }
+
+    public ConflictException(Throwable cause) {
+        super(cause);
+    }
+
+    public ConflictException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ConflictException(String message, Throwable cause, boolean enableSuppression,
+            boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+}
+
+------------------------------------------------------------
+NotFoundException
+
+package com.example.my_books_backend.exception;
+
+public class NotFoundException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
+    public NotFoundException() {}
+
+    public NotFoundException(String message) {
+        super(message);
+    }
+
+    public NotFoundException(Throwable cause) {
+        super(cause);
+    }
+
+    public NotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public NotFoundException(String message, Throwable cause, boolean enableSuppression,
+            boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+}
+
+------------------------------------------------------------
+UnauthorizedException
+
+package com.example.my_books_backend.exception;
+
+public class UnauthorizedException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
+    public UnauthorizedException() {}
+
+    public UnauthorizedException(String message) {
+        super(message);
+    }
+
+    public UnauthorizedException(Throwable cause) {
+        super(cause);
+    }
+
+    public UnauthorizedException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public UnauthorizedException(String message, Throwable cause, boolean enableSuppression,
+            boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+}
+
+------------------------------------------------------------
+ValidationException
+
+package com.example.my_books_backend.exception;
+
+public class ValidationException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
+    public ValidationException() {}
+
+    public ValidationException(String message) {
+        super(message);
+    }
+
+    public ValidationException(Throwable cause) {
+        super(cause);
+    }
+
+    public ValidationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ValidationException(String message, Throwable cause, boolean enableSuppression,
+            boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+}
+
+------------------------------------------------------------
+BookMapper
+
+package com.example.my_books_backend.mapper;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
+import com.example.my_books_backend.dto.book.BookResponse;
+import com.example.my_books_backend.dto.book.PaginatedBookResponse;
+import com.example.my_books_backend.entity.Book;
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class BookMapper {
+    private final ModelMapper modelMapper;
+
+    public BookResponse toResponse(Book book) {
+        BookResponse bookResponse = modelMapper.map(book, BookResponse.class);
+
+        List<Integer> genreIds =
+                Arrays.stream(book.getGenreIds().split(",")).map(Integer::parseInt).toList();
+        bookResponse.setGenreIds(genreIds);
+
+        List<String> authors = Arrays.asList(book.getAuthors().split(","));
+        bookResponse.setAuthors(authors);
+
+        return bookResponse;
+    }
+
+    public Book toEntity(BookResponse bookResponse) {
+        Book book = modelMapper.map(bookResponse, Book.class);
+
+        String genreIds = bookResponse.getGenreIds().stream().map(String::valueOf)
+                .collect(Collectors.joining(","));
+        book.setGenreIds(genreIds);
+
+        String authors = String.join(",", bookResponse.getAuthors());
+        book.setAuthors(authors);
+
+        return book;
+    }
+
+    public List<BookResponse> toResponseList(List<Book> books) {
+        return books.stream().map(book -> toResponse(book)).toList();
+    }
+
+    public PaginatedBookResponse toPaginatedBookResponse(Page<Book> pageBook) {
+        Integer page = pageBook.getNumber();
+        Integer totalPages = pageBook.getTotalPages();
+        Integer totalItems = (int) pageBook.getTotalElements();
+        List<BookResponse> booksDto = toResponseList(pageBook.getContent());
+        return new PaginatedBookResponse(page, totalPages, totalItems, booksDto);
+    }
+}
+
+------------------------------------------------------------
+GenreMapper
+
+package com.example.my_books_backend.mapper;
+
+import java.util.List;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Component;
+import com.example.my_books_backend.dto.genre.CreateGenreRequest;
+import com.example.my_books_backend.dto.genre.GenreResponse;
+import com.example.my_books_backend.entity.Genre;
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class GenreMapper {
+    private final ModelMapper modelMapper;
+
+    public GenreResponse toResponse(Genre genre) {
+        return modelMapper.map(genre, GenreResponse.class);
+    }
+
+    public Genre toEntity(GenreResponse genreResponse) {
+        return modelMapper.map(genreResponse, Genre.class);
+    }
+
+    public Genre toEntity(CreateGenreRequest createGenreDto) {
+        return modelMapper.map(createGenreDto, Genre.class);
+    }
+
+    public List<GenreResponse> toResponseList(List<Genre> genres) {
+        return genres.stream().map(genre -> toResponse(genre)).toList();
+    }
+}
+
+------------------------------------------------------------
+UserMapper
+
+package com.example.my_books_backend.mapper;
+
+import java.util.List;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Component;
+import com.example.my_books_backend.dto.user.CreateUserRequest;
+import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.entity.User;
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class UserMapper {
+    private final ModelMapper modelMapper;
+
+    public UserResponse toResponse(User user) {
+        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
+
+        List<String> roles = user.getRoles().stream().map(role -> role.getName()).toList();
+        userResponse.setRoles(roles);
+
+        return userResponse;
+    }
+
+    public User toEntity(UserResponse userResponse) {
+        return modelMapper.map(userResponse, User.class);
+    }
+
+    public User toEntity(CreateUserRequest createUserRequest) {
+        return modelMapper.map(createUserRequest, User.class);
+    }
+
+    public List<UserResponse> toResponseList(List<User> users) {
+        return users.stream().map(user -> toResponse(user)).toList();
+    }
+}
+
+------------------------------------------------------------
+BookRepository
+
+package com.example.my_books_backend.repository;
+
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.example.my_books_backend.entity.Book;
+
+@Repository
+public interface BookRepository extends JpaRepository<Book, String> {
+    Page<Book> findByTitleContaining(String q, Pageable pageable);
+
+    List<Book> findTop10ByOrderByPublishedDateDesc();
+}
+
+------------------------------------------------------------
+BookRepositoryCustom
+
+package com.example.my_books_backend.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import com.example.my_books_backend.entity.Book;
+
+public interface BookRepositoryCustom {
+    Page<Book> findByGenreIds(String genreIdsParam, Pageable pageable);
 }
 
 ------------------------------------------------------------
@@ -269,14 +1152,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.model.Book;
+import com.example.my_books_backend.entity.Book;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 
 @Repository
 public class BookRepositoryCustomImpl implements BookRepositoryCustom {
-
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -392,6 +1274,51 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 }
 
 ------------------------------------------------------------
+GenreRepository
+
+package com.example.my_books_backend.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.example.my_books_backend.entity.Genre;
+
+@Repository
+public interface GenreRepository extends JpaRepository<Genre, Integer> {
+}
+
+------------------------------------------------------------
+RoleRepository
+
+package com.example.my_books_backend.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.example.my_books_backend.entity.Role;
+import com.example.my_books_backend.entity.RoleName;
+
+@Repository
+public interface RoleRepository extends JpaRepository<Role, Integer> {
+    Role findByName(RoleName name);
+}
+
+------------------------------------------------------------
+UserRepository
+
+package com.example.my_books_backend.repository;
+
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.example.my_books_backend.entity.User;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Integer> {
+    Optional<User> findByEmail(String email);
+
+    Boolean existsByEmail(String email);
+}
+
+------------------------------------------------------------
 BookServiceImpl
 
 package com.example.my_books_backend.service.impl;
@@ -402,11 +1329,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.book.BookDto;
-import com.example.my_books_backend.dto.book.BookResponseDto;
+import com.example.my_books_backend.dto.book.BookResponse;
+import com.example.my_books_backend.dto.book.PaginatedBookResponse;
+import com.example.my_books_backend.entity.Book;
 import com.example.my_books_backend.exception.NotFoundException;
 import com.example.my_books_backend.mapper.BookMapper;
-import com.example.my_books_backend.model.Book;
 import com.example.my_books_backend.repository.BookRepository;
 import com.example.my_books_backend.repository.BookRepositoryCustom;
 import com.example.my_books_backend.service.BookService;
@@ -415,7 +1342,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
-
     private final BookRepository bookRepository;
     private final BookRepositoryCustom bookRepositoryCustom;
     private final BookMapper bookMapper;
@@ -425,35 +1351,35 @@ public class BookServiceImpl implements BookService {
     private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "publishedDate");
 
     @Override
-    public List<BookDto> getBooks() {
+    public List<BookResponse> getAllBooks() {
         List<Book> books = bookRepository.findAll();
-        return bookMapper.toDtoList(books);
+        return bookMapper.toResponseList(books);
     }
 
     @Override
-    public BookDto getBookById(String id) {
+    public BookResponse getBookById(String id) {
         Book book = findBookById(id);
-        return bookMapper.toDto(book);
+        return bookMapper.toResponse(book);
     }
 
     @Override
-    public BookResponseDto searchByTitle(String q, Integer page, Integer maxResults) {
+    public PaginatedBookResponse searchByTitle(String q, Integer page, Integer maxResults) {
         Pageable pageable = createPageable(page, maxResults);
         Page<Book> pageBook = bookRepository.findByTitleContaining(q, pageable);
-        return bookMapper.toResponseDto(pageBook);
+        return bookMapper.toPaginatedBookResponse(pageBook);
     }
 
     @Override
-    public BookResponseDto searchByGenreId(String genreId, Integer page, Integer maxResults) {
+    public PaginatedBookResponse searchByGenreId(String genreId, Integer page, Integer maxResults) {
         Pageable pageable = createPageable(page, maxResults);
         Page<Book> pageBook = bookRepositoryCustom.findByGenreIds(genreId, pageable);
-        return bookMapper.toResponseDto(pageBook);
+        return bookMapper.toPaginatedBookResponse(pageBook);
     }
 
     @Override
-    public List<BookDto> getNewReleases() {
+    public List<BookResponse> getNewReleases() {
         List<Book> books = bookRepository.findTop10ByOrderByPublishedDateDesc();
-        return bookMapper.toDtoList(books);
+        return bookMapper.toResponseList(books);
     }
 
     private Pageable createPageable(Integer page, Integer maxResults) {
@@ -464,7 +1390,7 @@ public class BookServiceImpl implements BookService {
 
     private Book findBookById(String id) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found with this ID: " + id));
+                .orElseThrow(() -> new NotFoundException("見つかりませんでした。 ID: " + id));
         return book;
     }
 }
@@ -475,17 +1401,16 @@ GenreServiceImpl
 package com.example.my_books_backend.service.impl;
 
 import java.util.List;
-import java.util.Map;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.genre.GenreCreateDto;
-import com.example.my_books_backend.dto.genre.GenreDto;
-import com.example.my_books_backend.dto.genre.GenreUpdateDto;
+import com.example.my_books_backend.dto.genre.CreateGenreRequest;
+import com.example.my_books_backend.dto.genre.GenreResponse;
+import com.example.my_books_backend.dto.genre.UpdateGenreRequest;
+import com.example.my_books_backend.entity.Genre;
 import com.example.my_books_backend.exception.NotFoundException;
 import com.example.my_books_backend.mapper.GenreMapper;
-import com.example.my_books_backend.model.Genre;
 import com.example.my_books_backend.repository.GenreRepository;
 import com.example.my_books_backend.service.GenreService;
 import lombok.RequiredArgsConstructor;
@@ -493,63 +1418,64 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class GenreServiceImpl implements GenreService {
-
     private final GenreRepository genreRepository;
     private final GenreMapper genreMapper;
 
     @Override
-    @Cacheable("getGenres")
-    public List<GenreDto> getGenres() {
+    @Cacheable("getAllGenres")
+    public List<GenreResponse> getAllGenres() {
         List<Genre> genres = genreRepository.findAll();
-        return genreMapper.toDtoList(genres);
+        return genreMapper.toResponseList(genres);
     }
 
     @Override
     @Cacheable(value = "getGenreById", key = "#p0")
-    public GenreDto getGenreById(Integer id) {
+    public GenreResponse getGenreById(Integer id) {
         Genre genre = findGenreById(id);
-        return genreMapper.toDto(genre);
+        return genreMapper.toResponse(genre);
     }
 
     @Override
-    @CacheEvict(value = "getGenres", allEntries = true)
-    public GenreDto createGenre(GenreCreateDto dto) {
-        Genre genre = genreMapper.toEntity(dto);
+    @CacheEvict(value = "getAllGenres", allEntries = true)
+    public GenreResponse createGenre(CreateGenreRequest createGenreRequest) {
+        Genre genre = genreMapper.toEntity(createGenreRequest);
         Genre saveGenre = genreRepository.save(genre);
-        return genreMapper.toDto(saveGenre);
+        return genreMapper.toResponse(saveGenre);
     }
 
     @Override
     @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getGenres", allEntries = true)})
-    public void updateGenre(Integer id, GenreUpdateDto dto) {
+            @CacheEvict(value = "getAllGenres", allEntries = true)})
+    public void putGenre(Integer id, UpdateGenreRequest updateGenreRequest) {
         Genre genre = findGenreById(id);
-        genre.setName(dto.getName());
-        genre.setDescription(dto.getDescription());
+
+        genre.setName(updateGenreRequest.getName());
+        genre.setDescription(updateGenreRequest.getDescription());
         genreRepository.save(genre);
     }
 
     @Override
     @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getGenres", allEntries = true)})
-    public void patchGenre(Integer id, Map<String, Object> updates) {
+            @CacheEvict(value = "getAllGenres", allEntries = true)})
+    public void patchGenre(Integer id, UpdateGenreRequest updateGenreRequest) {
         Genre genre = findGenreById(id);
-        updates.forEach((key, value) -> {
-            switch (key) {
-                case "name":
-                    genre.setName((String) value);
-                    break;
-                case "description":
-                    genre.setDescription((String) value);
-                    break;
-            }
-        });
+
+        String name = updateGenreRequest.getName();
+        String description = updateGenreRequest.getDescription();
+
+        if (name != null) {
+            genre.setName(name);
+        }
+
+        if (description != null) {
+            genre.setName(description);
+        }
         genreRepository.save(genre);
     }
 
     @Override
     @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getGenres", allEntries = true)})
+            @CacheEvict(value = "getAllGenres", allEntries = true)})
     public void deleteGenre(Integer id) {
         Genre genre = findGenreById(id);
         genreRepository.delete(genre);
@@ -557,8 +1483,34 @@ public class GenreServiceImpl implements GenreService {
 
     private Genre findGenreById(Integer id) {
         Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found with this ID: " + id));
+                .orElseThrow(() -> new NotFoundException("見つかりませんでした。 ID: " + id));
         return genre;
+    }
+}
+
+------------------------------------------------------------
+UserDetailsServiceImpl
+
+package com.example.my_books_backend.service.impl;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import com.example.my_books_backend.entity.User;
+import com.example.my_books_backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetailsService;
+
+@Service
+@RequiredArgsConstructor
+public class UserDetailsServiceImpl implements UserDetailsService {
+    private final UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("見つかりませんでした。 email: " + email));
+        return user;
     }
 }
 
@@ -569,19 +1521,25 @@ package com.example.my_books_backend.service.impl;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.user.UserCreateDto;
-import com.example.my_books_backend.dto.user.UserDto;
-import com.example.my_books_backend.dto.user.UserUpdateDto;
+import com.example.my_books_backend.dto.user.EmailChangeRequest;
+import com.example.my_books_backend.dto.user.PasswordChangeRequest;
+import com.example.my_books_backend.dto.user.CreateUserRequest;
+import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.dto.user.UpdateUserRequest;
+import com.example.my_books_backend.entity.Role;
+import com.example.my_books_backend.entity.RoleName;
+import com.example.my_books_backend.entity.User;
+import com.example.my_books_backend.exception.ConflictException;
 import com.example.my_books_backend.exception.NotFoundException;
+import com.example.my_books_backend.exception.UnauthorizedException;
+import com.example.my_books_backend.exception.ValidationException;
 import com.example.my_books_backend.mapper.UserMapper;
-import com.example.my_books_backend.model.Role;
-import com.example.my_books_backend.model.RoleName;
-import com.example.my_books_backend.model.User;
 import com.example.my_books_backend.repository.RoleRepository;
 import com.example.my_books_backend.repository.UserRepository;
 import com.example.my_books_backend.service.UserService;
@@ -591,14 +1549,14 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final RandomStringUtil randomStringUtil;
 
-    private final String DEFAULT_AVATAR_URL = "http://localhost:18080/images/avatars/avatar00.jpg";
+    @Value("${spring.app.default.avatarUrl}")
+    private String DEFAULT_AVATAR_URL;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -606,22 +1564,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> getUsers() {
+    public List<UserResponse> getAllUsers() {
         List<User> users = userRepository.findAll();
-        return userMapper.toDtoList(users);
+        return userMapper.toResponseList(users);
     }
 
     @Override
-    public UserDto getUserById(Integer id) {
+    public UserResponse getUserById(Integer id) {
         User user = findUserById(id);
-        return userMapper.toDto(user);
+        return userMapper.toResponse(user);
     }
 
     @Override
-    public UserDto createUser(UserCreateDto dto) {
-        User user = userMapper.toEntity(dto);
+    public UserResponse createUser(CreateUserRequest createUserRequest) {
+        User user = userMapper.toEntity(createUserRequest);
 
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
 
         if (user.getRoles() == null) {
             Role role = roleRepository.findByName(RoleName.ROLE_USER);
@@ -639,40 +1597,66 @@ public class UserServiceImpl implements UserService {
         }
 
         User saveUser = userRepository.save(user);
-        return userMapper.toDto(saveUser);
+        return userMapper.toResponse(saveUser);
     }
 
     @Override
-    public void updateUser(Integer id, UserUpdateDto dto) {
-        User user = findUserById(id);
-        user.setName(dto.getName());
-        user.setEmail(dto.getEmail());
-        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+    public UserResponse getCurrentUser() {
+        User user = getAuthenticatedUser();
+        return userMapper.toResponse(user);
+    }
+
+    @Override
+    public void updateCurrentUser(UpdateUserRequest updateUserRequest) {
+        User user = getAuthenticatedUser();
+
+        String name = updateUserRequest.getName();
+        String avatarUrl = updateUserRequest.getAvatarUrl();
+
+        if (name != null) {
+            user.setName(name);
         }
-        user.setAvatarUrl(dto.getAvatarUrl());
+        if (avatarUrl != null) {
+            user.setAvatarUrl(avatarUrl);
+        }
         userRepository.save(user);
     }
 
     @Override
-    public void patchUser(Integer id, Map<String, Object> updates) {
-        User user = findUserById(id);
-        updates.forEach((key, value) -> {
-            switch (key) {
-                case "name":
-                    user.setName((String) value);
-                    break;
-                case "email":
-                    user.setEmail((String) value);
-                    break;
-                case "password":
-                    user.setPassword(passwordEncoder.encode((String) value));
-                    break;
-                case "avatarUrl":
-                    user.setAvatarUrl((String) value);
-                    break;
-            }
-        });
+    public void changeEmail(EmailChangeRequest emailChangeRequest) {
+        User user = getAuthenticatedUser();
+
+        String email = emailChangeRequest.getNewEmail();
+
+        if (userRepository.existsByEmail(email)) {
+            throw new ConflictException("このメールアドレスは既に登録されています。: " + email);
+        }
+
+        // 本来はここで新しいメールアドレスにメールを送ってメール内のリンクを
+        // クリックしてもらうなどで、新しいメールアドレスが本人のものであるか
+        // 確認してから、メールアドレスを更新する
+
+        user.setEmail(email);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void changePassword(PasswordChangeRequest passwordChangeRequest) {
+        User user = getAuthenticatedUser();
+
+        String newPassword = passwordChangeRequest.getNewPassword();
+        String confirmNewPassword = passwordChangeRequest.getConfirmNewPassword();
+        String currentPassword = passwordChangeRequest.getCurrentPassword();
+
+        if (!newPassword.equals(confirmNewPassword)) {
+            throw new ValidationException("新しいパスワードと確認用パスワードが一致していません。");
+        }
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new UnauthorizedException("現在のパスワードが間違っています。");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 
@@ -684,9 +1668,16 @@ public class UserServiceImpl implements UserService {
 
     private User findUserById(Integer id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Not found with this ID: " + id));
+                .orElseThrow(() -> new NotFoundException("見つかりませんでした。 ID: " + id));
         return user;
     }
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User authenticatedUser = (User) authentication.getPrincipal();
+        return authenticatedUser;
+    }
+
 }
 
 ------------------------------------------------------------
@@ -701,14 +1692,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.auth.LoginDto;
-import com.example.my_books_backend.dto.auth.LoginResponseDto;
-import com.example.my_books_backend.dto.auth.SignupDto;
-import com.example.my_books_backend.dto.user.UserCreateDto;
-import com.example.my_books_backend.dto.user.UserDto;
+import com.example.my_books_backend.dto.auth.LoginRequest;
+import com.example.my_books_backend.dto.auth.LoginResponse;
+import com.example.my_books_backend.dto.auth.SignupRequest;
+import com.example.my_books_backend.dto.auth.TokenRefreshRequest;
+import com.example.my_books_backend.dto.auth.TokenRefreshResponse;
+import com.example.my_books_backend.dto.user.CreateUserRequest;
+import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.entity.User;
 import com.example.my_books_backend.exception.ConflictException;
-import com.example.my_books_backend.exception.UnAuthorizedException;
-import com.example.my_books_backend.model.User;
+import com.example.my_books_backend.exception.UnauthorizedException;
+import com.example.my_books_backend.exception.ValidationException;
 import com.example.my_books_backend.repository.UserRepository;
 import com.example.my_books_backend.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -722,38 +1716,142 @@ public class AuthService {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
-    public LoginResponseDto login(LoginDto loginDto) {
+    public LoginResponse login(LoginRequest loginRequest) {
         Authentication authentication;
         try {
             authentication =
                     authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                            loginDto.getEmail(), loginDto.getPassword()));
+                            loginRequest.getEmail(), loginRequest.getPassword()));
         } catch (AuthenticationException e) {
-            throw new UnAuthorizedException("Login failed: Invalid email or password.");
+            throw new UnauthorizedException("ログインに失敗しました。メールアドレスまたはパスワードが無効です。");
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         User user = (User) authentication.getPrincipal();
 
-        String accessToken = jwtUtil.generateToken(user);
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
         String name = user.getName();
         List<String> roles = user.getRoles().stream().map(role -> role.getName()).toList();
 
-        return new LoginResponseDto(accessToken, name, roles);
+        return new LoginResponse(accessToken, refreshToken, name, roles);
     }
 
-    public UserDto signup(SignupDto signupDto) {
-        if (userRepository.existsByEmail(signupDto.getEmail())) {
-            throw new ConflictException("User already exists: " + signupDto.getEmail());
+    public UserResponse signup(SignupRequest signupRequest) {
+        String email = signupRequest.getEmail();
+        String password = signupRequest.getPassword();
+        String confirmPassword = signupRequest.getConfirmPassword();
+
+        if (!password.equals(confirmPassword)) {
+            throw new ValidationException("パスワードと確認用パスワードが一致していません。");
         }
 
-        UserCreateDto dto = new UserCreateDto();
-        dto.setEmail(signupDto.getEmail());
-        dto.setPassword(signupDto.getPassword());
+        if (userRepository.existsByEmail(email)) {
+            throw new ConflictException("サインアップに失敗しました。このメールアドレスは既に登録されています。: " + email);
+        }
 
-        return userService.createUser(dto);
+        CreateUserRequest createUserRequest = new CreateUserRequest();
+        createUserRequest.setEmail(email);
+        createUserRequest.setPassword(password);
+
+        return userService.createUser(createUserRequest);
     }
+
+    public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+
+        if (jwtUtil.validateRefreshToken(requestRefreshToken)) {
+            String email = jwtUtil.getSubjectFromToken(requestRefreshToken);
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UnauthorizedException("ユーザーが見つかりません。"));
+
+            String newAccessToken = jwtUtil.generateAccessToken(user);
+            return new TokenRefreshResponse(newAccessToken, requestRefreshToken);
+        } else {
+            throw new UnauthorizedException("リフレッシュトークンが無効です。");
+        }
+    }
+}
+
+------------------------------------------------------------
+BookService
+
+package com.example.my_books_backend.service;
+
+import java.util.List;
+import com.example.my_books_backend.dto.book.BookResponse;
+import com.example.my_books_backend.dto.book.PaginatedBookResponse;
+
+public interface BookService {
+    List<BookResponse> getAllBooks();
+
+    BookResponse getBookById(String id);
+
+    PaginatedBookResponse searchByTitle(String q, Integer page, Integer maxResults);
+
+    PaginatedBookResponse searchByGenreId(String genreId, Integer page, Integer maxResults);
+
+    List<BookResponse> getNewReleases();
+}
+
+------------------------------------------------------------
+GenreService
+
+package com.example.my_books_backend.service;
+
+import java.util.List;
+import com.example.my_books_backend.dto.genre.CreateGenreRequest;
+import com.example.my_books_backend.dto.genre.GenreResponse;
+import com.example.my_books_backend.dto.genre.UpdateGenreRequest;
+
+public interface GenreService {
+    List<GenreResponse> getAllGenres();
+
+    GenreResponse getGenreById(Integer id);
+
+    GenreResponse createGenre(CreateGenreRequest createGenreRequest);
+
+    void putGenre(Integer id, UpdateGenreRequest updateGenreRequest);
+
+    void patchGenre(Integer id, UpdateGenreRequest updateGenreRequest);
+
+    void deleteGenre(Integer id);
+}
+
+------------------------------------------------------------
+UserService
+
+package com.example.my_books_backend.service;
+
+import java.util.List;
+import java.util.Optional;
+import com.example.my_books_backend.dto.user.EmailChangeRequest;
+import com.example.my_books_backend.dto.user.PasswordChangeRequest;
+import com.example.my_books_backend.dto.user.CreateUserRequest;
+import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.dto.user.UpdateUserRequest;
+import com.example.my_books_backend.entity.User;
+
+public interface UserService {
+    Optional<User> findByEmail(String email);
+
+    List<UserResponse> getAllUsers();
+
+    UserResponse getUserById(Integer id);
+
+    void deleteUser(Integer id);
+
+    UserResponse createUser(CreateUserRequest createUserRequest);
+
+    UserResponse getCurrentUser();
+
+    void updateCurrentUser(UpdateUserRequest updateUserRequest);
+
+    void changeEmail(EmailChangeRequest emailChangeRequest);
+
+    void changePassword(PasswordChangeRequest passwordChangeRequest);
 }
 
 ------------------------------------------------------------
@@ -773,6 +1871,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import com.example.my_books_backend.entity.Role;
+import com.example.my_books_backend.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -780,8 +1880,6 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import com.example.my_books_backend.model.Role;
-import com.example.my_books_backend.model.User;
 
 @Component
 public class JwtUtil {
@@ -790,17 +1888,30 @@ public class JwtUtil {
     @Value("${spring.app.jwtSecret}")
     private String secret;
 
-    @Value("${spring.app.jwtExpirationMs}")
-    private int expiration;
+    @Value("${spring.app.jwtAccessExpirationMs}")
+    private int accessExpiration;
 
-    // トークン生成
-    public String generateToken(User user) {
+    @Value("${spring.app.jwtRefreshExpirationMs}")
+    private int refreshExpiration;
+
+    // アクセストークン生成
+    public String generateAccessToken(User user) {
         String email = user.getEmail();
         String username = user.getName();
         String roles = user.getRoles().stream().map(Role::getName).collect(Collectors.joining(","));
 
         return Jwts.builder().subject(email).claim("username", username).claim("roles", roles)
-                .issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + expiration))
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + accessExpiration)).signWith(key())
+                .compact();
+    }
+
+    // リフレッシュトークン生成
+    public String generateRefreshToken(User user) {
+        String email = user.getEmail();
+
+        return Jwts.builder().subject(email).issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
                 .signWith(key()).compact();
     }
 
@@ -810,8 +1921,8 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // トークンの検証
-    public boolean validateToken(String token) {
+    // アクセストークンの検証
+    public boolean validateAccessToken(String token) {
         try {
             Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(token);
             return true;
@@ -823,6 +1934,17 @@ public class JwtUtil {
             logger.error("JWT token is unsupported: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
             logger.error("JWT claims string is empty: {}", e.getMessage());
+        }
+        return false;
+    }
+
+    // リフレッシュトークンの検証
+    public boolean validateRefreshToken(String token) {
+        try {
+            Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(token);
+            return true;
+        } catch (Exception e) {
+            logger.error("Invalid JWT token: {}", e.getMessage());
         }
         return false;
     }
@@ -888,26 +2010,6 @@ public class JwtUtil {
 // }
 
 ------------------------------------------------------------
-application.properties
-
-spring.application.name=my-books-backend
-
-# spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
-spring.jpa.properties.hibernate.hbm2dll.create_namespaces=true
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.open-in-view=false
-
-# DB
-spring.datasource.url=${SPRING_DATASOURCE_URL}
-spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
-spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
-
-# JWT
-spring.app.jwtSecret=${SPRING_APP_JWT_SECRET}
-# spring.app.jwtExpirationMs=${SPRING_APP_JWT_EXPIRATION_MS}
-spring.app.jwtExpirationMs=60000
-------------------------------------------------------------
 docker-compose
 
 services:
@@ -925,7 +2027,8 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_APP_JWT_SECRET: Ry9CqEZVzQH7k1234abcdefghijklmnopqrstuvwxyzABCD+/=
-      SPRING_APP_JWT_EXPIRATION_MS: 86400000
+      SPRING_APP_JWT_ACCESS_EXPIRATION_MS: 3600000
+      SPRING_APP_JWT_REFRESH_EXPIRATION_MS: 86400000
     depends_on:
       - db
 
@@ -946,6 +2049,37 @@ services:
 volumes:
   db_data:
 ------------------------------------------------------------
+application
+
+spring.application.name=my-books-backend
+
+# spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.hbm2dll.create_namespaces=true
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.open-in-view=false
+
+# DB
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+
+# JWT
+spring.app.jwtSecret=${SPRING_APP_JWT_SECRET}
+# spring.app.jwtAccessExpirationMs=${SPRING_APP_JWT_ACCESS_EXPIRATION_MS}
+# spring.app.jwtRefreshExpirationMs=${SPRING_APP_JWT_REFRESH_EXPIRATION_MS}
+spring.app.jwtAccessExpirationMs=60000
+spring.app.jwtRefreshExpirationMs=180000
+
+# User default avatarUrl
+spring.app.default.avatarUrl="http://localhost:18080/images/avatars/avatar00.jpg"
+
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -953,15 +2087,4 @@ volumes:
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
+
