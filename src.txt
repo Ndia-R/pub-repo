@@ -1,2088 +1,3134 @@
 ------------------------------------------------------------
-AuthController
+certs/localhost.crt
 
-package com.example.my_books_backend.controller;
+-----BEGIN CERTIFICATE-----
+MIIDQTCCAikCFEvzF/PipW/WQYQo8Xs1Y+OCRy/IMA0GCSqGSIb3DQEBCwUAMF0x
+CzAJBgNVBAYTAkpQMQ4wDAYDVQQIDAVUb2t5bzEPMA0GA1UEBwwGTWluYXRvMQww
+CgYDVQQKDANTa3kxCzAJBgNVBAsMAklUMRIwEAYDVQQDDAlsb2NhbGhvc3QwHhcN
+MjQxMjI1MDU0MjU1WhcNMjUxMjI1MDU0MjU1WjBdMQswCQYDVQQGEwJKUDEOMAwG
+A1UECAwFVG9reW8xDzANBgNVBAcMBk1pbmF0bzEMMAoGA1UECgwDU2t5MQswCQYD
+VQQLDAJJVDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEFAAOC
+AQ8AMIIBCgKCAQEAutffhZkCeUDcIzjm4ScPyLwFMSozSbglFUeAogBL65Xr/tvh
+FjOLFHUN31amEMEpE7Qyw66asNxU6JuFNUobPz+Zv2FdoifGNOHODmFQzG4wALNA
+dhiaZjlZ4zy4bEUBiGl5V9s1gLQLok4bL6cIduBYjOkiRmq2VOKw+o1MRCMHKzVK
+13iMkR7xyayOd7j4gh1mR6QXX5UGL6/tEKrWplmwPABqpV4xqnThdwRbOKbyTm/Q
+sht6tVIbs6dNtKL30nixYavS60383NPjNMOM090nccgK5WkH2kkzlBIOGyrhfQSj
+z/MV6DHbYIUCIK7uvbUyBn6EORvq246sDqm7nwIDAQABMA0GCSqGSIb3DQEBCwUA
+A4IBAQAuPqp0H8eCPiKgfjSLlyKa3HDljz2h9iqyybvXPxWTdKb78imwmb+5bAE9
+d5VQQ75vo7Myt9uxeagCYUKwjwaU4oH5I+Igm0okYuc4NrLOCHPsC0Vdtfgm0XUJ
+aFDtTob/ztN1BvoPYDfOO4AJLqwjabct+QC1yr1QmxVToVgBxlpTI8UZp4GrFbwi
+4OUJK2SbI4kokPNgeEQu00LIx09mWspoYyFKHRhsv7mTeS1AUUkmGi0upGMyskXH
+XPN0fERPb7xLq5qv+bdcVifw753WyXdkkIuwrt4lW2SSY8ZYlMZzxo+Sg5hxntih
+sd9rLGxaCBSeW8cqk2QjWHtJhEB4
+-----END CERTIFICATE-----
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.auth.LoginRequest;
-import com.example.my_books_backend.dto.auth.LoginResponse;
-import com.example.my_books_backend.dto.auth.SignupRequest;
-import com.example.my_books_backend.dto.auth.TokenRefreshRequest;
-import com.example.my_books_backend.dto.auth.TokenRefreshResponse;
-import com.example.my_books_backend.dto.user.UserResponse;
-import com.example.my_books_backend.service.AuthService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+------------------------------------------------------------
+localhost.key
 
-@RestController
-@RequestMapping("/api/v1")
-@RequiredArgsConstructor
-public class AuthController {
-    private final AuthService authService;
+-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC619+FmQJ5QNwj
+OObhJw/IvAUxKjNJuCUVR4CiAEvrlev+2+EWM4sUdQ3fVqYQwSkTtDLDrpqw3FTo
+m4U1Shs/P5m/YV2iJ8Y04c4OYVDMbjAAs0B2GJpmOVnjPLhsRQGIaXlX2zWAtAui
+Thsvpwh24FiM6SJGarZU4rD6jUxEIwcrNUrXeIyRHvHJrI53uPiCHWZHpBdflQYv
+r+0QqtamWbA8AGqlXjGqdOF3BFs4pvJOb9CyG3q1Uhuzp020ovfSeLFhq9LrTfzc
+0+M0w4zT3SdxyArlaQfaSTOUEg4bKuF9BKPP8xXoMdtghQIgru69tTIGfoQ5G+rb
+jqwOqbufAgMBAAECggEAFixfPOoTJpOhbFao46hwkZhqn1KMQp/lWrihFdimKd+h
+YZ3zgOB+DV/01P/h9lQODWYRrjJO7lU/iFlIfjH8uM1R8CncZE2HEqiHfSJkZdZf
+wP2E1V8HF8GPns2Kb2LjEy69NUVw/IShatINHOMcOItYRuS16hho6fr7GMji96Ti
+nQf5GYQ1+6t7/OWDQzw6D99Dth4WPWufUYstaTpuPdybfWzBxWXgh2a/BttEHyze
+iil3IRB60toa2cBAombFZ7eluGl+XZ9azxZ1Gk7jQuX+S+prBAY427TsHONbZNqQ
+wa0NLQZFBb7yF2pxxFcFJne6lEqHUKk3ENIO6BvosQKBgQDfxbkJncSiq1DXf4+E
+HPpuPU9yjWTr7q8JGwGEgcXEo8SVEXAIOdFfS93yDmdQrCHFaYp+/MffNRMUjPp+
+Sbjf2zNf1DGaG1zXiEne68s8xLJEnR4xhLsMq2bM5mpZV0QRFRkpWWL59DUWEhfg
+i82xv51xtGM1t9/+k3MuYsS2jwKBgQDVwJvmEP4a6ahC3JqKt3N3dE6mFXZOyr7k
+xGrExiHVUiCsLJzzo1ZAFYIaISkpvP0QF5GnqoKhf0LW5tk7wPmaaQZequFerX0a
+yGBW6Rqf872Vd0Z2kT0RjTHEJeVyPHSxSvodOkN6/vc61ee4AydVATlGK7lDs8qN
+/oEcIy+x8QKBgQCnSmc6VDNkNVVbtiax6wQiFD3n8uMHK0q6MPFiga47gv99PisW
+SztG1i4YP0Jn4jfhITUEGLDIIyKfk4HVlgHbgUGYG8f1YQ14qJApUvh+9sIbX6bp
++EPqhd11w7CwF/hwGOjVq9i96x8g3+fv3DSr9QecsPIWf9+6r7tFa1uK6wKBgC+W
+B576XXekWP85mXYUTTJkxDWZRZNY85J+X76a1WFmPTvXWsGqtULjBunGRCG0nyn7
+9UM8ZISLjlfFYMs6tNa5Vt+wbyfiu51AyqHOl0zQuH4T5a3zu4Kyykd+oEwERX5K
+0M+87tTs+iExCbsfiJwV/6gth7sYxZlC9X9MHgwhAoGAU90jsq4M9LRyhQOtsVWb
+4a3OPB6/LCZ8Y6m6HOSnZaT9M2EM7NdCFuvNeRfsTTfIYjYkDguCSuzAETlrdWi7
+DX6jLsjCTHiBR/WNQBu1Fs4aNOSe8UtstJ8OgETAx3KRHjfhM0YsX2lUbK0Hxedo
+kYd3kkThuoyckZVLU7C4KGE=
+-----END PRIVATE KEY-----
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        LoginResponse loginResponse = authService.login(loginRequest);
-        return ResponseEntity.ok(loginResponse);
+------------------------------------------------------------
+auth-provider
+
+import * as auth from '@/lib/auth';
+import { getCurrentUser } from '@/lib/data';
+import { User } from '@/types/user';
+import { createContext, useEffect, useState } from 'react';
+
+type LoginType = {
+  email: string;
+  password: string;
+};
+
+type AuthContextType = {
+  user: User | null;
+  login: ({ email, password }: LoginType) => Promise<boolean>;
+  logout: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const initializeUser = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (e) {
+        console.log(e);
+        setUser(null);
+      }
+    };
+
+    initializeUser();
+  }, []);
+
+  const login = async ({ email, password }: LoginType) => {
+    try {
+      await auth.login(email, password);
+      const user = await getCurrentUser();
+      setUser(user);
+      return true;
+    } catch (e) {
+      console.log(e);
+      setUser(null);
+      return false;
     }
+  };
 
-    @PostMapping("/signup")
-    public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignupRequest signupRequest) {
-        UserResponse userResponse = authService.signup(signupRequest);
-        return ResponseEntity.ok(userResponse);
-    }
+  const logout = async () => {
+    await auth.logout();
+    setUser(null);
+  };
 
-    @PostMapping("/refresh-token")
-    public ResponseEntity<TokenRefreshResponse> refreshToken(
-            @RequestBody TokenRefreshRequest tokenRefreshRequest) {
-        TokenRefreshResponse tokenRefreshResponse = authService.refreshToken(tokenRefreshRequest);
-        return ResponseEntity.ok(tokenRefreshResponse);
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export { AuthContext, AuthProvider };
+
+------------------------------------------------------------
+protected-route
+
+import { useAuth } from '@/auth/use-auth';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+
+export const ProtectedRoute = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <Outlet />;
+};
+
+
+------------------------------------------------------------
+book-detail-skeleton
+
+import { Skeleton } from '@/components/ui/skeleton';
+
+export default function BookDetailSkeleton() {
+  return (
+    <>
+      <div className="flex flex-col justify-center p-6 pt-10 lg:flex-row">
+        <div className="flex flex-col items-center justify-center lg:w-1/2">
+          <Skeleton className="h-[360px] w-[280px] rounded bg-muted-foreground/5 object-cover sm:h-[480px] sm:w-[360px]" />
+          <div className="my-4 flex items-center gap-x-2">
+            <Skeleton className="h-11 w-32 rounded-full bg-muted-foreground/5" />
+            <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
+          </div>
+        </div>
+
+        <div className="p-4 lg:w-1/2">
+          <div className="text-3xl font-bold sm:text-4xl">
+            <Skeleton className="h-9 w-64 rounded-full bg-muted-foreground/5 sm:h-10" />
+          </div>
+          <div className="my-4 flex w-full flex-wrap items-center justify-end gap-x-3">
+            <Skeleton className="h-7 w-24 rounded-full bg-muted-foreground/5 sm:h-8" />
+          </div>
+
+          <div className="flex gap-x-2">
+            <Skeleton className="h-9 w-24 rounded-full bg-muted-foreground/5" />
+            <Skeleton className="h-9 w-24 rounded-full bg-muted-foreground/5" />
+          </div>
+
+          <div className="my-6">
+            <Skeleton className="my-2 h-6 w-full rounded-full bg-muted-foreground/5" />
+            <Skeleton className="my-2 h-6 w-full rounded-full bg-muted-foreground/5" />
+            <Skeleton className="my-2 h-6 w-full rounded-full bg-muted-foreground/5" />
+          </div>
+
+          <div className="flex flex-col justify-between gap-y-4 lg:flex-row">
+            <div className="flex flex-col gap-y-1 text-muted-foreground">
+              <div className="flex">
+                <Skeleton className="mb-1 h-5 w-48 rounded-full bg-muted-foreground/5" />
+              </div>
+              <div className="flex">
+                <Skeleton className="mb-1 h-5 w-36 rounded-full bg-muted-foreground/5" />
+              </div>
+              <div className="flex">
+                <Skeleton className="mb-1 h-5 w-44 rounded-full bg-muted-foreground/5" />
+              </div>
+              <div className="flex">
+                <Skeleton className="mb-1 h-5 w-36 rounded-full bg-muted-foreground/5" />
+              </div>
+              <div className="flex">
+                <Skeleton className="mb-1 h-5 w-32 rounded-full bg-muted-foreground/5" />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center justify-end gap-y-4 sm:items-end">
+              <div className="h-10" />
+              <Skeleton className="h-10 w-32 rounded-full bg-muted-foreground/5" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+------------------------------------------------------------
+book-detail
+
+import { useAuth } from '@/auth/use-auth';
+import ReviewDialog from '@/components/book-detail/review-dialog';
+import FavoriteButton from '@/components/favorite-button';
+import GenreList from '@/components/genre-list/genre-list';
+import MyListButton from '@/components/my-list-button';
+import Rating from '@/components/rating';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { formatDate, formatIsbn, priceToString } from '@/lib/util';
+import { Book, Genre } from '@/types/book';
+
+type Props = {
+  book: Book;
+  genres: Genre[];
+};
+
+export default function BookDetail({ book, genres }: Props) {
+  const { user } = useAuth();
+  const genreList = genres.filter((genre) => book.genreIds.includes(genre.id));
+
+  return (
+    <>
+      <div className="flex flex-col justify-center p-6 pt-10 lg:flex-row">
+        <div className="flex flex-col items-center justify-center lg:w-1/2">
+          <img
+            className="h-[360px] rounded object-cover sm:h-[480px]"
+            src={book.imageUrl}
+            alt={book.title}
+          />
+          <div className="my-4 flex items-center">
+            <div className="w-20"></div>
+            <Button className="w-32 rounded-full" size="lg">
+              読む
+            </Button>
+
+            <div className="flex w-20 items-center justify-center">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <MyListButton />
+                </TooltipTrigger>
+                {user ? (
+                  <TooltipContent>マイリストに追加</TooltipContent>
+                ) : (
+                  <TooltipContent>
+                    ログインしてこの本を「マイリスト」に加えましょう
+                  </TooltipContent>
+                )}
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <FavoriteButton book={book} />
+                </TooltipTrigger>
+                {user ? (
+                  <TooltipContent>お気に入りに追加</TooltipContent>
+                ) : (
+                  <TooltipContent>
+                    ログインしてこの本を「お気に入り」に加えましょう
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 lg:w-1/2">
+          <p className="text-3xl font-bold sm:text-4xl">{book.title}</p>
+          <div className="my-4 flex w-full flex-wrap items-center justify-end gap-x-3">
+            <p>著者</p>
+            {book.authors.map((author) => (
+              <p className="text-lg font-bold sm:text-2xl" key={author}>
+                {author}
+              </p>
+            ))}
+          </div>
+
+          <GenreList className="gap-2" genres={genreList} variant="outline" />
+
+          <div className="my-6 md:my-10">{book.description}</div>
+
+          <div className="flex flex-col justify-between gap-y-4 lg:flex-row">
+            <div className="flex flex-col gap-y-1 text-muted-foreground">
+              <div className="flex">
+                <p className="min-w-20">ISBN</p>
+                <p>{formatIsbn(book.isbn)}</p>
+              </div>
+              <div className="flex">
+                <p className="min-w-20">出版社</p>
+                <p>{book.publisher}</p>
+              </div>
+              <div className="flex">
+                <p className="min-w-20">発売日</p>
+                <p>{formatDate(book.publishedDate)}</p>
+              </div>
+              <div className="flex">
+                <p className="min-w-20">ページ数</p>
+                <p>{`${book.pageCount}ページ`}</p>
+              </div>
+              <div className="flex">
+                <p className="min-w-20">価格</p>
+                <p>{priceToString(book.price)}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center justify-end gap-y-4 sm:items-end">
+              <Rating rating={4.5} readOnly />
+              <ReviewDialog />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+------------------------------------------------------------
+review-dialog
+
+import { useAuth } from '@/auth/use-auth';
+import Rating from '@/components/rating';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useToast } from '@/hooks/use-toast';
+import React, { useEffect, useRef, useState } from 'react';
+
+export default function ReviewDialog() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [text, setText] = useState('');
+  const ref = useRef<HTMLTextAreaElement | null>(null);
+  const { toast } = useToast();
+  const { confirmDialog } = useConfirmDialog();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (isOpen) {
+      setRating(0);
     }
+  }, [isOpen]);
+
+  const handleAnimationStart = (e: React.AnimationEvent) => {
+    if (e.animationName === 'enter') {
+      setText('');
+      ref.current?.focus();
+    }
+  };
+
+  const handlePost = async () => {
+    if (rating === 0) {
+      const { isCancel } = await confirmDialog({
+        icon: '?',
+        title: 'このまま投稿しますか？',
+        message: '星の数が「0」のままです。',
+      });
+      if (isCancel) return;
+    }
+    toast({ description: 'レビューを投稿しました' });
+    setIsOpen(false);
+  };
+
+  const handleCloseDialog = async () => {
+    if (text) {
+      const { isCancel } = await confirmDialog({
+        icon: '?',
+        title: '本当に閉じますか？',
+        message: 'コメントはまだ投稿していません。',
+        persistent: true,
+      });
+      if (isCancel) return;
+    }
+    setIsOpen(false);
+  };
+
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            className="rounded-full bg-transparent"
+            variant="outline"
+            onClick={() => user && setIsOpen(true)}
+          >
+            レビューを書く
+          </Button>
+        </TooltipTrigger>
+        {!user && (
+          <TooltipContent>ログインしてこの本の「レビュー」を書きましょう</TooltipContent>
+        )}
+      </Tooltip>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent
+          className="w-1/2 min-w-[360px] max-w-[600px] p-4 md:p-6"
+          onEscapeKeyDown={handleCloseDialog}
+          onPointerDownOutside={handleCloseDialog}
+          onAnimationStart={handleAnimationStart}
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-semibold leading-10">レビュー</p>
+              <p className="text-xs text-muted-foreground md:text-sm">
+                素敵な感想を伝えましょう！
+              </p>
+            </div>
+            <div>
+              <Rating rating={rating} onChange={setRating} />
+              <p className="text-center text-xs text-muted-foreground md:text-sm">
+                {rating === 0 ? '星をクリックして決定' : ''}
+              </p>
+            </div>
+          </div>
+
+          <Textarea ref={ref} onChange={(e) => setText(e.currentTarget.value)} />
+
+          <DialogFooter>
+            <Button className="rounded-full" variant="ghost" onClick={handleCloseDialog}>
+              閉じる
+            </Button>
+            <Button
+              className="rounded-full"
+              disabled={text === '' ? true : false}
+              onClick={handlePost}
+            >
+              投稿する
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+------------------------------------------------------------
+book-card
+
+import { useAuth } from '@/auth/use-auth';
+import FavoriteButton from '@/components/favorite-button';
+import MyListButton from '@/components/my-list-button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Book } from '@/types/book';
+import { Link } from 'react-router-dom';
+
+type Props = {
+  book: Book;
+};
+
+export default function BookCard({ book }: Props) {
+  const { user } = useAuth();
+  return (
+    <>
+      <Card className="border-card-foreground/5 bg-card/70">
+        <CardContent className="relative flex w-40 flex-col items-center px-3 pb-2 pt-6 sm:w-48 sm:px-4">
+          <Link className="flex justify-center" to={`/book/${book.id}`}>
+            <img
+              className="h-44 rounded object-cover sm:h-52"
+              src={book.imageUrl}
+              alt={book.title}
+            />
+          </Link>
+          <div className="mt-1 flex w-full items-center justify-between">
+            <p className="text-xs text-muted-foreground">{book.publishedDate}</p>
+            {user && (
+              <div className="flex">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <MyListButton size="sm" />
+                  </TooltipTrigger>
+                  <TooltipContent>マイリストに追加</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <FavoriteButton size="sm" book={book} />
+                  </TooltipTrigger>
+                  <TooltipContent>お気に入りに追加</TooltipContent>
+                </Tooltip>
+              </div>
+            )}
+          </div>
+          <Link
+            className="flex h-8 w-full items-center justify-center text-xs hover:text-primary sm:h-10 sm:text-sm"
+            to={`/book/${book.id}`}
+          >
+            <p className="line-clamp-2 text-center">{book.title}</p>
+          </Link>
+        </CardContent>
+      </Card>
+    </>
+  );
 }
 
 
 ------------------------------------------------------------
-BookController
+book-list-skeleton
 
-package com.example.my_books_backend.controller;
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FETCH_BOOKS_MAX_RESULTS } from '@/lib/data';
 
-import java.util.List;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.service.BookService;
-import lombok.RequiredArgsConstructor;
+type Props = {
+  paginationOff?: boolean;
+};
 
-@RestController
-@RequestMapping("/api/v1/books")
-@RequiredArgsConstructor
-public class BookController {
-    private final BookService bookService;
+export default function BookListSkeleton({ paginationOff = false }: Props) {
+  return (
+    <>
+      <div className="flex flex-col gap-y-4 pb-4">
+        {!paginationOff && (
+          <div className="flex justify-center">
+            <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
+            <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
+            <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
+          </div>
+        )}
+        <ul className="grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
+          {[...Array<number>(FETCH_BOOKS_MAX_RESULTS)].map((_, index) => (
+            <li key={index}>
+              <Card>
+                <CardContent className="relative flex w-40 flex-col items-center px-3 pb-2 pt-6 sm:w-48 sm:px-4">
+                  <Skeleton className="h-44 w-32 rounded bg-muted-foreground/5 object-cover sm:h-52 sm:w-36" />
+                  <div className="flex h-6 w-full items-center">
+                    <Skeleton className="mt-2 h-3 w-16 rounded-lg bg-muted-foreground/5" />
+                  </div>
+                  <div className="flex h-8 w-full items-center justify-center sm:h-10">
+                    <Skeleton className="h-4 w-4/5 rounded-full bg-muted-foreground/5 sm:h-5" />
+                  </div>
+                </CardContent>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+}
 
-    @GetMapping("")
-    public ResponseEntity<List<BookResponse>> getAllBooks() {
-        List<BookResponse> books = bookService.getAllBooks();
-        return ResponseEntity.ok(books);
-    }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BookResponse> getBookById(@PathVariable String id) {
-        BookResponse book = bookService.getBookById(id);
-        return ResponseEntity.ok(book);
-    }
+------------------------------------------------------------
+genre-list
 
-    @GetMapping("/search")
-    public ResponseEntity<PaginatedBookResponse> searchByTitle(@RequestParam String q,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        PaginatedBookResponse paginatedBookResponse =
-                bookService.searchByTitle(q, page, maxResults);
-        return ResponseEntity.ok(paginatedBookResponse);
-    }
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/util';
+import { Genre } from '@/types/book';
+import { Link } from 'react-router-dom';
 
-    @GetMapping("/discover")
-    public ResponseEntity<PaginatedBookResponse> searchByGenreId(@RequestParam String genreId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        PaginatedBookResponse paginatedBookResponse =
-                bookService.searchByGenreId(genreId, page, maxResults);
-        return ResponseEntity.ok(paginatedBookResponse);
-    }
+type Props = {
+  genres: Genre[];
+  className?: string;
+  variant?: 'default' | 'outline' | 'secondary' | 'ghost';
+};
 
-    @GetMapping("/new-releases")
-    public ResponseEntity<List<BookResponse>> getNewReleases() {
-        List<BookResponse> books = bookService.getNewReleases();
-        return ResponseEntity.ok(books);
-    }
+export default function GenreList({ genres, className, variant = 'default' }: Props) {
+  return (
+    <ul className={cn('flex flex-wrap', className)}>
+      {genres.map((genre) => (
+        <li key={genre.id}>
+          <Button
+            className={cn('rounded-full', variant === 'outline' && 'bg-transparent')}
+            variant={variant}
+            size="sm"
+            asChild
+          >
+            <Link to={`/discover?genreId=${genre.id}`}>{genre.name}</Link>
+          </Button>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 ------------------------------------------------------------
-GenreController
+genre-selector
 
-package com.example.my_books_backend.controller;
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/util';
+import { Genre } from '@/types/book';
+import { CheckIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import java.net.URI;
-import java.util.List;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.genre.CreateGenreRequest;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-import com.example.my_books_backend.dto.genre.UpdateGenreRequest;
-import com.example.my_books_backend.service.GenreService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+type Props = {
+  className?: string;
+  genres: Genre[];
+};
 
-@RestController
-@RequestMapping("/api/v1/genres")
-@RequiredArgsConstructor
-public class GenreController {
-    private final GenreService genreService;
+export default function GenreSelector({ className, genres }: Props) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
-    @GetMapping("")
-    public ResponseEntity<List<GenreResponse>> getAllGenres() {
-        List<GenreResponse> genres = genreService.getAllGenres();
-        return ResponseEntity.ok(genres);
-    }
+  const SELECT_TYPE = ['AND', 'OR'];
+  const [selectType, setSelectType] = useState(SELECT_TYPE[0]);
 
-    @GetMapping("/{id}")
-    public ResponseEntity<GenreResponse> getGenreById(@PathVariable Integer id) {
-        GenreResponse genre = genreService.getGenreById(id);
-        return ResponseEntity.ok(genre);
-    }
+  const isActive = (id: number) => selectedGenres.includes(id.toString());
 
-    @PostMapping("")
-    public ResponseEntity<GenreResponse> createGenre(
-            @Valid @RequestBody CreateGenreRequest createGenreRequest) {
-        GenreResponse genre = genreService.createGenre(createGenreRequest);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(genre.getId()).toUri();
-        return ResponseEntity.created(location).body(genre);
-    }
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const urlIds = params.get('genreId') ?? '';
+    const ids = urlIds === '' ? [] : urlIds.split(',');
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Void> putGenre(@PathVariable Integer id,
-            @Valid @RequestBody UpdateGenreRequest updateGenreRequest) {
-        genreService.putGenre(id, updateGenreRequest);
-        return ResponseEntity.noContent().build();
-    }
+    setSelectedGenres(ids);
+  }, [location.search]);
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<Void> patchGenre(@PathVariable Integer id,
-            @Valid @RequestBody UpdateGenreRequest updateGenreRequest) {
-        genreService.patchGenre(id, updateGenreRequest);
-        return ResponseEntity.noContent().build();
-    }
+  const handleClick = (selectedId: number) => {
+    const ids = isActive(selectedId)
+      ? selectedGenres.filter((id) => id !== selectedId.toString())
+      : [...selectedGenres, selectedId.toString()];
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteGenre(@PathVariable Integer id) {
-        genreService.deleteGenre(id);
-        return ResponseEntity.noContent().build();
-    }
+    setSelectedGenres(ids);
+
+    const params = new URLSearchParams(location.search);
+    params.set('genreId', ids.join(','));
+    params.set('page', '1');
+    navigate(`/discover?${params.toString()}`);
+  };
+
+  return (
+    <>
+      <div className="my-4 flex items-center justify-between">
+        <p className="my-2">ジャンル</p>
+        <div className="flex items-center space-x-2">
+          <p className="text-sm text-muted-foreground">選択条件</p>
+          <Select value={selectType} onValueChange={setSelectType}>
+            <SelectTrigger className="w-[100px] border-foreground/20 bg-background/20">
+              <SelectValue placeholder="選択してください" />
+            </SelectTrigger>
+            <SelectContent>
+              {SELECT_TYPE.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <ul className={cn('flex flex-wrap', className)}>
+        {genres.map((genre) => (
+          <li key={genre.id}>
+            <Button
+              className={cn(
+                'rounded-full m-1 text-muted-foreground text-xs sm:text-sm',
+                isActive(genre.id) && 'text-foreground'
+              )}
+              variant={isActive(genre.id) ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => handleClick(genre.id)}
+            >
+              {isActive(genre.id) ? (
+                <CheckIcon className="mr-1 size-4" strokeWidth={4} />
+              ) : null}
+              {genre.name}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
 }
 
 ------------------------------------------------------------
-UserController
+header
 
-package com.example.my_books_backend.controller;
+import LoginButton from '@/components/layout/login-button';
+import NavList from '@/components/layout/nav-list';
+import ThemeToggleButton from '@/components/layout/theme-toggle-button';
+import SearchBar from '@/components/search-bar';
+import { Button } from '@/components/ui/button';
+import { refreshAccessToken, validateToken } from '@/lib/auth';
+import { cn } from '@/lib/util';
 
-import java.util.List;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.user.EmailChangeRequest;
-import com.example.my_books_backend.dto.user.PasswordChangeRequest;
-import com.example.my_books_backend.dto.user.UserResponse;
-import com.example.my_books_backend.dto.user.UpdateUserRequest;
-import com.example.my_books_backend.service.UserService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+type Props = {
+  className?: string;
+};
 
-@RestController
-@RequestMapping("/api/v1/users")
-@RequiredArgsConstructor
-public class UserController {
-    private final UserService userService;
-
-    @GetMapping("")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        List<UserResponse> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
-    }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Integer id) {
-        UserResponse user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser() {
-        UserResponse user = userService.getCurrentUser();
-        return ResponseEntity.ok(user);
-    }
-
-    @PatchMapping("/me")
-    public ResponseEntity<Void> updateCurrentUser(
-            @Valid @RequestBody UpdateUserRequest updateUserRequest) {
-        userService.updateCurrentUser(updateUserRequest);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/me/email")
-    public ResponseEntity<Void> changeEmail(
-            @Valid @RequestBody EmailChangeRequest emailChangeRequest) {
-        userService.changeEmail(emailChangeRequest);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/me/password")
-    public ResponseEntity<Void> changePassword(
-            @Valid @RequestBody PasswordChangeRequest passwordChangeRequest) {
-        userService.changePassword(passwordChangeRequest);
-        return ResponseEntity.noContent().build();
-    }
+export default function Header({ className }: Props) {
+  const handleClick = async () => {
+    const accessToken = await refreshAccessToken();
+    console.log(accessToken);
+  };
+  const handleClickVt = async () => {
+    const isValid = await validateToken();
+    console.log({ isValid });
+  };
+  return (
+    <header className={cn('w-full bg-background/30 backdrop-blur-lg', className)}>
+      <div className="mx-auto max-w-7xl px-3 sm:px-6">
+        <div className="flex h-16 w-full items-center sm:gap-x-2">
+          <NavList />
+          <span className="flex-1"></span>
+          <SearchBar />
+          <Button onClick={handleClick}>RF</Button>
+          <Button onClick={handleClickVt}>VT</Button>
+          <LoginButton />
+          <ThemeToggleButton />
+        </div>
+      </div>
+    </header>
+  );
 }
 
 ------------------------------------------------------------
-LoginRequest
+hero
 
-package com.example.my_books_backend.dto.auth;
+import imgUrl from '@/assets/main-visual.png';
+import SearchBar from '@/components/search-bar';
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+export default function Hero() {
+  const TITLE = (
+    <>
+      Let’s search for <span className="text-primary">Books</span> to discover new
+      knowledge.
+    </>
+  );
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class LoginRequest {
-    @NotNull
-    @Email(message = "無効なメールアドレスです")
-    private String email;
+  const MESSAGE =
+    '本の探索サイトへようこそ。多様なコレクションから、新しい知識を発見しましょう。厳選された書籍で、あなたの次の読書を見つけてください。知識の旅に一緒に出かけましょう。';
 
-    @NotNull
-    private String password;
+  return (
+    <div className="relative mb-8 flex h-[460px] w-full items-center gap-3 sm:mb-0 sm:gap-4 lg:h-[500px]">
+      <div className="z-10 flex w-3/4 flex-col justify-between lg:w-3/5">
+        <div>
+          <h1 className="w-fit text-5xl font-bold sm:text-6xl xl:text-7xl">{TITLE}</h1>
+          <p className="my-6 w-full break-words text-sm text-muted-foreground">
+            {MESSAGE}
+          </p>
+        </div>
+        <div className="flex h-full max-w-96 items-center">
+          <SearchBar />
+        </div>
+      </div>
+      <div className="absolute right-0 top-10 w-[400px] opacity-25 sm:right-5 sm:w-[400px] lg:w-[450px] lg:opacity-100">
+        <img src={imgUrl} alt="main-visual-image" />
+      </div>
+    </div>
+  );
 }
 
 ------------------------------------------------------------
-LoginResponse
+login-button
 
-package com.example.my_books_backend.dto.auth;
+import { useAuth } from '@/auth/use-auth';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MENU_LIST } from '@/constants/constants';
+import { LogOutIcon } from 'lucide-react';
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+export default function LoginButton() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class LoginResponse {
-    private String accessToken;
-    private String refreshToken;
-    private String username;
-    private List<String> roles;
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleClickLogin = () => {
+    if (!user) {
+      navigate('/login', { state: { from: location } });
+    }
+  };
+
+  const handleClickLogout = async () => {
+    await logout();
+    setIsOpen(false);
+    navigate('/login', { state: { from: location } });
+  };
+
+  const handleClickItem = (href: string) => {
+    navigate(href);
+    setIsOpen(false);
+  };
+
+  return (
+    <>
+      {user ? (
+        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+          <DropdownMenuTrigger className="ml-2 flex items-center justify-center" asChild>
+            <Button className="rounded-full" variant="ghost" size="icon">
+              <Avatar>
+                <AvatarImage
+                  className="bg-muted"
+                  src={user.avatarUrl}
+                  alt="avatar-image"
+                />
+                <AvatarFallback className="text-lg font-semibold">
+                  {user.name.slice(0, 1)}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-48 p-2" side="bottom" align="end">
+            <DropdownMenuLabel>
+              <div className="flex items-center gap-x-2">
+                <Avatar className="size-8">
+                  <AvatarImage
+                    className="bg-muted"
+                    src={user.avatarUrl}
+                    alt="avatar-image"
+                  />
+                  <AvatarFallback className="font-semibold">
+                    {user.name.slice(0, 1)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 overflow-hidden">
+                  <p className="truncate">{user.name}</p>
+                  <p className="truncate text-xs font-normal text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {MENU_LIST.map((item) => (
+              <DropdownMenuItem
+                onClick={() => handleClickItem(item.href)}
+                key={item.href}
+              >
+                <item.icon className="mr-1" />
+                {item.title}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleClickLogout}>
+              <LogOutIcon className="mr-1" />
+              ログアウト
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <Button className="rounded-full" variant="ghost" onClick={handleClickLogin}>
+          ログイン
+        </Button>
+      )}
+    </>
+  );
 }
 
 ------------------------------------------------------------
-SignupRequest
+menu-list
 
-package com.example.my_books_backend.dto.auth;
+import { Button } from '@/components/ui/button';
+import { MENU_LIST } from '@/constants/constants';
+import { cn } from '@/lib/util';
+import { Link, useLocation } from 'react-router-dom';
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+type Props = {
+  onClick?: () => void;
+};
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class SignupRequest {
-    @NotNull
-    @NotBlank(message = "メールアドレスは必須です")
-    @Email(message = "有効なメールアドレスを入力してください")
-    private String email;
+export default function MenuList({ onClick }: Props) {
+  const location = useLocation();
+  const pathname = location.pathname;
 
-    @NotNull
-    @NotBlank(message = "パスワードは必須です")
-    @Size(min = 4, message = "パスワードは4文字以上で入力してください")
-    private String password;
-
-    @NotBlank(message = "確認パスワードは必須です")
-    private String confirmPassword;
+  return (
+    <ul className="flex flex-col gap-x-0 gap-y-2 md:flex-row">
+      {MENU_LIST.map((item) => (
+        <li className="w-full" key={item.href}>
+          <Button
+            className={cn(
+              'rounded-full w-full hover:bg-transparent hover:text-foreground/50',
+              pathname === item.href && 'text-primary'
+            )}
+            variant="ghost"
+            asChild
+          >
+            <Link to={item.href} onClick={onClick}>
+              {item.title}
+            </Link>
+          </Button>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 ------------------------------------------------------------
-TokenRefreshRequest
+review-list-skeleton
 
-package com.example.my_books_backend.dto.auth;
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class TokenRefreshRequest {
-    private String refreshToken;
+export default function ReviewListSkeleton() {
+  return (
+    <>
+      <ul className="flex flex-col gap-y-6 p-6">
+        {[...Array<number>(2)].map((_, index) => (
+          <li key={index}>
+            <Separator className="bg-foreground/10" />
+            <div className="flex flex-col items-center justify-between gap-y-4 p-4 pb-0 sm:flex-row">
+              <div className="flex items-center gap-x-4">
+                <Skeleton className="size-16 rounded-full bg-muted-foreground/5" />
+                <div>
+                  <Skeleton className="my-2 h-5 w-20 rounded-full bg-muted-foreground/5" />
+                  <Skeleton className="my-2 h-5 w-32 rounded-full bg-muted-foreground/5" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-40 rounded-full bg-muted-foreground/5" />
+            </div>
+            <div className="p-4">
+              <Skeleton className="my-1 h-5 w-full rounded-full bg-muted-foreground/5" />
+              <Skeleton className="my-1 h-5 w-3/4 rounded-full bg-muted-foreground/5" />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
 }
 
 ------------------------------------------------------------
-TokenRefreshResponse
+review-list
 
-package com.example.my_books_backend.dto.auth;
+import ReviewItem from '@/components/review-list/review-item';
+import { Separator } from '@/components/ui/separator';
+import { Review } from '@/types/review';
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+type Props = {
+  reviews: Review[];
+};
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class TokenRefreshResponse {
-    private String accessToken;
-    private String refreshToken;
+export default function ReviewList({ reviews }: Props) {
+  return (
+    <ul className="flex flex-col p-6">
+      {reviews.map((review) => (
+        <li key={review.id}>
+          <Separator className="bg-foreground/10" />
+          <ReviewItem review={review} />
+        </li>
+      ))}
+    </ul>
+  );
 }
 
+
 ------------------------------------------------------------
-BookResponse
+avatar
 
-package com.example.my_books_backend.dto.book;
+import { cn } from '@/lib/util';
+import React, { useContext, useEffect, useState } from 'react';
 
-import java.sql.Date;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class BookResponse {
-    private String id;
-    private String title;
-    private String description;
-    private List<Integer> genreIds;
-    private List<String> authors;
-    private String publisher;
-    private Date publishedDate;
-    private Integer price;
-    private Integer pageCount;
-    private String isbn;
-    private String imageUrl;
+interface AvatarContextType {
+  imageError: boolean;
+  setImageError: (value: boolean) => void;
 }
 
-------------------------------------------------------------
-PaginatedBookResponse
-
-package com.example.my_books_backend.dto.book;
-
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class PaginatedBookResponse {
-    private Integer page;
-    private Integer totalPages;
-    private Integer totalItems;
-    private List<BookResponse> books;
-}
-
-------------------------------------------------------------
-CreateGenreRequest
-
-package com.example.my_books_backend.dto.genre;
-
-import org.hibernate.validator.constraints.Length;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateGenreRequest {
-    @NotNull
-    @Length(max = 50)
-    private String name;
-
-    @NotNull
-    @Length(max = 255)
-    private String description;
-}
-
-------------------------------------------------------------
-GenreResponse
-
-package com.example.my_books_backend.dto.genre;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class GenreResponse {
-    private Integer id;
-    private String name;
-}
-
-------------------------------------------------------------
-UpdateGenreRequest
-
-package com.example.my_books_backend.dto.genre;
-
-import org.hibernate.validator.constraints.Length;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class UpdateGenreRequest {
-    @NotNull
-    @Length(max = 50)
-    private String name;
-
-    @NotNull
-    @Length(max = 255)
-    private String description;
-}
-
-------------------------------------------------------------
-CreateUserRequest
-
-package com.example.my_books_backend.dto.user;
-
-import java.util.List;
-import com.example.my_books_backend.entity.Role;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateUserRequest {
-    @NotNull
-    @Email
-    private String email;
-
-    @NotNull
-    private String password;
-
-    private List<Role> roles;
-    private String name;
-    private String avatarUrl;
-}
-
-------------------------------------------------------------
-EmailChangeRequest
-
-package com.example.my_books_backend.dto.user;
-
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-
-@Getter
-public class EmailChangeRequest {
-    @NotBlank(message = "新しいメールアドレスは必須です")
-    @Email
-    private String newEmail;
-}
-
-------------------------------------------------------------
-PasswordChangeRequest
-
-package com.example.my_books_backend.dto.user;
-
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Getter;
-
-@Getter
-public class PasswordChangeRequest {
-    @NotBlank(message = "現在のパスワードは必須です")
-    private String currentPassword;
-
-    @NotBlank(message = "新しいパスワードは必須です")
-    @Size(min = 6, message = "パスワードは6文字以上で入力してください")
-    private String newPassword;
-
-    @NotBlank(message = "確認用パスワードは必須です")
-    private String confirmNewPassword;
-}
-
-------------------------------------------------------------
-UpdateUserRequest
-
-package com.example.my_books_backend.dto.user;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class UpdateUserRequest {
-    private String name;
-    private String avatarUrl;
-}
-
-------------------------------------------------------------
-UserResponse
-
-package com.example.my_books_backend.dto.user;
-
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserResponse {
-    private Integer id;
-    private String email;
-    private List<String> roles;
-    private String name;
-    private String avatarUrl;
-}
-
-------------------------------------------------------------
-EntityBase
-
-package com.example.my_books_backend.entity.shared;
-
-import java.time.LocalDateTime;
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import lombok.Data;
-
-@Data
-@MappedSuperclass
-public class EntityBase {
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
-
-    @PrePersist
-    protected void prePersist() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-}
-
-------------------------------------------------------------
-Book
-
-package com.example.my_books_backend.entity;
-
-import java.sql.Date;
-import com.example.my_books_backend.entity.shared.EntityBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Table(name = "books")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Book extends EntityBase {
-    @Id
-    @Column(name = "id", nullable = false)
-    private String id;
-
-    @Column(name = "title", nullable = false)
-    private String title;
-
-    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
-    private String description;
-
-    @Column(name = "genre_ids", nullable = false)
-    private String genreIds;
-
-    @Column(name = "authors", nullable = false)
-    private String authors;
-
-    @Column(name = "publisher", nullable = false)
-    private String publisher;
-
-    @Column(name = "published_date", nullable = false)
-    private Date publishedDate;
-
-    @Column(name = "price", nullable = false)
-    private Integer price;
-
-    @Column(name = "page_count", nullable = false)
-    private Integer pageCount;
-
-    @Column(name = "isbn", nullable = false)
-    private String isbn;
-
-    @Column(name = "image_url")
-    private String imageUrl;
-}
-
-------------------------------------------------------------
-Genre
-
-package com.example.my_books_backend.entity;
-
-import com.example.my_books_backend.entity.shared.EntityBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Table(name = "genres")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Genre extends EntityBase {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Integer id;
-
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @Column(name = "description", nullable = false)
-    private String description;
-}
-
-------------------------------------------------------------
-Role
-
-package com.example.my_books_backend.entity;
-
-import com.example.my_books_backend.entity.shared.EntityBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Table(name = "roles")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Role extends EntityBase {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Integer id;
-
-    @Column(name = "name", nullable = false, unique = true)
-    @Enumerated(EnumType.STRING)
-    private RoleName name;
-
-    @Column(name = "description", nullable = false)
-    private String description;
-
-    public Role(RoleName name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name.toString();
-    }
-}
-
-------------------------------------------------------------
-RoleName
-
-package com.example.my_books_backend.entity;
-
-public enum RoleName {
-    ROLE_ADMIN, ROLE_USER
-}
-
-------------------------------------------------------------
-User
-
-package com.example.my_books_backend.entity;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import com.example.my_books_backend.entity.shared.EntityBase;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Table(name = "users")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class User extends EntityBase implements UserDetails {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Integer id;
-
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
-
-    @JsonIgnore
-    @Column(name = "password", nullable = false)
-    private String password;
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private List<Role> roles;
-
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @Column(name = "avatar_url")
-    private String avatarUrl;
-
-    // 以下はUserDetailsインターフェースでOverrideする必要があるメソッド
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        this.roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
-        return authorities;
-    }
-
-    @Override
-    public String getUsername() {
-        return this.email; // emailをSpring Securityの内部的なユーザー名として使用
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-}
-
-------------------------------------------------------------
-ConflictException
-
-package com.example.my_books_backend.exception;
-
-public class ConflictException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
-
-    public ConflictException() {}
-
-    public ConflictException(String message) {
-        super(message);
-    }
-
-    public ConflictException(Throwable cause) {
-        super(cause);
-    }
-
-    public ConflictException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ConflictException(String message, Throwable cause, boolean enableSuppression,
-            boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-}
-
-------------------------------------------------------------
-NotFoundException
-
-package com.example.my_books_backend.exception;
-
-public class NotFoundException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
-
-    public NotFoundException() {}
-
-    public NotFoundException(String message) {
-        super(message);
-    }
-
-    public NotFoundException(Throwable cause) {
-        super(cause);
-    }
-
-    public NotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public NotFoundException(String message, Throwable cause, boolean enableSuppression,
-            boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-}
-
-------------------------------------------------------------
-UnauthorizedException
-
-package com.example.my_books_backend.exception;
-
-public class UnauthorizedException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
-
-    public UnauthorizedException() {}
-
-    public UnauthorizedException(String message) {
-        super(message);
-    }
-
-    public UnauthorizedException(Throwable cause) {
-        super(cause);
-    }
-
-    public UnauthorizedException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public UnauthorizedException(String message, Throwable cause, boolean enableSuppression,
-            boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-}
-
-------------------------------------------------------------
-ValidationException
-
-package com.example.my_books_backend.exception;
-
-public class ValidationException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
-
-    public ValidationException() {}
-
-    public ValidationException(String message) {
-        super(message);
-    }
-
-    public ValidationException(Throwable cause) {
-        super(cause);
-    }
-
-    public ValidationException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ValidationException(String message, Throwable cause, boolean enableSuppression,
-            boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-}
-
-------------------------------------------------------------
-BookMapper
-
-package com.example.my_books_backend.mapper;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.entity.Book;
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
-public class BookMapper {
-    private final ModelMapper modelMapper;
-
-    public BookResponse toResponse(Book book) {
-        BookResponse bookResponse = modelMapper.map(book, BookResponse.class);
-
-        List<Integer> genreIds =
-                Arrays.stream(book.getGenreIds().split(",")).map(Integer::parseInt).toList();
-        bookResponse.setGenreIds(genreIds);
-
-        List<String> authors = Arrays.asList(book.getAuthors().split(","));
-        bookResponse.setAuthors(authors);
-
-        return bookResponse;
-    }
-
-    public Book toEntity(BookResponse bookResponse) {
-        Book book = modelMapper.map(bookResponse, Book.class);
-
-        String genreIds = bookResponse.getGenreIds().stream().map(String::valueOf)
-                .collect(Collectors.joining(","));
-        book.setGenreIds(genreIds);
-
-        String authors = String.join(",", bookResponse.getAuthors());
-        book.setAuthors(authors);
-
-        return book;
-    }
-
-    public List<BookResponse> toResponseList(List<Book> books) {
-        return books.stream().map(book -> toResponse(book)).toList();
-    }
-
-    public PaginatedBookResponse toPaginatedBookResponse(Page<Book> pageBook) {
-        Integer page = pageBook.getNumber();
-        Integer totalPages = pageBook.getTotalPages();
-        Integer totalItems = (int) pageBook.getTotalElements();
-        List<BookResponse> booksDto = toResponseList(pageBook.getContent());
-        return new PaginatedBookResponse(page, totalPages, totalItems, booksDto);
-    }
-}
-
-------------------------------------------------------------
-GenreMapper
-
-package com.example.my_books_backend.mapper;
-
-import java.util.List;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.dto.genre.CreateGenreRequest;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-import com.example.my_books_backend.entity.Genre;
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
-public class GenreMapper {
-    private final ModelMapper modelMapper;
-
-    public GenreResponse toResponse(Genre genre) {
-        return modelMapper.map(genre, GenreResponse.class);
-    }
-
-    public Genre toEntity(GenreResponse genreResponse) {
-        return modelMapper.map(genreResponse, Genre.class);
-    }
-
-    public Genre toEntity(CreateGenreRequest createGenreDto) {
-        return modelMapper.map(createGenreDto, Genre.class);
-    }
-
-    public List<GenreResponse> toResponseList(List<Genre> genres) {
-        return genres.stream().map(genre -> toResponse(genre)).toList();
-    }
-}
-
-------------------------------------------------------------
-UserMapper
-
-package com.example.my_books_backend.mapper;
-
-import java.util.List;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.dto.user.CreateUserRequest;
-import com.example.my_books_backend.dto.user.UserResponse;
-import com.example.my_books_backend.entity.User;
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
-public class UserMapper {
-    private final ModelMapper modelMapper;
-
-    public UserResponse toResponse(User user) {
-        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
-
-        List<String> roles = user.getRoles().stream().map(role -> role.getName()).toList();
-        userResponse.setRoles(roles);
-
-        return userResponse;
-    }
-
-    public User toEntity(UserResponse userResponse) {
-        return modelMapper.map(userResponse, User.class);
-    }
-
-    public User toEntity(CreateUserRequest createUserRequest) {
-        return modelMapper.map(createUserRequest, User.class);
-    }
-
-    public List<UserResponse> toResponseList(List<User> users) {
-        return users.stream().map(user -> toResponse(user)).toList();
-    }
-}
-
-------------------------------------------------------------
-BookRepository
-
-package com.example.my_books_backend.repository;
-
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.Book;
-
-@Repository
-public interface BookRepository extends JpaRepository<Book, String> {
-    Page<Book> findByTitleContaining(String q, Pageable pageable);
-
-    List<Book> findTop10ByOrderByPublishedDateDesc();
-}
-
-------------------------------------------------------------
-BookRepositoryCustom
-
-package com.example.my_books_backend.repository;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import com.example.my_books_backend.entity.Book;
-
-public interface BookRepositoryCustom {
-    Page<Book> findByGenreIds(String genreIdsParam, Pageable pageable);
-}
-
-------------------------------------------------------------
-BookRepositoryCustomImpl
-
-package com.example.my_books_backend.repository;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.Book;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-
-@Repository
-public class BookRepositoryCustomImpl implements BookRepositoryCustom {
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    // // 基本的な呼び出し
-    // List<String> genres = Arrays.asList("ミステリー", "サスペンス");
-    // Pageable pageable = PageRequest.of(0, 10); // 1ページ目、10件ずつ
-    // Page<Book> result = bookRepository.findByGenreIds(genres, pageable);
-
-    // // ソート条件付きの呼び出し
-    // Pageable pageableWithSort = PageRequest.of(
-    // 0,
-    // 10,
-    // Sort.by(Sort.Direction.DESC, "publishedDate")
-    // );
-    // Page<Book> sortedResult = bookRepository.findByGenreIds(genres,
-    // pageableWithSort);
-
-    @Override
-    public Page<Book> findByGenreIds(String genreIdsParam, Pageable pageable) {
-        // AND条件とOR条件を解析
-        List<String> andConditions = Arrays.asList(genreIdsParam.split(","));
-        List<List<String>> orConditions = new ArrayList<>();
-        for (String andCondition : andConditions) {
-            orConditions.add(Arrays.asList(andCondition.split("\\|")));
-        }
-
-        // SQLクエリ作成
-        String sql = buildQueryWithGenres("SELECT * FROM books WHERE ", orConditions);
-
-        // ソート条件を適用
-        sql += buildOrderByClause(pageable);
-
-        // ページングクエリの実行
-        Query query = entityManager.createNativeQuery(sql, Book.class);
-        setParameters(query, orConditions);
-        query.setFirstResult((int) pageable.getOffset());
-        query.setMaxResults(pageable.getPageSize());
-
-        @SuppressWarnings("unchecked")
-        List<Book> books = query.getResultList(); // ここで型の警告がでるので、アノテーション指定または型キャストする
-
-        // 総件数取得用のクエリを作成
-        String countSql = buildQueryWithGenres("SELECT COUNT(*) FROM books WHERE ", orConditions);
-        Query countQuery = entityManager.createNativeQuery(countSql);
-        setParameters(countQuery, orConditions);
-        Long total = ((Number) countQuery.getSingleResult()).longValue();
-
-        // 結果をPageオブジェクトで返却
-        return new PageImpl<>(books, pageable, total);
-    }
-
-    // SQLクエリのWHERE句を、ジャンルIDのリストに基づいて動的に構築
-    private String buildQueryWithGenres(String baseQuery, List<List<String>> orConditions) {
-        StringBuilder query = new StringBuilder(baseQuery);
-        for (int i = 0; i < orConditions.size(); i++) {
-            if (i > 0) {
-                query.append(" AND ");
+const AvatarContext = React.createContext<AvatarContextType | undefined>(undefined);
+
+// ----------------------------------------------------------------------------
+// Avatar
+// ----------------------------------------------------------------------------
+type AvatarProps = React.HTMLAttributes<HTMLDivElement>;
+
+const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
+  ({ children, className, ...props }, ref) => {
+    const [imageError, setImageError] = useState(false);
+
+    useEffect(() => {
+      // AvatarImageがなければ画像読み込みエラーとする
+      const image = React.Children.toArray(children).find(
+        (child) => React.isValidElement(child) && child.type === AvatarImage
+      );
+      if (!image) setImageError(true);
+    }, [children]);
+
+    return (
+      <AvatarContext.Provider value={{ imageError, setImageError }}>
+        <div
+          ref={ref}
+          className={cn(
+            'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full',
+            className
+          )}
+          {...props}
+        >
+          {React.Children.map(children, (child) => {
+            if (React.isValidElement(child)) {
+              switch (child.type) {
+                case AvatarImage:
+                case AvatarFallback:
+                  return child;
+                default:
+                  return null;
+              }
             }
-            query.append("(");
-            List<String> orCondition = orConditions.get(i);
-            for (int j = 0; j < orCondition.size(); j++) {
-                if (j > 0) {
-                    query.append(" OR ");
-                }
-                query.append("FIND_IN_SET(:genre_id").append(i).append("_").append(j)
-                        .append(", genre_ids) > 0");
-            }
-            query.append(")");
-        }
-        return query.toString();
-    }
+          })}
+        </div>
+      </AvatarContext.Provider>
+    );
+  }
+);
 
-    // SortオブジェクトからORDER BY句を作成
-    private String buildOrderByClause(Pageable pageable) {
-        Sort sort = pageable.getSort().isSorted() ? pageable.getSort()
-                : Sort.by(Sort.Direction.ASC, "title");
-        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
-        sort.forEach(order -> {
-            // エンティティのフィールド名をデータベースのカラム名に変換
-            String columnName = convertToColumnName(order.getProperty());
-            orderBy.append(columnName).append(" ").append(order.isAscending() ? "ASC" : "DESC")
-                    .append(", ");
-        });
-        orderBy.setLength(orderBy.length() - 2); // 最後のカンマを削除
-        return orderBy.toString();
-    }
+// ----------------------------------------------------------------------------
+// AvatarImage
+// ----------------------------------------------------------------------------
+interface AvatarImageProps extends React.HTMLAttributes<HTMLImageElement> {
+  src: string;
+  alt: string;
+}
 
-    // ジャンルIDのリストをクエリのパラメータに設定
-    private void setParameters(Query query, List<List<String>> orConditions) {
-        for (int i = 0; i < orConditions.size(); i++) {
-            List<String> orCondition = orConditions.get(i);
-            for (int j = 0; j < orCondition.size(); j++) {
-                query.setParameter("genre_id" + i + "_" + j, orCondition.get(j));
-            }
-        }
-    }
+const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
+  ({ className, ...props }, ref) => {
+    const context = useContext(AvatarContext);
+    if (!context) throw new Error('AvatarImage must be used within Avatar');
 
-    // エンティティのフィールド名をデータベースのカラム名に変換する
-    private String convertToColumnName(String fieldName) {
-        switch (fieldName) {
-            case "genreIds":
-                return "genre_ids";
-            case "publishedDate":
-                return "published_date";
-            case "pageCount":
-                return "page_count";
-            case "imageUrl":
-                return "image_url";
+    const { imageError, setImageError } = context;
+
+    if (imageError) return null;
+
+    return (
+      <img
+        ref={ref}
+        className={cn('aspect-square h-full w-full', className)}
+        {...props}
+        onError={() => setImageError(true)}
+      />
+    );
+  }
+);
+
+// ----------------------------------------------------------------------------
+// AvatarFallback
+// ----------------------------------------------------------------------------
+type AvatarFallbackProps = React.HTMLAttributes<HTMLDivElement>;
+
+const AvatarFallback = React.forwardRef<HTMLDivElement, AvatarFallbackProps>(
+  ({ className, ...props }, ref) => {
+    const context = useContext(AvatarContext);
+    if (!context) throw new Error('AvatarFallback must be used within Avatar');
+
+    const { imageError } = context;
+
+    if (!imageError) return null;
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'flex h-full w-full items-center justify-center rounded-full bg-primary/50',
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
+
+export { Avatar, AvatarFallback, AvatarImage };
+
+------------------------------------------------------------
+dropdown-menu
+
+import { cn } from '@/lib/util';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
+
+type DropdownMenuSideType = 'top' | 'right' | 'bottom' | 'left';
+type DropdownMenuAlignType = 'start' | 'center' | 'end';
+
+const DEFAULT_SIDE: DropdownMenuSideType = 'bottom';
+const DEFAULT_ALIGN: DropdownMenuAlignType = 'center';
+const DEFAULT_SIDE_OFFSET = 4;
+
+interface DropdownMenuContextType {
+  isOpen: boolean;
+  openDropdownMenu: () => void;
+  closeDropdownMenu: () => void;
+  triggerRef: React.MutableRefObject<HTMLDivElement | HTMLButtonElement | null>;
+  focusedIndex: number;
+  setFocusedIndex: (index: number) => void;
+  itemsRef: React.MutableRefObject<HTMLButtonElement[]>;
+}
+
+const DropdownMenuContext = React.createContext<DropdownMenuContextType | undefined>(
+  undefined
+);
+
+// ----------------------------------------------------------------------------
+// DropdownMenu
+// ----------------------------------------------------------------------------
+interface DropdownMenuProps extends React.HTMLAttributes<HTMLDivElement> {
+  open?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
+}
+
+const DropdownMenu = ({ children, open, onOpenChange }: DropdownMenuProps) => {
+  // 外部からの状態を優先し、指定がない場合は内部状態を利用
+  const [isOpen, setIsOpen] = useState(open ?? false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const itemsRef = useRef<HTMLButtonElement[]>([]);
+
+  // propsが更新されたら内部状態も更新
+  useEffect(() => {
+    if (open !== undefined) {
+      setIsOpen(open);
+    }
+  }, [open]);
+
+  const openDropdownMenu = useCallback(() => {
+    if (onOpenChange) {
+      onOpenChange(true);
+    } else {
+      setIsOpen(true);
+    }
+  }, [onOpenChange]);
+
+  const closeDropdownMenu = useCallback(() => {
+    if (onOpenChange) {
+      onOpenChange(false);
+    } else {
+      setIsOpen(false);
+    }
+  }, [onOpenChange]);
+
+  const triggerRef = useRef<HTMLDivElement | null>(null);
+
+  return (
+    <DropdownMenuContext.Provider
+      value={{
+        isOpen,
+        openDropdownMenu,
+        closeDropdownMenu,
+        triggerRef,
+        focusedIndex,
+        setFocusedIndex,
+        itemsRef,
+      }}
+    >
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          switch (child.type) {
+            case DropdownMenuTrigger:
+            case DropdownMenuContent:
+              return child;
             default:
-                return fieldName;
+              return null;
+          }
         }
-    }
+      })}
+    </DropdownMenuContext.Provider>
+  );
+};
+
+// ----------------------------------------------------------------------------
+// DropdownMenuTrigger
+// ----------------------------------------------------------------------------
+interface DropdownMenuTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
 }
 
-------------------------------------------------------------
-GenreRepository
+const DropdownMenuTrigger = React.forwardRef<HTMLButtonElement, DropdownMenuTriggerProps>(
+  ({ className, children, asChild = false, ...props }, ref) => {
+    const context = useContext(DropdownMenuContext);
+    if (!context) throw new Error('DropdownMenuContent must be used within DropdownMenu');
 
-package com.example.my_books_backend.repository;
+    const { openDropdownMenu, triggerRef } = context;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.Genre;
+    if (asChild && React.isValidElement(children)) {
+      const mergeChildProps = {
+        ...children.props,
+        onClick: (e: React.MouseEvent) => {
+          children.props.onClick?.(e);
+          openDropdownMenu();
+        },
+      };
+      return (
+        <div
+          ref={triggerRef as React.MutableRefObject<HTMLDivElement>}
+          className={cn('w-fit', className)}
+        >
+          {React.cloneElement(children, { ...mergeChildProps, ref })}
+        </div>
+      );
+    }
+    const mergeProps = {
+      ...props,
+      onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+        props.onClick?.(e);
+        openDropdownMenu();
+      },
+    };
 
-@Repository
-public interface GenreRepository extends JpaRepository<Genre, Integer> {
+    return (
+      <button
+        ref={triggerRef as React.MutableRefObject<HTMLButtonElement>}
+        className={cn('w-fit', className)}
+        {...mergeProps}
+      >
+        {children}
+      </button>
+    );
+  }
+);
+
+// ----------------------------------------------------------------------------
+// DropdownMenuContent
+// ----------------------------------------------------------------------------
+interface DropdownMenuContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  side?: DropdownMenuSideType;
+  align?: DropdownMenuAlignType;
+  sideOffset?: number;
+  onEscapeKeyDown?: () => void;
+  onPointerDownOutside?: () => void;
 }
 
+const DropdownMenuContent = ({
+  children,
+  className,
+  side = DEFAULT_SIDE,
+  align = DEFAULT_ALIGN,
+  sideOffset = DEFAULT_SIDE_OFFSET,
+  onEscapeKeyDown,
+  onPointerDownOutside,
+  ...props
+}: DropdownMenuContentProps) => {
+  const context = useContext(DropdownMenuContext);
+  if (!context) throw new Error('DropdownMenuContent must be used within DropdownMenu');
+
+  const {
+    isOpen,
+    closeDropdownMenu,
+    triggerRef,
+    focusedIndex,
+    itemsRef,
+    setFocusedIndex,
+  } = context;
+
+  const [isVisible, setIsVisible] = useState(false);
+
+  const handleArrawNavigation = useCallback(
+    (key: string) => {
+      const isArrowUp = key === 'ArrowUp';
+      const itemCount = itemsRef.current.length;
+
+      let newIndex = focusedIndex;
+
+      if (focusedIndex === -1) {
+        newIndex = isArrowUp ? itemCount - 1 : 0;
+      } else {
+        newIndex = isArrowUp
+          ? (focusedIndex - 1 + itemCount) % itemCount
+          : (focusedIndex + 1) % itemCount;
+      }
+
+      setFocusedIndex(newIndex);
+      itemsRef.current[newIndex].focus();
+    },
+    [focusedIndex, itemsRef, setFocusedIndex]
+  );
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      switch (e.key) {
+        case 'Escape':
+          if (onEscapeKeyDown) {
+            onEscapeKeyDown();
+          } else {
+            closeDropdownMenu();
+          }
+          break;
+
+        case 'Tab':
+          e.preventDefault();
+          break;
+
+        case 'ArrowUp':
+        case 'ArrowDown':
+          e.preventDefault();
+          handleArrawNavigation(e.key);
+          break;
+      }
+    },
+    [closeDropdownMenu, handleArrawNavigation, isOpen, onEscapeKeyDown]
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      document.addEventListener('wheel', handleWheel, { passive: false });
+      document.addEventListener('keydown', handleKeyDown);
+    } else {
+      setFocusedIndex(-1);
+      document.removeEventListener('wheel', handleWheel);
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('wheel', handleWheel);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown, handleWheel, isOpen, setFocusedIndex]);
+
+  const handlePointerDownOutside = () => {
+    if (onPointerDownOutside) {
+      onPointerDownOutside();
+    } else {
+      closeDropdownMenu();
+    }
+  };
+
+  // 閉じるアニメーションが終わった時にopacity:0にする
+  // data-[state=closed]でopacity:0へのアニメーションはするが、
+  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
+  // これを防ぐためにdisplay:'none'にする
+  const ref = useRef<HTMLDivElement | null>(null);
+  const handleAnimationEnd = (e: React.AnimationEvent) => {
+    if (e.animationName === 'exit' && ref.current) {
+      ref.current.style.display = 'none';
+      setIsVisible(false);
+    }
+  };
+
+  const mergeProps = {
+    ...props,
+    onAnimationEnd: (e: React.AnimationEvent<HTMLDivElement>) => {
+      props.onAnimationEnd?.(e);
+      handleAnimationEnd(e);
+    },
+  };
+
+  const [transformStyle, setTransformStyle] = useState('');
+
+  useEffect(() => {
+    // triggerとなる要素からDropdownMenuを表示する座標を計算する
+    // （style属性に指定する文字列作成）
+    if (triggerRef.current) {
+      const { left, top, right, bottom, width, height } =
+        triggerRef.current.getBoundingClientRect();
+
+      const getOffset = (align: DropdownMenuAlignType, size: number) => {
+        switch (align) {
+          case 'start':
+            return `0% - ${size / 2}px`;
+          case 'end':
+            return `-100% + ${size / 2}px`;
+          default:
+            return '-50%';
+        }
+      };
+
+      const offsetX = getOffset(align, width);
+      const offsetY = getOffset(align, height);
+
+      const positions = {
+        top: {
+          x: left + width / 2,
+          y: top,
+          offset: { x: offsetX, y: `-100% - ${sideOffset}px` },
+        },
+        bottom: {
+          x: left + width / 2,
+          y: bottom,
+          offset: { x: offsetX, y: `0% + ${sideOffset}px` },
+        },
+        left: {
+          x: left,
+          y: top + height / 2,
+          offset: { x: `-100% - ${sideOffset}px`, y: offsetY },
+        },
+        right: {
+          x: right,
+          y: top + height / 2,
+          offset: { x: `0% + ${sideOffset}px`, y: offsetY },
+        },
+      };
+      const pos = positions[side];
+
+      setTransformStyle(
+        `translate(calc(${pos.x}px + ${pos.offset.x}), calc(${pos.y}px + ${pos.offset.y}))`
+      );
+    }
+  }, [context, triggerRef, side, sideOffset, align]);
+
+  let itemIndex = 0;
+  const innerChildren = React.Children.map(children, (child) => {
+    if (React.isValidElement(child)) {
+      switch (child.type) {
+        case DropdownMenuItem:
+          return React.cloneElement(child, { ...child.props, index: itemIndex++ });
+        default:
+          return child;
+      }
+    }
+  });
+
+  return ReactDOM.createPortal(
+    <>
+      {isVisible && (
+        <>
+          <div className="fixed inset-0 z-50" onClick={handlePointerDownOutside} />
+          <div className="fixed left-0 top-0 z-50" style={{ transform: transformStyle }}>
+            <div
+              ref={ref}
+              className={cn(
+                'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+                className
+              )}
+              data-state={isOpen ? 'open' : 'closed'}
+              data-side={side}
+              {...mergeProps}
+            >
+              {innerChildren}
+            </div>
+          </div>
+        </>
+      )}
+    </>,
+    document.body
+  );
+};
+
+// ----------------------------------------------------------------------------
+// DropdownMenuItem
+// ----------------------------------------------------------------------------
+interface DropdownMenuItemProps extends React.HTMLAttributes<HTMLButtonElement> {
+  index?: number;
+  inset?: boolean;
+}
+const DropdownMenuItem = ({
+  className,
+  children,
+  index = 0,
+  inset,
+  ...props
+}: DropdownMenuItemProps) => {
+  const context = useContext(DropdownMenuContext);
+  if (!context) throw new Error('DropdownMenuItem must be used within DropdownMenu');
+
+  const { itemsRef, closeDropdownMenu } = context;
+
+  const mergeProps = {
+    ...props,
+    onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => {
+      props.onMouseEnter?.(e);
+      itemsRef.current[index].focus();
+    },
+    onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (props.onClick) {
+        props.onClick(e);
+        return;
+      }
+      closeDropdownMenu();
+    },
+  };
+
+  return (
+    <button
+      ref={(el) => (itemsRef.current[index] = el as HTMLButtonElement)}
+      className={cn(
+        'relative w-full flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+        inset && 'pl-8',
+        className
+      )}
+      tabIndex={-1}
+      {...mergeProps}
+    >
+      {children}
+    </button>
+  );
+};
+
+// ----------------------------------------------------------------------------
+// DropdownMenuSeparator
+// ----------------------------------------------------------------------------
+type DropdownMenuSeparatorProps = React.HTMLAttributes<HTMLDivElement>;
+const DropdownMenuSeparator = React.forwardRef<
+  HTMLDivElement,
+  DropdownMenuSeparatorProps
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn('-mx-1 my-1 h-px bg-muted', className)} {...props} />
+));
+
+// ----------------------------------------------------------------------------
+// DropdownMenuLabel
+// ----------------------------------------------------------------------------
+interface DropdownMenuLabelProps extends React.HTMLAttributes<HTMLDivElement> {
+  inset?: boolean;
+}
+const DropdownMenuLabel = React.forwardRef<HTMLDivElement, DropdownMenuLabelProps>(
+  ({ className, inset, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn('px-2 py-1.5 text-sm font-semibold', inset && 'pl-8', className)}
+      {...props}
+    />
+  )
+);
+
+export {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+};
+
 ------------------------------------------------------------
-RoleRepository
+popover
 
-package com.example.my_books_backend.repository;
+import { cn } from '@/lib/util';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.Role;
-import com.example.my_books_backend.entity.RoleName;
+type PopoverSideType = 'top' | 'right' | 'bottom' | 'left';
+type PopoverAlignType = 'start' | 'center' | 'end';
 
-@Repository
-public interface RoleRepository extends JpaRepository<Role, Integer> {
-    Role findByName(RoleName name);
+const DEFAULT_SIDE: PopoverSideType = 'top';
+const DEFAULT_ALIGN: PopoverAlignType = 'center';
+const DEFAULT_SIDE_OFFSET = 8;
+
+interface PopoverContextType {
+  isOpen: boolean;
+  openPopover: () => void;
+  closePopover: () => void;
+  triggerRef: React.MutableRefObject<HTMLDivElement | null>;
 }
 
-------------------------------------------------------------
-UserRepository
+const PopoverContext = React.createContext<PopoverContextType | undefined>(undefined);
 
-package com.example.my_books_backend.repository;
-
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.User;
-
-@Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
-    Optional<User> findByEmail(String email);
-
-    Boolean existsByEmail(String email);
+// ----------------------------------------------------------------------------
+// Popover
+// ----------------------------------------------------------------------------
+interface PopoverProps extends React.HTMLAttributes<HTMLDivElement> {
+  open?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
-------------------------------------------------------------
-BookServiceImpl
+const Popover = ({ children, open, onOpenChange }: PopoverProps) => {
+  // 外部からのopen状態を優先し、指定がない場合は内部状態を利用
+  const [isOpen, setIsOpen] = useState(open ?? false);
 
-package com.example.my_books_backend.service.impl;
-
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.BookMapper;
-import com.example.my_books_backend.repository.BookRepository;
-import com.example.my_books_backend.repository.BookRepositoryCustom;
-import com.example.my_books_backend.service.BookService;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class BookServiceImpl implements BookService {
-    private final BookRepository bookRepository;
-    private final BookRepositoryCustom bookRepositoryCustom;
-    private final BookMapper bookMapper;
-
-    private static final Integer DEFAULT_START_PAGE = 0;
-    private static final Integer DEFAULT_MAX_RESULTS = 20;
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "publishedDate");
-
-    @Override
-    public List<BookResponse> getAllBooks() {
-        List<Book> books = bookRepository.findAll();
-        return bookMapper.toResponseList(books);
+  // propsのopenが更新されたら内部状態も更新
+  useEffect(() => {
+    if (open !== undefined) {
+      setIsOpen(open);
     }
+  }, [open]);
 
-    @Override
-    public BookResponse getBookById(String id) {
-        Book book = findBookById(id);
-        return bookMapper.toResponse(book);
+  const openPopover = useCallback(() => {
+    if (onOpenChange) {
+      onOpenChange(true);
+    } else {
+      setIsOpen(true);
     }
+  }, [onOpenChange]);
 
-    @Override
-    public PaginatedBookResponse searchByTitle(String q, Integer page, Integer maxResults) {
-        Pageable pageable = createPageable(page, maxResults);
-        Page<Book> pageBook = bookRepository.findByTitleContaining(q, pageable);
-        return bookMapper.toPaginatedBookResponse(pageBook);
+  const closePopover = useCallback(() => {
+    if (onOpenChange) {
+      onOpenChange(false);
+    } else {
+      setIsOpen(false);
     }
+  }, [onOpenChange]);
 
-    @Override
-    public PaginatedBookResponse searchByGenreId(String genreId, Integer page, Integer maxResults) {
-        Pageable pageable = createPageable(page, maxResults);
-        Page<Book> pageBook = bookRepositoryCustom.findByGenreIds(genreId, pageable);
-        return bookMapper.toPaginatedBookResponse(pageBook);
-    }
+  const triggerRef = useRef<HTMLDivElement | null>(null);
 
-    @Override
-    public List<BookResponse> getNewReleases() {
-        List<Book> books = bookRepository.findTop10ByOrderByPublishedDateDesc();
-        return bookMapper.toResponseList(books);
-    }
+  return (
+    <PopoverContext.Provider value={{ isOpen, openPopover, closePopover, triggerRef }}>
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          switch (child.type) {
+            case PopoverTrigger:
+            case PopoverContent:
+              return child;
+            default:
+              return null;
+          }
+        }
+      })}
+    </PopoverContext.Provider>
+  );
+};
 
-    private Pageable createPageable(Integer page, Integer maxResults) {
-        page = (page != null) ? page : DEFAULT_START_PAGE;
-        maxResults = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
-        return PageRequest.of(page, maxResults, DEFAULT_SORT);
-    }
-
-    private Book findBookById(String id) {
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("見つかりませんでした。 ID: " + id));
-        return book;
-    }
+// ----------------------------------------------------------------------------
+// PopoverTrigger
+// ----------------------------------------------------------------------------
+interface PopoverTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
 }
 
-------------------------------------------------------------
-GenreServiceImpl
+const PopoverTrigger = React.forwardRef<HTMLButtonElement, PopoverTriggerProps>(
+  ({ children, asChild = false, ...props }, ref) => {
+    const context = useContext(PopoverContext);
+    if (!context) throw new Error('PopoverContent must be used within Popover');
 
-package com.example.my_books_backend.service.impl;
-
-import java.util.List;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
-import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.genre.CreateGenreRequest;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-import com.example.my_books_backend.dto.genre.UpdateGenreRequest;
-import com.example.my_books_backend.entity.Genre;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.GenreMapper;
-import com.example.my_books_backend.repository.GenreRepository;
-import com.example.my_books_backend.service.GenreService;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class GenreServiceImpl implements GenreService {
-    private final GenreRepository genreRepository;
-    private final GenreMapper genreMapper;
-
-    @Override
-    @Cacheable("getAllGenres")
-    public List<GenreResponse> getAllGenres() {
-        List<Genre> genres = genreRepository.findAll();
-        return genreMapper.toResponseList(genres);
+    if (asChild && React.isValidElement(children)) {
+      const mergeChildProps = {
+        ...children.props,
+        onClick: (e: React.MouseEvent) => {
+          children.props.onClick?.(e);
+          context.openPopover();
+        },
+      };
+      return (
+        <div ref={context.triggerRef}>
+          {React.cloneElement(children, { ...mergeChildProps, ref })}
+        </div>
+      );
     }
 
-    @Override
-    @Cacheable(value = "getGenreById", key = "#p0")
-    public GenreResponse getGenreById(Integer id) {
-        Genre genre = findGenreById(id);
-        return genreMapper.toResponse(genre);
-    }
+    const mergeProps = {
+      ...props,
+      onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+        props.onClick?.(e);
+        context.openPopover();
+      },
+    };
 
-    @Override
-    @CacheEvict(value = "getAllGenres", allEntries = true)
-    public GenreResponse createGenre(CreateGenreRequest createGenreRequest) {
-        Genre genre = genreMapper.toEntity(createGenreRequest);
-        Genre saveGenre = genreRepository.save(genre);
-        return genreMapper.toResponse(saveGenre);
-    }
+    return (
+      <div ref={context.triggerRef}>
+        <button ref={ref} {...mergeProps}>
+          {children}
+        </button>
+      </div>
+    );
+  }
+);
 
-    @Override
-    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getAllGenres", allEntries = true)})
-    public void putGenre(Integer id, UpdateGenreRequest updateGenreRequest) {
-        Genre genre = findGenreById(id);
-
-        genre.setName(updateGenreRequest.getName());
-        genre.setDescription(updateGenreRequest.getDescription());
-        genreRepository.save(genre);
-    }
-
-    @Override
-    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getAllGenres", allEntries = true)})
-    public void patchGenre(Integer id, UpdateGenreRequest updateGenreRequest) {
-        Genre genre = findGenreById(id);
-
-        String name = updateGenreRequest.getName();
-        String description = updateGenreRequest.getDescription();
-
-        if (name != null) {
-            genre.setName(name);
-        }
-
-        if (description != null) {
-            genre.setName(description);
-        }
-        genreRepository.save(genre);
-    }
-
-    @Override
-    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getAllGenres", allEntries = true)})
-    public void deleteGenre(Integer id) {
-        Genre genre = findGenreById(id);
-        genreRepository.delete(genre);
-    }
-
-    private Genre findGenreById(Integer id) {
-        Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("見つかりませんでした。 ID: " + id));
-        return genre;
-    }
+// ----------------------------------------------------------------------------
+// PopoverContent
+// ----------------------------------------------------------------------------
+interface PopoverContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  side?: PopoverSideType;
+  align?: PopoverAlignType;
+  sideOffset?: number;
+  onEscapeKeyDown?: () => void;
+  onPointerDownOutside?: () => void;
 }
 
-------------------------------------------------------------
-UserDetailsServiceImpl
+const PopoverContent = ({
+  children,
+  className,
+  side = DEFAULT_SIDE,
+  align = DEFAULT_ALIGN,
+  sideOffset = DEFAULT_SIDE_OFFSET,
+  onEscapeKeyDown,
+  onPointerDownOutside,
+  ...props
+}: PopoverContentProps) => {
+  const context = useContext(PopoverContext);
+  if (!context) throw new Error('PopoverContent must be used within Popover');
 
-package com.example.my_books_backend.service.impl;
+  const [isVisible, setIsVisible] = useState(false);
 
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetailsService;
+  useEffect(() => {
+    const handleWheel = (e: MouseEvent) => {
+      e.preventDefault();
+    };
 
-@Service
-@RequiredArgsConstructor
-public class UserDetailsServiceImpl implements UserDetailsService {
-    private final UserRepository userRepository;
-
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("見つかりませんでした。 email: " + email));
-        return user;
+    if (context.isOpen) {
+      setIsVisible(true);
+      document.addEventListener('wheel', handleWheel, { passive: false });
     }
-}
+    return () => {
+      document.removeEventListener('wheel', handleWheel);
+    };
+  }, [context.isOpen]);
 
-------------------------------------------------------------
-UserServiceImpl
-
-package com.example.my_books_backend.service.impl;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.user.EmailChangeRequest;
-import com.example.my_books_backend.dto.user.PasswordChangeRequest;
-import com.example.my_books_backend.dto.user.CreateUserRequest;
-import com.example.my_books_backend.dto.user.UserResponse;
-import com.example.my_books_backend.dto.user.UpdateUserRequest;
-import com.example.my_books_backend.entity.Role;
-import com.example.my_books_backend.entity.RoleName;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.exception.ConflictException;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.exception.UnauthorizedException;
-import com.example.my_books_backend.exception.ValidationException;
-import com.example.my_books_backend.mapper.UserMapper;
-import com.example.my_books_backend.repository.RoleRepository;
-import com.example.my_books_backend.repository.UserRepository;
-import com.example.my_books_backend.service.UserService;
-import com.example.my_books_backend.util.RandomStringUtil;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final UserMapper userMapper;
-    private final RandomStringUtil randomStringUtil;
-
-    @Value("${spring.app.default.avatarUrl}")
-    private String DEFAULT_AVATAR_URL;
-
-    @Override
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    @Override
-    public List<UserResponse> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return userMapper.toResponseList(users);
-    }
-
-    @Override
-    public UserResponse getUserById(Integer id) {
-        User user = findUserById(id);
-        return userMapper.toResponse(user);
-    }
-
-    @Override
-    public UserResponse createUser(CreateUserRequest createUserRequest) {
-        User user = userMapper.toEntity(createUserRequest);
-
-        user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
-
-        if (user.getRoles() == null) {
-            Role role = roleRepository.findByName(RoleName.ROLE_USER);
-            user.setRoles(Collections.singletonList(role));
-        }
-
-        if (user.getName() == null) {
-            String name = "USER_" + randomStringUtil.generateRandomString();
-            user.setName(name);
-        }
-
-        if (user.getAvatarUrl() == null) {
-            String avatarUrl = DEFAULT_AVATAR_URL;
-            user.setAvatarUrl(avatarUrl);
-        }
-
-        User saveUser = userRepository.save(user);
-        return userMapper.toResponse(saveUser);
-    }
-
-    @Override
-    public UserResponse getCurrentUser() {
-        User user = getAuthenticatedUser();
-        return userMapper.toResponse(user);
-    }
-
-    @Override
-    public void updateCurrentUser(UpdateUserRequest updateUserRequest) {
-        User user = getAuthenticatedUser();
-
-        String name = updateUserRequest.getName();
-        String avatarUrl = updateUserRequest.getAvatarUrl();
-
-        if (name != null) {
-            user.setName(name);
-        }
-        if (avatarUrl != null) {
-            user.setAvatarUrl(avatarUrl);
-        }
-        userRepository.save(user);
-    }
-
-    @Override
-    public void changeEmail(EmailChangeRequest emailChangeRequest) {
-        User user = getAuthenticatedUser();
-
-        String email = emailChangeRequest.getNewEmail();
-
-        if (userRepository.existsByEmail(email)) {
-            throw new ConflictException("このメールアドレスは既に登録されています。: " + email);
-        }
-
-        // 本来はここで新しいメールアドレスにメールを送ってメール内のリンクを
-        // クリックしてもらうなどで、新しいメールアドレスが本人のものであるか
-        // 確認してから、メールアドレスを更新する
-
-        user.setEmail(email);
-        userRepository.save(user);
-    }
-
-    @Override
-    public void changePassword(PasswordChangeRequest passwordChangeRequest) {
-        User user = getAuthenticatedUser();
-
-        String newPassword = passwordChangeRequest.getNewPassword();
-        String confirmNewPassword = passwordChangeRequest.getConfirmNewPassword();
-        String currentPassword = passwordChangeRequest.getCurrentPassword();
-
-        if (!newPassword.equals(confirmNewPassword)) {
-            throw new ValidationException("新しいパスワードと確認用パスワードが一致していません。");
-        }
-
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new UnauthorizedException("現在のパスワードが間違っています。");
-        }
-
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-    }
-
-    @Override
-    public void deleteUser(Integer id) {
-        User user = findUserById(id);
-        userRepository.delete(user);
-    }
-
-    private User findUserById(Integer id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("見つかりませんでした。 ID: " + id));
-        return user;
-    }
-
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User authenticatedUser = (User) authentication.getPrincipal();
-        return authenticatedUser;
-    }
-
-}
-
-------------------------------------------------------------
-AuthService
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.auth.LoginRequest;
-import com.example.my_books_backend.dto.auth.LoginResponse;
-import com.example.my_books_backend.dto.auth.SignupRequest;
-import com.example.my_books_backend.dto.auth.TokenRefreshRequest;
-import com.example.my_books_backend.dto.auth.TokenRefreshResponse;
-import com.example.my_books_backend.dto.user.CreateUserRequest;
-import com.example.my_books_backend.dto.user.UserResponse;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.exception.ConflictException;
-import com.example.my_books_backend.exception.UnauthorizedException;
-import com.example.my_books_backend.exception.ValidationException;
-import com.example.my_books_backend.repository.UserRepository;
-import com.example.my_books_backend.util.JwtUtil;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class AuthService {
-
-    private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
-    private final UserService userService;
-    private final JwtUtil jwtUtil;
-
-    public LoginResponse login(LoginRequest loginRequest) {
-        Authentication authentication;
-        try {
-            authentication =
-                    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                            loginRequest.getEmail(), loginRequest.getPassword()));
-        } catch (AuthenticationException e) {
-            throw new UnauthorizedException("ログインに失敗しました。メールアドレスまたはパスワードが無効です。");
-        }
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        User user = (User) authentication.getPrincipal();
-
-        String accessToken = jwtUtil.generateAccessToken(user);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
-
-        String name = user.getName();
-        List<String> roles = user.getRoles().stream().map(role -> role.getName()).toList();
-
-        return new LoginResponse(accessToken, refreshToken, name, roles);
-    }
-
-    public UserResponse signup(SignupRequest signupRequest) {
-        String email = signupRequest.getEmail();
-        String password = signupRequest.getPassword();
-        String confirmPassword = signupRequest.getConfirmPassword();
-
-        if (!password.equals(confirmPassword)) {
-            throw new ValidationException("パスワードと確認用パスワードが一致していません。");
-        }
-
-        if (userRepository.existsByEmail(email)) {
-            throw new ConflictException("サインアップに失敗しました。このメールアドレスは既に登録されています。: " + email);
-        }
-
-        CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setEmail(email);
-        createUserRequest.setPassword(password);
-
-        return userService.createUser(createUserRequest);
-    }
-
-    public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
-        String requestRefreshToken = request.getRefreshToken();
-
-        if (jwtUtil.validateRefreshToken(requestRefreshToken)) {
-            String email = jwtUtil.getSubjectFromToken(requestRefreshToken);
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UnauthorizedException("ユーザーが見つかりません。"));
-
-            String newAccessToken = jwtUtil.generateAccessToken(user);
-            return new TokenRefreshResponse(newAccessToken, requestRefreshToken);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && context.isOpen) {
+        if (onEscapeKeyDown) {
+          onEscapeKeyDown();
         } else {
-            throw new UnauthorizedException("リフレッシュトークンが無効です。");
+          context.closePopover();
         }
-    }
-}
-
-------------------------------------------------------------
-BookService
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-
-public interface BookService {
-    List<BookResponse> getAllBooks();
-
-    BookResponse getBookById(String id);
-
-    PaginatedBookResponse searchByTitle(String q, Integer page, Integer maxResults);
-
-    PaginatedBookResponse searchByGenreId(String genreId, Integer page, Integer maxResults);
-
-    List<BookResponse> getNewReleases();
-}
-
-------------------------------------------------------------
-GenreService
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import com.example.my_books_backend.dto.genre.CreateGenreRequest;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-import com.example.my_books_backend.dto.genre.UpdateGenreRequest;
-
-public interface GenreService {
-    List<GenreResponse> getAllGenres();
-
-    GenreResponse getGenreById(Integer id);
-
-    GenreResponse createGenre(CreateGenreRequest createGenreRequest);
-
-    void putGenre(Integer id, UpdateGenreRequest updateGenreRequest);
-
-    void patchGenre(Integer id, UpdateGenreRequest updateGenreRequest);
-
-    void deleteGenre(Integer id);
-}
-
-------------------------------------------------------------
-UserService
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import java.util.Optional;
-import com.example.my_books_backend.dto.user.EmailChangeRequest;
-import com.example.my_books_backend.dto.user.PasswordChangeRequest;
-import com.example.my_books_backend.dto.user.CreateUserRequest;
-import com.example.my_books_backend.dto.user.UserResponse;
-import com.example.my_books_backend.dto.user.UpdateUserRequest;
-import com.example.my_books_backend.entity.User;
-
-public interface UserService {
-    Optional<User> findByEmail(String email);
-
-    List<UserResponse> getAllUsers();
-
-    UserResponse getUserById(Integer id);
-
-    void deleteUser(Integer id);
-
-    UserResponse createUser(CreateUserRequest createUserRequest);
-
-    UserResponse getCurrentUser();
-
-    void updateCurrentUser(UpdateUserRequest updateUserRequest);
-
-    void changeEmail(EmailChangeRequest emailChangeRequest);
-
-    void changePassword(PasswordChangeRequest passwordChangeRequest);
-}
-
-------------------------------------------------------------
-JwtUtil
-
-package com.example.my_books_backend.util;
-
-import java.security.Key;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import javax.crypto.SecretKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.entity.Role;
-import com.example.my_books_backend.entity.User;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-
-@Component
-public class JwtUtil {
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
-
-    @Value("${spring.app.jwtSecret}")
-    private String secret;
-
-    @Value("${spring.app.jwtAccessExpirationMs}")
-    private int accessExpiration;
-
-    @Value("${spring.app.jwtRefreshExpirationMs}")
-    private int refreshExpiration;
-
-    // アクセストークン生成
-    public String generateAccessToken(User user) {
-        String email = user.getEmail();
-        String username = user.getName();
-        String roles = user.getRoles().stream().map(Role::getName).collect(Collectors.joining(","));
-
-        return Jwts.builder().subject(email).claim("username", username).claim("roles", roles)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + accessExpiration)).signWith(key())
-                .compact();
-    }
-
-    // リフレッシュトークン生成
-    public String generateRefreshToken(User user) {
-        String email = user.getEmail();
-
-        return Jwts.builder().subject(email).issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
-                .signWith(key()).compact();
-    }
-
-    // 秘密鍵の生成
-    private Key key() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    // アクセストークンの検証
-    public boolean validateAccessToken(String token) {
-        try {
-            Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(token);
-            return true;
-        } catch (MalformedJwtException e) {
-            logger.error("Invalid JWT token: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
-            logger.error("JWT token is expired: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            logger.error("JWT token is unsupported: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            logger.error("JWT claims string is empty: {}", e.getMessage());
+      }
+    };
+    const handlePointerDownOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        if (onPointerDownOutside) {
+          onPointerDownOutside();
+        } else {
+          context.closePopover();
         }
-        return false;
-    }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handlePointerDownOutside);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handlePointerDownOutside);
+    };
+  }, [context, onEscapeKeyDown, onPointerDownOutside]);
 
-    // リフレッシュトークンの検証
-    public boolean validateRefreshToken(String token) {
-        try {
-            Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(token);
-            return true;
-        } catch (Exception e) {
-            logger.error("Invalid JWT token: {}", e.getMessage());
+  // 閉じるアニメーションが終わった時にopacity:0にする
+  // data-[state=closed]でopacity:0へのアニメーションはするが、
+  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
+  // これを防ぐためにdisplay:'none'にする
+  const ref = useRef<HTMLDivElement | null>(null);
+  const handleAnimationEnd = (e: React.AnimationEvent) => {
+    if (e.animationName === 'exit' && ref.current) {
+      ref.current.style.display = 'none';
+      setIsVisible(false);
+    }
+  };
+
+  const mergeProps = {
+    ...props,
+    onAnimationEnd: (e: React.AnimationEvent<HTMLDivElement>) => {
+      props.onAnimationEnd?.(e);
+      handleAnimationEnd(e);
+    },
+  };
+
+  const [transformStyle, setTransformStyle] = useState('');
+
+  useEffect(() => {
+    // triggerとなる要素からPopoverを表示する座標を計算する
+    // （style属性に指定する文字列作成）
+    if (context.triggerRef.current) {
+      const { left, top, right, bottom, width, height } =
+        context.triggerRef.current.getBoundingClientRect();
+
+      const getOffset = (align: PopoverAlignType, size: number) => {
+        switch (align) {
+          case 'start':
+            return `0% - ${size / 2}px`;
+          case 'end':
+            return `-100% + ${size / 2}px`;
+          default:
+            return '-50%';
         }
-        return false;
-    }
+      };
 
-    // トークンからサブジェクトを取得
-    public String getSubjectFromToken(String token) {
-        return getClaimFromToken(token, claims -> claims.getSubject());
-    }
+      const offsetX = getOffset(align, width);
+      const offsetY = getOffset(align, height);
 
-    // トークンのロールを取得
-    public List<String> getRolesFromToken(String token) {
-        return getClaimFromToken(token, claims -> {
-            String rolesString = claims.get("roles", String.class);
-            return rolesString != null ? Arrays.asList(rolesString.split(","))
-                    : Collections.emptyList();
-        });
-    }
+      const positions = {
+        top: {
+          x: left + width / 2,
+          y: top,
+          offset: { x: offsetX, y: `-100% - ${sideOffset}px` },
+        },
+        bottom: {
+          x: left + width / 2,
+          y: bottom,
+          offset: { x: offsetX, y: `0% + ${sideOffset}px` },
+        },
+        left: {
+          x: left,
+          y: top + height / 2,
+          offset: { x: `-100% - ${sideOffset}px`, y: offsetY },
+        },
+        right: {
+          x: right,
+          y: top + height / 2,
+          offset: { x: `0% + ${sideOffset}px`, y: offsetY },
+        },
+      };
+      const pos = positions[side];
 
-    // トークンの有効期限を取得
-    public Date getExpirationDateFromToken(String token) {
-        return getClaimFromToken(token, claims -> claims.getExpiration());
+      setTransformStyle(
+        `translate(calc(${pos.x}px + ${pos.offset.x}), calc(${pos.y}px + ${pos.offset.y}))`
+      );
     }
+  }, [align, context, context.triggerRef, side, sideOffset]);
 
-    // トークンの有効期限チェック
-    public Boolean isTokenExpired(String token) {
-        return getExpirationDateFromToken(token).before(new Date());
-    }
+  return ReactDOM.createPortal(
+    <>
+      {isVisible && (
+        <>
+          <div className="fixed left-0 top-0 z-50" style={{ transform: transformStyle }}>
+            <div
+              ref={ref}
+              className={cn(
+                'z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+                className
+              )}
+              data-state={context.isOpen ? 'open' : 'closed'}
+              data-side={side}
+              {...mergeProps}
+            >
+              {children}
+            </div>
+          </div>
+        </>
+      )}
+    </>,
+    document.body
+  );
+};
 
-    // 汎用的なクレーム取得メソッド
-    private <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = getAllClaimsFromToken(token);
-        return claimsResolver.apply(claims);
-    }
+export { Popover, PopoverContent, PopoverTrigger };
 
-    // すべてのクレームを取得
-    private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(token)
-                .getPayload();
-    }
+------------------------------------------------------------
+select
+
+import { cn } from '@/lib/util';
+import { CheckIcon, ChevronDownIcon } from 'lucide-react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
+
+type SelectSideType = 'top' | 'right' | 'bottom' | 'left';
+type SelectAlignType = 'start' | 'center' | 'end';
+
+const DEFAULT_SIDE: SelectSideType = 'bottom';
+const DEFAULT_ALIGN: SelectAlignType = 'center';
+const DEFAULT_SIDE_OFFSET = 4;
+
+interface SelectContextType {
+  isOpen: boolean;
+  openSelect: () => void;
+  closeSelect: () => void;
+  triggerRef: React.MutableRefObject<HTMLDivElement | HTMLButtonElement | null>;
+  focusedIndex: number;
+  setFocusedIndex: (index: number) => void;
+  itemsRef: React.MutableRefObject<HTMLButtonElement[]>;
+  innerValue: string;
+  setValue: (value: string) => void;
 }
 
-// ---------------------------------------------------------------------------
-// JWT秘密鍵
-// @Value("${spring.app.jwtSecret}")
-// private String secret;
-//
-// 以下のようなプログラムで生成した値を環境変数に設定
-// import java.security.SecureRandom;
-// import java.util.Base64;
-//
-// public class JwtSecretGenerator {
-// public static void main(String[] args) {
-// // 256ビット（32バイト）のランダムな秘密鍵を生成
-// byte[] keyBytes = new byte[32];
-// new SecureRandom().nextBytes(keyBytes);
-//
-// // Base64エンコード
-// String base64EncodedSecret = Base64.getEncoder().encodeToString(keyBytes);
-//
-// System.out.println("生成されたBase64エンコード秘密鍵:");
-// System.out.println(base64EncodedSecret);
-// }
-// }
+const SelectContext = React.createContext<SelectContextType | undefined>(undefined);
+
+// ----------------------------------------------------------------------------
+// Select
+// ----------------------------------------------------------------------------
+interface SelectProps extends React.HTMLAttributes<HTMLDivElement> {
+  open?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
+  value?: string;
+  onValueChange?: (value: string) => void;
+}
+
+const Select = ({ children, open, onOpenChange, value, onValueChange }: SelectProps) => {
+  // 外部からの状態を優先し、指定がない場合は内部状態を利用
+  const [isOpen, setIsOpen] = useState(open ?? false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const itemsRef = useRef<HTMLButtonElement[]>([]);
+  const [innerValue, setInnerValue] = useState(value ?? '');
+
+  // propsが更新されたら内部状態も更新
+  useEffect(() => {
+    if (open !== undefined) {
+      setIsOpen(open);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (value !== undefined) {
+      setInnerValue(value);
+    }
+  }, [value]);
+
+  const openSelect = useCallback(() => {
+    if (onOpenChange) {
+      onOpenChange(true);
+    } else {
+      setIsOpen(true);
+    }
+  }, [onOpenChange]);
+
+  const closeSelect = useCallback(() => {
+    if (onOpenChange) {
+      onOpenChange(false);
+    } else {
+      setIsOpen(false);
+    }
+  }, [onOpenChange]);
+
+  const setValue = useCallback(
+    (value: string) => {
+      if (onValueChange) {
+        onValueChange(value);
+      } else {
+        setInnerValue(value);
+      }
+    },
+    [onValueChange]
+  );
+
+  const triggerRef = useRef<HTMLDivElement | null>(null);
+
+  return (
+    <SelectContext.Provider
+      value={{
+        isOpen,
+        openSelect,
+        closeSelect,
+        triggerRef,
+        focusedIndex,
+        setFocusedIndex,
+        itemsRef,
+        innerValue,
+        setValue,
+      }}
+    >
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          switch (child.type) {
+            case SelectTrigger:
+            case SelectContent:
+              return child;
+            default:
+              return null;
+          }
+        }
+      })}
+    </SelectContext.Provider>
+  );
+};
+
+// ----------------------------------------------------------------------------
+// SelectTrigger
+// ----------------------------------------------------------------------------
+interface SelectTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
+}
+
+const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerProps>(
+  ({ className, children, asChild = false, ...props }, ref) => {
+    const context = useContext(SelectContext);
+    if (!context) throw new Error('SelectContent must be used within Select');
+
+    const { openSelect, triggerRef } = context;
+
+    if (asChild && React.isValidElement(children)) {
+      const mergeChildProps = {
+        ...children.props,
+        onClick: (e: React.MouseEvent) => {
+          children.props.onClick?.(e);
+          openSelect();
+        },
+      };
+      return (
+        <div
+          ref={triggerRef as React.MutableRefObject<HTMLDivElement>}
+          className={cn('w-fit', className)}
+        >
+          {React.cloneElement(children, { ...mergeChildProps, ref })}
+        </div>
+      );
+    }
+
+    const mergeProps = {
+      ...props,
+      onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+        props.onClick?.(e);
+        openSelect();
+      },
+    };
+
+    return (
+      <button
+        ref={triggerRef as React.MutableRefObject<HTMLButtonElement>}
+        className={cn(
+          'flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+          className
+        )}
+        {...mergeProps}
+      >
+        {React.Children.map(children, (child) => {
+          if (React.isValidElement(child)) {
+            switch (child.type) {
+              case SelectValue:
+                return child;
+              default:
+                return null;
+            }
+          }
+        })}
+        <ChevronDownIcon className="size-4 opacity-50" />
+      </button>
+    );
+  }
+);
+
+// ----------------------------------------------------------------------------
+// SelectContent
+// ----------------------------------------------------------------------------
+interface SelectContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  side?: SelectSideType;
+  align?: SelectAlignType;
+  sideOffset?: number;
+  onEscapeKeyDown?: () => void;
+  onPointerDownOutside?: () => void;
+  position?: 'item-aligned' | 'popper';
+}
+
+const SelectContent = ({
+  children,
+  className,
+  side = DEFAULT_SIDE,
+  align = DEFAULT_ALIGN,
+  sideOffset = DEFAULT_SIDE_OFFSET,
+  onEscapeKeyDown,
+  onPointerDownOutside,
+  position = 'item-aligned',
+  ...props
+}: SelectContentProps) => {
+  const context = useContext(SelectContext);
+  if (!context) throw new Error('SelectContent must be used within Select');
+
+  const { isOpen, closeSelect, triggerRef, focusedIndex, itemsRef, setFocusedIndex } =
+    context;
+
+  const [isVisible, setIsVisible] = useState(false);
+
+  const handleArrawNavigation = useCallback(
+    (key: string) => {
+      const isArrowUp = key === 'ArrowUp';
+      const itemCount = itemsRef.current.length;
+
+      const newIndex = isArrowUp
+        ? (focusedIndex - 1 + itemCount) % itemCount
+        : (focusedIndex + 1) % itemCount;
+
+      setFocusedIndex(newIndex);
+      itemsRef.current[newIndex].focus();
+    },
+    [focusedIndex, itemsRef, setFocusedIndex]
+  );
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      switch (e.key) {
+        case 'Escape':
+          if (onEscapeKeyDown) {
+            onEscapeKeyDown();
+          } else {
+            closeSelect();
+          }
+          break;
+
+        case 'Tab':
+          e.preventDefault();
+          break;
+
+        case 'ArrowUp':
+        case 'ArrowDown':
+          e.preventDefault();
+          handleArrawNavigation(e.key);
+          break;
+      }
+    },
+    [closeSelect, handleArrawNavigation, isOpen, onEscapeKeyDown]
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      document.addEventListener('wheel', handleWheel, { passive: false });
+      document.addEventListener('keydown', handleKeyDown);
+    } else {
+      setFocusedIndex(-1);
+      document.removeEventListener('wheel', handleWheel);
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('wheel', handleWheel);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown, handleWheel, isOpen, setFocusedIndex]);
+
+  const handlePointerDownOutside = () => {
+    if (onPointerDownOutside) {
+      onPointerDownOutside();
+    } else {
+      closeSelect();
+    }
+  };
+
+  // 閉じるアニメーションが終わった時にopacity:0にする
+  // data-[state=closed]でopacity:0へのアニメーションはするが、
+  // それが終わるとopacity:1へリセットされてしまい、ちらつくので
+  // これを防ぐためにdisplay:'none'にする
+  const ref = useRef<HTMLDivElement | null>(null);
+  const handleAnimationEnd = (e: React.AnimationEvent) => {
+    if (e.animationName === 'exit' && ref.current) {
+      ref.current.style.display = 'none';
+      setIsVisible(false);
+    }
+  };
+
+  const mergeProps = {
+    ...props,
+    onAnimationEnd: (e: React.AnimationEvent<HTMLDivElement>) => {
+      props.onAnimationEnd?.(e);
+      handleAnimationEnd(e);
+    },
+  };
+
+  const [transformStyle, setTransformStyle] = useState('');
+
+  useEffect(() => {
+    // triggerとなる要素からSelectを表示する座標を計算する
+    // （style属性に指定する文字列作成）
+    if (triggerRef.current) {
+      const { left, top, right, bottom, width, height } =
+        triggerRef.current.getBoundingClientRect();
+
+      const getOffset = (align: SelectAlignType, size: number) => {
+        switch (align) {
+          case 'start':
+            return `0% - ${size / 2}px`;
+          case 'end':
+            return `-100% + ${size / 2}px`;
+          default:
+            return '-50%';
+        }
+      };
+
+      const offsetX = getOffset(align, width);
+      const offsetY = getOffset(align, height);
+
+      const positions = {
+        top: {
+          x: left + width / 2,
+          y: top,
+          offset: { x: offsetX, y: `-100% - ${sideOffset}px` },
+        },
+        bottom: {
+          x: left + width / 2,
+          y: bottom,
+          offset: { x: offsetX, y: `0% + ${sideOffset}px` },
+        },
+        left: {
+          x: left,
+          y: top + height / 2,
+          offset: { x: `-100% - ${sideOffset}px`, y: offsetY },
+        },
+        right: {
+          x: right,
+          y: top + height / 2,
+          offset: { x: `0% + ${sideOffset}px`, y: offsetY },
+        },
+      };
+      const pos = positions[side];
+
+      setTransformStyle(
+        `translate(calc(${pos.x}px + ${pos.offset.x}), calc(${pos.y}px + ${pos.offset.y}))`
+      );
+    }
+  }, [context, triggerRef, side, sideOffset, align]);
+
+  let itemIndex = 0;
+  const innerChildren = React.Children.map(children, (child) => {
+    if (React.isValidElement(child)) {
+      switch (child.type) {
+        case SelectItem:
+          return React.cloneElement(child, { ...child.props, index: itemIndex++ });
+        default:
+          return child;
+      }
+    }
+  });
+
+  return ReactDOM.createPortal(
+    <>
+      {isVisible && (
+        <>
+          <div className="fixed inset-0 z-50" onClick={handlePointerDownOutside} />
+          <div className="fixed left-0 top-0 z-50" style={{ transform: transformStyle }}>
+            <div
+              ref={ref}
+              className={cn(
+                'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+                position === 'popper' &&
+                  'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
+                className
+              )}
+              style={{ minWidth: `${triggerRef.current?.offsetWidth}px` }}
+              data-state={isOpen ? 'open' : 'closed'}
+              data-side={side}
+              {...mergeProps}
+            >
+              <div
+                className={cn(
+                  'p-1',
+                  position === 'popper' &&
+                    'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
+                )}
+              >
+                {innerChildren}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>,
+    document.body
+  );
+};
+
+// ----------------------------------------------------------------------------
+// SelectItem
+// ----------------------------------------------------------------------------
+interface SelectItemProps extends React.HTMLAttributes<HTMLButtonElement> {
+  index?: number;
+  value?: string;
+}
+const SelectItem = ({
+  className,
+  children,
+  index = 0,
+  value,
+  ...props
+}: SelectItemProps) => {
+  const context = useContext(SelectContext);
+  if (!context) throw new Error('SelectItem must be used within Select');
+
+  const { innerValue, itemsRef, setFocusedIndex, setValue, closeSelect } = context;
+
+  useEffect(() => {
+    if (innerValue === value) {
+      itemsRef.current[index].focus();
+      setFocusedIndex(index);
+    }
+  }, [index, innerValue, itemsRef, setFocusedIndex, value]);
+
+  const mergeProps = {
+    ...props,
+    onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => {
+      props.onMouseEnter?.(e);
+      itemsRef.current[index].focus();
+    },
+    onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (props.onClick) {
+        props.onClick(e);
+        return;
+      }
+      setValue(value ?? '');
+      closeSelect();
+    },
+  };
+
+  return (
+    <button
+      ref={(el) => (itemsRef.current[index] = el as HTMLButtonElement)}
+      className={cn(
+        'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        className
+      )}
+      tabIndex={-1}
+      {...mergeProps}
+    >
+      <span className="absolute left-2 flex size-3.5 items-center justify-center">
+        {innerValue === value && <CheckIcon className="size-4" />}
+      </span>
+      {children}
+    </button>
+  );
+};
+// ----------------------------------------------------------------------------
+// SelectSeparator
+// ----------------------------------------------------------------------------
+type SelectSeparatorProps = React.HTMLAttributes<HTMLDivElement>;
+const SelectSeparator = React.forwardRef<HTMLDivElement, SelectSeparatorProps>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('-mx-1 my-1 h-px bg-muted', className)} {...props} />
+  )
+);
+
+// ----------------------------------------------------------------------------
+// SelectLabel
+// ----------------------------------------------------------------------------
+type SelectLabelProps = React.HTMLAttributes<HTMLDivElement>;
+const SelectLabel = React.forwardRef<HTMLDivElement, SelectLabelProps>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold', className)}
+      {...props}
+    />
+  )
+);
+
+// ----------------------------------------------------------------------------
+// SelectValue
+// ----------------------------------------------------------------------------
+interface SelectValueProps extends React.HTMLAttributes<HTMLDivElement> {
+  placeholder?: string;
+}
+const SelectValue = React.forwardRef<HTMLDivElement, SelectValueProps>(
+  ({ className, placeholder, ...props }, ref) => {
+    const context = useContext(SelectContext);
+    if (!context) throw new Error('SelectValue must be used within Select');
+
+    const { innerValue } = context;
+
+    return (
+      <span ref={ref} className={cn('', className)} {...props}>
+        {innerValue || placeholder}
+      </span>
+    );
+  }
+);
+
+export {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+};
 
 ------------------------------------------------------------
-docker-compose
+tooltip
 
-services:
-  app:
-    build:
-      context: .
-      dockerfile: .devcontainer/Dockerfile
-    volumes:
-      - .:/my-books-backend
-    tty: true
-    ports:
-      - 8080:8080
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-books-db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: password
-      SPRING_APP_JWT_SECRET: Ry9CqEZVzQH7k1234abcdefghijklmnopqrstuvwxyzABCD+/=
-      SPRING_APP_JWT_ACCESS_EXPIRATION_MS: 3600000
-      SPRING_APP_JWT_REFRESH_EXPIRATION_MS: 86400000
-    depends_on:
-      - db
+import { cn } from '@/lib/util';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: my-books-db
-    ports:
-      - 3306:3306
-    volumes:
-      - ./.devcontainer/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./.devcontainer/db/data.csv:/docker-entrypoint-initdb.d/data.csv
-      - ./.devcontainer/db/my.cnf:/etc/mysql/conf.d/my.cnf
-      - db_data:/var/lib/mysql
-    command: --secure-file-priv=/docker-entrypoint-initdb.d
+type TooltipSideType = 'top' | 'right' | 'bottom' | 'left';
+type TooltipAlignType = 'start' | 'center' | 'end';
 
-volumes:
-  db_data:
+const DEFAULT_SIDE: TooltipSideType = 'top';
+const DEFAULT_ALIGN: TooltipAlignType = 'center';
+const DEFAULT_SIDE_OFFSET = 8;
+
+interface TooltipContextType {
+  isOpen: boolean;
+  openTooltip: () => void;
+  closeTooltip: () => void;
+  triggerRef: React.MutableRefObject<HTMLDivElement | null>;
+}
+
+const TooltipContext = React.createContext<TooltipContextType | undefined>(undefined);
+
+// ----------------------------------------------------------------------------
+// Tooltip
+// ----------------------------------------------------------------------------
+interface TooltipProps extends React.HTMLAttributes<HTMLDivElement> {
+  open?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
+}
+
+const Tooltip = ({ children, open, onOpenChange }: TooltipProps) => {
+  // 外部からの状態を優先し、指定がない場合は内部状態を利用
+  const [isOpen, setIsOpen] = useState(open ?? false);
+
+  // propsが更新されたら内部状態も更新
+  useEffect(() => {
+    if (open !== undefined) {
+      setIsOpen(open);
+    }
+  }, [open]);
+
+  const openTooltip = useCallback(() => {
+    if (onOpenChange) {
+      onOpenChange(true);
+    } else {
+      setIsOpen(true);
+    }
+  }, [onOpenChange]);
+
+  const closeTooltip = useCallback(() => {
+    if (onOpenChange) {
+      onOpenChange(false);
+    } else {
+      setIsOpen(false);
+    }
+  }, [onOpenChange]);
+
+  const triggerRef = useRef<HTMLDivElement | null>(null);
+
+  return (
+    <TooltipContext.Provider value={{ isOpen, openTooltip, closeTooltip, triggerRef }}>
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          switch (child.type) {
+            case TooltipTrigger:
+            case TooltipContent:
+              return child;
+            default:
+              return null;
+          }
+        }
+      })}
+    </TooltipContext.Provider>
+  );
+};
+
+// ----------------------------------------------------------------------------
+// TooltipTrigger
+// ----------------------------------------------------------------------------
+interface TooltipTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
+}
+
+const TooltipTrigger = React.forwardRef<HTMLButtonElement, TooltipTriggerProps>(
+  ({ children, asChild = false, ...props }, ref) => {
+    const context = useContext(TooltipContext);
+    if (!context) throw new Error('TooltipContent must be used within Tooltip');
+
+    const { triggerRef, openTooltip, closeTooltip } = context;
+
+    if (asChild && React.isValidElement(children)) {
+      const mergeChildProps = {
+        ...children.props,
+      };
+      return (
+        <div
+          ref={triggerRef}
+          className="w-fit"
+          onPointerEnter={openTooltip}
+          onPointerLeave={closeTooltip}
+          onPointerDown={closeTooltip}
+        >
+          {React.cloneElement(children, { ...mergeChildProps, ref })}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        ref={triggerRef}
+        className="w-fit"
+        onPointerEnter={openTooltip}
+        onPointerLeave={closeTooltip}
+        onPointerDown={closeTooltip}
+      >
+        <button ref={ref} {...props}>
+          {children}
+        </button>
+      </div>
+    );
+  }
+);
+
+// ----------------------------------------------------------------------------
+// TooltipContent
+// ----------------------------------------------------------------------------
+interface TooltipContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  side?: TooltipSideType;
+  align?: TooltipAlignType;
+  sideOffset?: number;
+}
+
+const TooltipContent = React.forwardRef<HTMLDivElement, TooltipContentProps>(
+  (
+    {
+      children,
+      className,
+      side = DEFAULT_SIDE,
+      align = DEFAULT_ALIGN,
+      sideOffset = DEFAULT_SIDE_OFFSET,
+      ...props
+    },
+    ref
+  ) => {
+    const context = useContext(TooltipContext);
+    if (!context) throw new Error('TooltipContent must be used within Tooltip');
+
+    const { isOpen, closeTooltip, triggerRef } = context;
+
+    const [transformStyle, setTransformStyle] = useState('');
+
+    const handleWheel = useCallback(
+      (e: WheelEvent) => {
+        e.preventDefault();
+        closeTooltip();
+      },
+      [closeTooltip]
+    );
+
+    useEffect(() => {
+      if (isOpen) {
+        document.addEventListener('wheel', handleWheel, { passive: false });
+      } else {
+        document.removeEventListener('wheel', handleWheel);
+      }
+      return () => {
+        document.removeEventListener('wheel', handleWheel);
+      };
+    }, [handleWheel, isOpen]);
+
+    useEffect(() => {
+      // triggerとなる要素からTooltipを表示する座標を計算する
+      // （style属性に指定する文字列作成）
+      if (triggerRef.current) {
+        const { left, top, right, bottom, width, height } =
+          triggerRef.current.getBoundingClientRect();
+
+        const getOffset = (align: TooltipAlignType, size: number) => {
+          switch (align) {
+            case 'start':
+              return `0% - ${size / 2}px`;
+            case 'end':
+              return `-100% + ${size / 2}px`;
+            default:
+              return '-50%';
+          }
+        };
+
+        const offsetX = getOffset(align, width);
+        const offsetY = getOffset(align, height);
+
+        const positions = {
+          top: {
+            x: left + width / 2,
+            y: top,
+            offset: { x: offsetX, y: `-100% - ${sideOffset}px` },
+          },
+          bottom: {
+            x: left + width / 2,
+            y: bottom,
+            offset: { x: offsetX, y: `0% + ${sideOffset}px` },
+          },
+          left: {
+            x: left,
+            y: top + height / 2,
+            offset: { x: `-100% - ${sideOffset}px`, y: offsetY },
+          },
+          right: {
+            x: right,
+            y: top + height / 2,
+            offset: { x: `0% + ${sideOffset}px`, y: offsetY },
+          },
+        };
+        const pos = positions[side];
+
+        setTransformStyle(
+          `translate(calc(${pos.x}px + ${pos.offset.x}), calc(${pos.y}px + ${pos.offset.y}))`
+        );
+      }
+    }, [context, triggerRef, side, sideOffset, align]);
+
+    return (
+      <>
+        {isOpen && (
+          <div className="fixed left-0 top-0 z-50" style={{ transform: transformStyle }}>
+            <div
+              ref={ref}
+              className={cn(
+                'z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+                className
+              )}
+              data-state={isOpen ? 'open' : 'closed'}
+              data-side={side}
+              {...props}
+            >
+              {children}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+);
+
+export { Tooltip, TooltipContent, TooltipTrigger };
+
 ------------------------------------------------------------
-application
+search-bar
 
-spring.application.name=my-books-backend
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
+import { FormEvent, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-# spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
-spring.jpa.properties.hibernate.hbm2dll.create_namespaces=true
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.open-in-view=false
+export default function SearchBar() {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-# DB
-spring.datasource.url=${SPRING_DATASOURCE_URL}
-spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
-spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+  const [query, setQuery] = useState('');
 
-# JWT
-spring.app.jwtSecret=${SPRING_APP_JWT_SECRET}
-# spring.app.jwtAccessExpirationMs=${SPRING_APP_JWT_ACCESS_EXPIRATION_MS}
-# spring.app.jwtRefreshExpirationMs=${SPRING_APP_JWT_REFRESH_EXPIRATION_MS}
-spring.app.jwtAccessExpirationMs=60000
-spring.app.jwtRefreshExpirationMs=180000
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const query = params.get('q') ?? '';
+    setQuery(query);
+  }, [location.search]);
 
-# User default avatarUrl
-spring.app.default.avatarUrl="http://localhost:18080/images/avatars/avatar00.jpg"
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!query) return;
+
+    const params = new URLSearchParams();
+    params.set('q', query);
+    params.set('page', '1');
+    navigate(`/search?${params.toString()}`);
+  };
+
+  return (
+    <div>
+      <form className="relative h-10 w-full" onSubmit={handleSubmit}>
+        <Input
+          className="rounded-full border-foreground/20 bg-background/20 pl-10 pr-4"
+          type="search"
+          placeholder="検索"
+          name="query"
+          autoComplete="off"
+          spellCheck="false"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <Search className="absolute left-2.5 top-2.5 size-5" />
+      </form>
+    </div>
+  );
+}
 
 ------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
+constants
+
+import { HeartIcon, ListIcon, SettingsIcon } from 'lucide-react';
+
+// ロゴ
+export const LOGO_TITLE = 'My Books';
+
+// メニュー一覧
+export const MENU_LIST = [
+  { href: '/favorites', title: 'お気に入り', icon: HeartIcon },
+  { href: '/my-list', title: 'マイリスト', icon: ListIcon },
+  { href: '/settings', title: '設定', icon: SettingsIcon },
+];
+
+// API Endpoits
+// export const BOOKS_API_ENDPOINT = 'http://vsv-emerald/my-books/api/v1';
+export const BOOKS_API_ENDPOINT = 'https://localhost/my-books/api/v1';
+
+// export const BOOKS_IMAGE_URL = 'http://vsv-emerald/images';
+export const BOOKS_IMAGE_URL = 'https://localhost/images';
 
 ------------------------------------------------------------
+auth
+
+import { fetchJSON, fetchWithAuth } from '@/lib/fetcher';
+import { AccessTokenResponse, LoginResponse } from '@/types/auth';
+
+const ACCESS_TOKEN_STORAGE_KEY = 'accessToken';
+
+export const getAccessToken = () => localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+
+export const setAccessToken = (token: string) =>
+  localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
+
+export const clearAccessToken = () => localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+
+export const login = async (email: string, password: string) => {
+  const url = `/login`;
+  const options: RequestInit = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+    credentials: 'include',
+  };
+  const loginResponse = (await fetchJSON(url, options)) as LoginResponse;
+  setAccessToken(loginResponse.accessToken);
+  return loginResponse;
+};
+
+export const refreshAccessToken = async () => {
+  const url = `/refresh-token`;
+  const options = { method: 'POST' };
+  const accessTokenResponse = (await fetchWithAuth(url, options)) as AccessTokenResponse;
+  return accessTokenResponse.accessToken;
+};
+
+export const validateToken = async () => {
+  const url = `/validate-token`;
+  const options = { method: 'POST' };
+  try {
+    await fetchWithAuth(url, options);
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+};
+
+export const logout = async () => {
+  const url = `/logout`;
+  const options = { method: 'POST' };
+  await fetchWithAuth(url, options);
+  clearAccessToken();
+};
+
 ------------------------------------------------------------
+data
+
+import { fetchJSON, fetchWithAuth } from '@/lib/fetcher';
+import { Book, Genre, PaginatedBook } from '@/types/book';
+import { User } from '@/types/user';
+
+export const FETCH_BOOKS_MAX_RESULTS = 20;
+
+export const getBooksByQuery = async (q?: string, page: number = 0) => {
+  if (!q) return undefined;
+
+  const url = `/books/search?q=${q}&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
+  const paginatedBook = (await fetchJSON(url)) as PaginatedBook;
+  return convertBookResponse(paginatedBook);
+};
+
+export const getBookById = async (bookId?: string) => {
+  if (!bookId) return undefined;
+
+  const url = `/books/${bookId}`;
+  const book = (await fetchJSON(url)) as Book;
+  return convertBook(book);
+};
+
+export const getGenres = async () => {
+  const url = `/genres`;
+  const genres = (await fetchJSON(url)) as Genre[];
+  return genres;
+};
+
+export const getBooksByGenreId = async (genreIds?: number[], page: number = 0) => {
+  if (!genreIds?.length) return undefined;
+
+  const ids = genreIds.join(',');
+  const url = `/books/discover?genreId=${ids}&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
+  const paginatedBook = (await fetchJSON(url)) as PaginatedBook;
+  return convertBookResponse(paginatedBook);
+};
+
+export const getNewReleases = async () => {
+  const url = `/books/new-releases`;
+  const book = (await fetchJSON(url)) as Book;
+  return convertBook(book);
+};
+
+export const getCurrentUser = async () => {
+  const url = `/me`;
+  const user = (await fetchWithAuth(url)) as User;
+  return user;
+};
+
+const convertBookResponse = (paginatedBook: PaginatedBook) => {
+  paginatedBook.books.forEach((book) => convertBook(book));
+  return paginatedBook;
+};
+
+const convertBook = (book: Book) => {
+  book.imageUrl = book.imageUrl ?? '/images/no-image.png';
+  return book;
+};
+
 ------------------------------------------------------------
+fetcher
+
+import { BOOKS_API_ENDPOINT } from '@/constants/constants';
+import {
+  clearAccessToken,
+  getAccessToken,
+  logout,
+  refreshAccessToken,
+  setAccessToken,
+} from '@/lib/auth';
+
+export const fetchJSON = async (url: string, options?: RequestInit) => {
+  const res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
+  if (!res.ok) {
+    throw new Error(
+      `Failed to fetch data from ${url}. HTTP error! status: ${res.status}`
+    );
+  }
+  return res.json();
+};
+
+export const fetchWithAuth = async (url: string, options?: RequestInit) => {
+  let token = getAccessToken();
+  if (!token) {
+    throw new Error('No access token found');
+  }
+
+  let res = await fetchWithToken(url, token, options);
+
+  if (res.status === 401) {
+    try {
+      token = await refreshAccessToken();
+      setAccessToken(token);
+      res = await fetchWithToken(url, token, options);
+    } catch (error) {
+      console.error('Failed to refresh access token', error);
+      clearAccessToken();
+      await logout();
+      window.location.href = '/login';
+      throw new Error('Failed to refresh access token');
+    }
+  }
+
+  if (!res.ok) {
+    throw new Error(
+      `Failed to fetch data from ${url}. HTTP error! status: ${res.status}`
+    );
+  }
+
+  // レスポンスが空の場合は、res.json()を呼び出さない
+  if (
+    res.status !== 204 &&
+    res.headers.get('content-type')?.includes('application/json')
+  ) {
+    return res.json();
+  }
+
+  return null;
+};
+
+const fetchWithToken = async (url: string, token: string, options?: RequestInit) => {
+  return fetch(`${BOOKS_API_ENDPOINT}${url}`, {
+    ...options,
+    headers: {
+      ...options?.headers,
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: 'include',
+  });
+};
+
+------------------------------------------------------------
+discover/page
+
+import BookList from '@/components/book-list/book-list';
+import BookListSkeleton from '@/components/book-list/book-list-skeleton';
+import BookPagination from '@/components/book-list/book-pagination';
+import GenreSelector from '@/components/genre-list/genre-selector';
+import { Separator } from '@/components/ui/separator';
+import { getBooksByGenreId, getGenres } from '@/lib/data';
+import ErrorElement from '@/routes/error-element';
+import { Genre, PaginatedBook } from '@/types/book';
+import { Suspense } from 'react';
+import {
+  Await,
+  defer,
+  LoaderFunctionArgs,
+  ScrollRestoration,
+  useLoaderData,
+} from 'react-router-dom';
+
+type LoaderFunctionReturnType = {
+  paginatedBook: Promise<PaginatedBook>;
+  genres: Genre[];
+  genreIds: number[];
+};
+
+const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const ids = url.searchParams.get('genreId');
+
+  const genreIds = ids?.split(',').map((id) => Number(id));
+  const page = Number(url.searchParams.get('page') ?? '1');
+
+  const paginatedBook = getBooksByGenreId(genreIds, page - 1);
+  const genres = await getGenres();
+
+  return defer({ paginatedBook, genres, genreIds });
+};
+
+export default function Page() {
+  const { paginatedBook, genres } = useLoaderData() as LoaderFunctionReturnType;
+
+  return (
+    <>
+      <GenreSelector className="mb-4" genres={genres} />
+
+      <Separator className="mb-6 bg-foreground/10" />
+
+      <div className="flex flex-col gap-y-4 pb-4">
+        <Suspense fallback={<BookListSkeleton />}>
+          <Await resolve={paginatedBook} errorElement={<ErrorElement />}>
+            {(paginatedBook: PaginatedBook) => (
+              <>
+                <BookPagination totalPages={paginatedBook.totalPages} />
+                <BookList books={paginatedBook.books} />
+                <BookPagination totalPages={paginatedBook.totalPages} />
+              </>
+            )}
+          </Await>
+        </Suspense>
+      </div>
+
+      <ScrollRestoration />
+    </>
+  );
+}
+
+Page.loader = loader;
+
+
+------------------------------------------------------------
+search/page
+
+import BookList from '@/components/book-list/book-list';
+import BookListSkeleton from '@/components/book-list/book-list-skeleton';
+import BookPagination from '@/components/book-list/book-pagination';
+import { getBooksByQuery } from '@/lib/data';
+import ErrorElement from '@/routes/error-element';
+import { PaginatedBook } from '@/types/book';
+import { Suspense } from 'react';
+import {
+  Await,
+  LoaderFunctionArgs,
+  ScrollRestoration,
+  useLoaderData,
+} from 'react-router-dom';
+
+type LoaderFunctionReturnType = {
+  paginatedBook: Promise<PaginatedBook>;
+  query: string;
+  page: number;
+};
+
+const loader = ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const query = url.searchParams.get('q') ?? undefined;
+
+  const page = Number(url.searchParams.get('page') ?? '1');
+  const paginatedBook = getBooksByQuery(query, page - 1);
+
+  return { paginatedBook, query, page };
+};
+
+export default function Page() {
+  const { paginatedBook, query } = useLoaderData() as LoaderFunctionReturnType;
+
+  return (
+    <>
+      <p className="my-2">
+        {`「 ${query} 」`}
+        <span className="text-sm text-muted-foreground">の検索結果</span>
+      </p>
+
+      <div className="flex flex-col gap-y-4 pb-4">
+        <Suspense fallback={<BookListSkeleton />}>
+          <Await resolve={paginatedBook} errorElement={<ErrorElement />}>
+            {(paginatedBook: PaginatedBook) => (
+              <>
+                <BookPagination totalPages={paginatedBook.totalPages} />
+                <BookList books={paginatedBook.books} />
+                <BookPagination totalPages={paginatedBook.totalPages} />
+              </>
+            )}
+          </Await>
+        </Suspense>
+      </div>
+
+      <ScrollRestoration />
+    </>
+  );
+}
+
+Page.loader = loader;
+
+------------------------------------------------------------
+layout
+
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import Footer from '@/components/layout/footer';
+import Header from '@/components/layout/header';
+import { Toaster } from '@/components/ui/toaster';
+import { Outlet } from 'react-router-dom';
+
+export default function Layout() {
+  return (
+    <>
+      <div className="min-h-dvh bg-gradient-to-tr from-primary/10 via-background via-80% to-primary/15">
+        <Header className="fixed z-50" />
+        <main className="mx-auto max-w-7xl px-3 pt-16 sm:px-6">
+          <Outlet />
+        </main>
+        <Footer className="sticky top-full" />
+      </div>
+      <Toaster />
+      <ConfirmDialog />
+    </>
+  );
+}
+
+------------------------------------------------------------
+auth
+
+export interface LoginResponse {
+  accessToken: string;
+  username: string;
+  roles: string[];
+}
+
+export interface AccessTokenResponse {
+  accessToken: string;
+}
+
+------------------------------------------------------------
+book
+
+export interface Book {
+  id: string;
+  title: string;
+  description: string;
+  genreIds: number[];
+  authors: string[];
+  publisher: string;
+  publishedDate: string;
+  price: number;
+  pageCount: number;
+  isbn: string;
+  imageUrl: string;
+}
+
+export interface PaginatedBook {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  books: Book[];
+}
+
+export interface Genre {
+  id: number;
+  name: string;
+}
+
+------------------------------------------------------------
+review
+
+import { User } from '@/types/user';
+
+export interface Review {
+  id: number;
+  bookId: string;
+  comment: string;
+  rating: number;
+  updatedAt: string;
+  user: User;
+}
+
+------------------------------------------------------------
+user
+
+export interface User {
+  id: number;
+  email: string;
+  roles: string[];
+  name: string;
+  avatarUrl: string;
+}
+
+------------------------------------------------------------
+.gitignore
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+.env
+
+# Editor directories and files
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Ignore certificate and key files
+certs/*.crt
+certs/*.key
+
+------------------------------------------------------------
+vite.config
+
+import react from '@vitejs/plugin-react-swc';
+import fs from 'fs';
+import path from 'path';
+import { defineConfig } from 'vite';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+
+  // エイリアス設定
+  // https://zenn.dev/yuji6523/articles/react-absolute-path
+  // shadcn/uiのviteの設定も参考
+  // https://ui.shadcn.com/docs/installation/vite
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    https: {
+      key: fs.readFileSync(path.resolve(__dirname, 'certs/localhost.key')),
+      cert: fs.readFileSync(path.resolve(__dirname, 'certs/localhost.crt')),
+    },
+    port: 5173, // 任意のポート番号
+  },
+});
+
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
