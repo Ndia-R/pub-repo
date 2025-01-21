@@ -1,7 +1,7 @@
-５０ファイル
+１６ファイル
 
 ------------------------------------------------------------
-init.sql
+init
 
 DROP DATABASE IF EXISTS `my-books-db`;
 CREATE DATABASE `my-books-db`;
@@ -151,35 +151,67 @@ LINES TERMINATED BY '\n'
 (`book_id`, `genre_id`);
 
 INSERT INTO `users` (`name`, `email`, `password`, `avatar_url`) VALUES
-('Julia', 'julia@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar02.png'),
-('Steve', 'steve@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar07.png');
+('Lars', 'lars@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar01.png'),
+('Nina', 'nina@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar02.png'),
+('Paul', 'paul@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar03.png'),
+('Julia', 'julia@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar04.png'),
+('Lee', 'lee@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar05.png'),
+('Lili', 'lili@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar06.png'),
+('Steve', 'steve@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar07.png'),
+('Anna', 'anna@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar08.png'),
+('Law', 'law@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar09.png'),
+('Alisa', 'alisa@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar10.png');
 
 INSERT INTO `roles` (`name`, `description`) VALUES
 ('ROLE_ADMIN', '管理者権限'),
 ('ROLE_USER', 'ユーザー権限');
 
 INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
-(1, 1),
 (1, 2),
-(2, 2);
+(2, 2),
+(3, 2),
+(4, 2),
+(5, 2),
+(6, 2),
+(7, 2),
+(8, 2),
+(9, 2),
+(10, 2),
+(3, 1),
+(4, 1);
 
 INSERT INTO `reviews` (`user_id`, `book_id`, `comment`, `rating`) VALUES
-(1, 'afcIMuetDuzj', 'すごく面白かったです。', 4.5),
-(2, 'afcIMuetDuzj', '感動しました。何度も読み直したいと思いました。', 4.0),
+(1, 'afcIMuetDuzj', '知識の宝庫で、読み終える頃には少し賢くなった気がした。', 4.5),
+(2, 'afcIMuetDuzj', '人生観が変わるほどの深い洞察が詰まっていました。', 3.0),
+(3, 'afcIMuetDuzj', '読む手が止まらないほど引き込まれた。', 3.5),
+(4, 'afcIMuetDuzj', '心に響く言葉が何度も胸を打った。', 5.0),
+(5, 'afcIMuetDuzj', '言葉の美しさに何度もページをめくり直した。', 4.0),
+(6, 'afcIMuetDuzj', '想像力をかき立てられる素晴らしいストーリーだった。', 4.5),
+(7, 'afcIMuetDuzj', '感動しました。何度も読み直したいと思いました。', 3.0),
+(8, 'afcIMuetDuzj', '登場人物に感情移入しすぎて泣いてしまった。', 5.0),
+(9, 'afcIMuetDuzj', '終わるのが惜しいほど楽しかった。', 4.5),
+(10, 'afcIMuetDuzj', '感動的な結末に、読後の余韻が心地よかった。', 3.5),
 (1, '9UizZw491wye', '読み進むにつれドンドン引き込まれていきました。', 3.5),
-(2, '9UizZw491wye', '首を長くして待っていました。非常に楽しかったです。', 5.0),
+(2, '9UizZw491wye', '首を長くして待っていました。非常に楽しかったです。', 3.0),
+(3, '9UizZw491wye', '読んでいる間、時間を忘れるほど夢中になれました。', 3.0),
+(4, '9UizZw491wye', '物語の展開が巧妙で、予想を超える展開が続いて面白かったです。', 3.0),
 (1, 'pDYIwtdahwkp', '私もこんな経験をしたいと思いました。', 5.0);
 
 INSERT INTO `favorites` (`user_id`, `book_id`) VALUES
 (1, 'afcIMuetDuzj'),
-(1, 'pDYIwtdahwkp'),
-(2, '9UizZw491wye'),
-(2, 'ln5NiMJq02V7');
+(2, 'afcIMuetDuzj'),
+(3, 'afcIMuetDuzj'),
+(4, 'afcIMuetDuzj'),
+(4, 'pDYIwtdahwkp'),
+(5, 'pDYIwtdahwkp'),
+(6, 'pDYIwtdahwkp'),
+(3, '9UizZw491wye'),
+(3, 'ln5NiMJq02V7');
 
 INSERT INTO `my_lists` (`user_id`, `book_id`) VALUES
-(1, '3BndPAiEFnjB'),
-(1, '3gNJnRcrwrUH'),
-(2, 'v21pjIlzDua1');
+(4, '3BndPAiEFnjB'),
+(4, '3gNJnRcrwrUH'),
+(3, 'v21pjIlzDua1');
 ------------------------------------------------------------
 SecurityConfig
 
@@ -223,14 +255,17 @@ public class SecurityConfig {
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/v1/login", "/api/v1/signup", "/api/v1/logout").permitAll()
                 .requestMatchers("/api/v1/refresh-token", "/api/v1/validate-token").permitAll()
-                .requestMatchers("/api/v1/check-name-exists").permitAll()
+                .requestMatchers("/api/v1/users/exists").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/books/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/genres/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/reviews/book/**").permitAll()
-                .requestMatchers("/api/v1/my-lists/**").permitAll()
-                .requestMatchers("/api/v1/favorite/**").permitAll()
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-                .permitAll().anyRequest().authenticated());
+                .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
+                .requestMatchers("/api/v1/my-lists/count/**").permitAll()
+                .requestMatchers("/api/v1/favorites/count/**").permitAll()
+                // .requestMatchers("/api/v1/my-lists/**").permitAll()
+                // .requestMatchers("/api/v1/favorites/**").permitAll()
+                // .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                // .permitAll()
+                .anyRequest().authenticated());
 
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -263,242 +298,11 @@ public class SecurityConfig {
 }
 
 ------------------------------------------------------------
-BookController
-
-package com.example.my_books_backend.controller;
-
-import java.util.List;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.book.BookDetailResponse;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.service.BookService;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("/api/v1/books")
-@RequiredArgsConstructor
-public class BookController {
-    private final BookService bookService;
-
-    @GetMapping("/search")
-    public ResponseEntity<PaginatedBookResponse> searchByTitle(@RequestParam String q,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        PaginatedBookResponse paginatedBookResponse =
-                bookService.searchByTitle(q, page, maxResults);
-        return ResponseEntity.ok(paginatedBookResponse);
-    }
-
-    @GetMapping("/discover")
-    public ResponseEntity<PaginatedBookResponse> searchByGenreId(@RequestParam String genreId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        PaginatedBookResponse paginatedBookResponse =
-                bookService.searchByGenreId(genreId, page, maxResults);
-        return ResponseEntity.ok(paginatedBookResponse);
-    }
-
-    @GetMapping("/new-releases")
-    public ResponseEntity<List<BookResponse>> getNewReleases() {
-        List<BookResponse> books = bookService.getNewReleases();
-        return ResponseEntity.ok(books);
-    }
-
-    @GetMapping("/{bookId}")
-    public ResponseEntity<BookDetailResponse> getBookById(@PathVariable String bookId) {
-        BookDetailResponse book = bookService.getBookDetailById(bookId);
-        return ResponseEntity.ok(book);
-    }
-}
-
-------------------------------------------------------------
-FavoriteController
-
-package com.example.my_books_backend.controller;
-
-import java.net.URI;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteRequest;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteStateResponse;
-import com.example.my_books_backend.service.FavoriteService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("/api/v1/favorites")
-@RequiredArgsConstructor
-public class FavoriteController {
-    private final FavoriteService favoriteService;
-
-    @GetMapping("")
-    public ResponseEntity<PaginatedBookResponse> getFavorites(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        PaginatedBookResponse favorites = favoriteService.getFavorites(page, maxResults);
-        return ResponseEntity.ok(favorites);
-    }
-
-    @PostMapping("")
-    public ResponseEntity<FavoriteResponse> addFavorite(
-            @Valid @RequestBody FavoriteRequest request) {
-        FavoriteResponse favorite = favoriteService.addFavorite(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(favorite.getFavoriteId()).toUri();
-        return ResponseEntity.created(location).body(favorite);
-    }
-
-    @DeleteMapping("/{bookId}")
-    public ResponseEntity<Void> removeFavorite(@PathVariable String bookId) {
-        favoriteService.removeFavorite(bookId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/favorite-state/{bookId}")
-    public ResponseEntity<FavoriteStateResponse> getFavoriteState(@PathVariable String bookId) {
-        FavoriteStateResponse favoriteStateResponse = favoriteService.getFavoriteState(bookId);
-        return ResponseEntity.ok(favoriteStateResponse);
-    }
-}
-
-------------------------------------------------------------
-GenreController
-
-package com.example.my_books_backend.controller;
-
-import java.net.URI;
-import java.util.List;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.genre.GenreRequest;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-import com.example.my_books_backend.service.GenreService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("/api/v1/genres")
-@RequiredArgsConstructor
-public class GenreController {
-    private final GenreService genreService;
-
-    @GetMapping("")
-    public ResponseEntity<List<GenreResponse>> getAllGenres() {
-        List<GenreResponse> genres = genreService.getAllGenres();
-        return ResponseEntity.ok(genres);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<GenreResponse> getGenreById(@PathVariable Long id) {
-        GenreResponse genre = genreService.getGenreById(id);
-        return ResponseEntity.ok(genre);
-    }
-
-    @PostMapping("")
-    public ResponseEntity<GenreResponse> createGenre(@Valid @RequestBody GenreRequest request) {
-        GenreResponse genre = genreService.createGenre(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(genre.getId()).toUri();
-        return ResponseEntity.created(location).body(genre);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Void> updateGenre(@PathVariable Long id,
-            @Valid @RequestBody GenreRequest request) {
-        genreService.updateGenre(id, request);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteGenre(@PathVariable Long id) {
-        genreService.deleteGenre(id);
-        return ResponseEntity.noContent().build();
-    }
-}
-
-------------------------------------------------------------
-MyListController
-
-package com.example.my_books_backend.controller;
-
-import java.net.URI;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.my_list.MyListRequest;
-import com.example.my_books_backend.dto.my_list.MyListResponse;
-import com.example.my_books_backend.service.MyListService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("/api/v1/my-lists")
-@RequiredArgsConstructor
-public class MyListController {
-    private final MyListService mylistService;
-
-    @GetMapping("")
-    public ResponseEntity<PaginatedBookResponse> getMyLists(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        PaginatedBookResponse mylists = mylistService.getMyLists(page, maxResults);
-        return ResponseEntity.ok(mylists);
-    }
-
-    @PostMapping("")
-    public ResponseEntity<MyListResponse> addToMyList(@Valid @RequestBody MyListRequest request) {
-        MyListResponse mylist = mylistService.addToMyList(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(mylist.getMyListId()).toUri();
-        return ResponseEntity.created(location).body(mylist);
-    }
-
-    @DeleteMapping("/{bookId}")
-    public ResponseEntity<Void> removeFromMyList(@PathVariable String bookId) {
-        mylistService.removeFromMyList(bookId);
-        return ResponseEntity.noContent().build();
-    }
-}
-
-------------------------------------------------------------
 ReviewController
 
 package com.example.my_books_backend.controller;
 
 import java.net.URI;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -507,9 +311,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.review.MyReviewResponse;
+import com.example.my_books_backend.dto.review.CheckMyReviewExistsResponse;
+import com.example.my_books_backend.dto.review.PaginatedMyReviewResponse;
+import com.example.my_books_backend.dto.review.PaginatedReviewResponse;
 import com.example.my_books_backend.dto.review.ReviewRequest;
 import com.example.my_books_backend.dto.review.ReviewResponse;
 import com.example.my_books_backend.service.ReviewService;
@@ -522,16 +329,27 @@ import lombok.RequiredArgsConstructor;
 public class ReviewController {
     private final ReviewService reviewService;
 
-    @GetMapping("/book/{bookId}")
-    public ResponseEntity<List<ReviewResponse>> getReviewsByBookId(@PathVariable String bookId) {
-        List<ReviewResponse> reviews = reviewService.getReviewsByBookId(bookId);
+    @GetMapping("/{bookId}")
+    public ResponseEntity<PaginatedReviewResponse> getReviews(@PathVariable String bookId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        PaginatedReviewResponse reviews = reviewService.getReviews(bookId, page, maxResults);
         return ResponseEntity.ok(reviews);
     }
 
-    @GetMapping("my-reviews")
-    public ResponseEntity<List<MyReviewResponse>> getMyReviews() {
-        List<MyReviewResponse> myReviews = reviewService.getMyReviews();
+    @GetMapping("/my-reviews")
+    public ResponseEntity<PaginatedMyReviewResponse> getMyReviews(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        PaginatedMyReviewResponse myReviews = reviewService.getMyReviews(page, maxResults);
         return ResponseEntity.ok(myReviews);
+    }
+
+    @GetMapping("/my-reviews/exists")
+    public ResponseEntity<CheckMyReviewExistsResponse> checkMyReviewExists(
+            @RequestParam String bookId) {
+        Boolean exists = reviewService.checkMyReviewExists(bookId);
+        return ResponseEntity.ok(new CheckMyReviewExistsResponse(exists));
     }
 
     @PostMapping("")
@@ -548,7 +366,7 @@ public class ReviewController {
         return ResponseEntity.ok(review);
     }
 
-    @DeleteMapping("/${bookId}")
+    @DeleteMapping("/{bookId}")
     public ResponseEntity<Void> deleteReview(@PathVariable String bookId) {
         reviewService.deleteReview(bookId);
         return ResponseEntity.noContent().build();
@@ -556,42 +374,101 @@ public class ReviewController {
 }
 
 ------------------------------------------------------------
-BookDetailResponse
+UserController
 
-package com.example.my_books_backend.dto.book;
+package com.example.my_books_backend.controller;
 
-import java.sql.Date;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.example.my_books_backend.dto.user.CheckUsernameExistsResponse;
+import com.example.my_books_backend.dto.user.ProfileCountsResponse;
+import com.example.my_books_backend.dto.user.ChangeEmailRequest;
+import com.example.my_books_backend.dto.user.ChangePasswordRequest;
+import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.dto.user.UpdateUserRequest;
+import com.example.my_books_backend.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class BookDetailResponse {
-    private String id;
-    private String title;
-    private String description;
-    private List<Long> genreIds;
-    private List<String> authors;
-    private String publisher;
-    private Date publishedDate;
-    private Integer price;
-    private Integer pageCount;
-    private String isbn;
-    private String imageUrl;
+@RestController
+@RequestMapping("/api/v1")
+@RequiredArgsConstructor
+public class UserController {
+    private final UserService userService;
 
-    private Integer favoriteCount;
-    private Integer myListCount;
-    private Integer reviewCount;
-    private Double rating;
+    @GetMapping("/users")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        List<UserResponse> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/users/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+        UserResponse user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
+    }
+
+    @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        UserResponse user = userService.getCurrentUser();
+        return ResponseEntity.ok(user);
+    }
+
+    @GetMapping("/me/profile-counts")
+    public ResponseEntity<ProfileCountsResponse> getProfileCounts() {
+        ProfileCountsResponse profileCounts = userService.getProfileCounts();
+        return ResponseEntity.ok(profileCounts);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<Void> updateCurrentUser(@Valid @RequestBody UpdateUserRequest request) {
+        userService.updateCurrentUser(request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/me/email")
+    public ResponseEntity<Void> changeEmail(@Valid @RequestBody ChangeEmailRequest request) {
+        userService.changeEmail(request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/users/exists")
+    public ResponseEntity<CheckUsernameExistsResponse> checkUsernameExists(
+            @RequestParam String name) {
+        Boolean exists = userService.checkUsernameExists(name);
+        return ResponseEntity.ok(new CheckUsernameExistsResponse(exists));
+    }
+
 }
 
 ------------------------------------------------------------
-FavoriteRequest
+CheckMyReviewExistsResponse
 
-package com.example.my_books_backend.dto.favorite;
+package com.example.my_books_backend.dto.review;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -601,114 +478,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FavoriteRequest {
+public class CheckMyReviewExistsResponse {
     @NotNull
-    private String bookId;
-}
-
-------------------------------------------------------------
-FavoriteResponse
-
-package com.example.my_books_backend.dto.favorite;
-
-import java.time.LocalDateTime;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.user.SimpleUserInfo;
-import com.example.my_books_backend.entity.FavoriteId;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class FavoriteResponse {
-    private FavoriteId favoriteId;
-    private LocalDateTime updatedAt;
-    private SimpleUserInfo user;
-    private BookResponse book;
-}
-
-------------------------------------------------------------
-FavoriteStateResponse
-
-package com.example.my_books_backend.dto.favorite;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class FavoriteStateResponse {
-    private Boolean isFavorite;
-    private Integer favoriteCount;
-}
-
-------------------------------------------------------------
-GenreRequest
-
-package com.example.my_books_backend.dto.genre;
-
-import org.hibernate.validator.constraints.Length;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class GenreRequest {
-    @NotNull
-    @Length(max = 50)
-    private String name;
-
-    @NotNull
-    @Length(max = 255)
-    private String description;
-}
-
-------------------------------------------------------------
-MyListRequest
-
-package com.example.my_books_backend.dto.my_list;
-
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class MyListRequest {
-    @NotNull
-    private String bookId;
-}
-
-------------------------------------------------------------
-MyListResponse
-
-package com.example.my_books_backend.dto.my_list;
-
-import java.time.LocalDateTime;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.user.SimpleUserInfo;
-import com.example.my_books_backend.entity.MyListId;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class MyListResponse {
-    private MyListId myListId;
-    private LocalDateTime updatedAt;
-    private SimpleUserInfo user;
-    private BookResponse book;
+    private Boolean exists;
 }
 
 ------------------------------------------------------------
@@ -731,17 +503,18 @@ public class MyReviewResponse {
     private ReviewId reviewId;
     private String comment;
     private Double rating;
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private SimpleUserInfo user;
     private BookResponse book;
 }
 
 ------------------------------------------------------------
-ReviewRequest
+PaginatedMyReviewResponse
 
 package com.example.my_books_backend.dto.review;
 
-import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -749,15 +522,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReviewRequest {
-    @NotNull
-    private String bookId;
-
-    @NotNull
-    private String comment;
-
-    @NotNull
-    private Double rating;
+public class PaginatedMyReviewResponse {
+    private Integer page;
+    private Integer totalPages;
+    private Integer totalItems;
+    private List<MyReviewResponse> reviews;
 }
 
 ------------------------------------------------------------
@@ -779,373 +548,27 @@ public class ReviewResponse {
     private ReviewId reviewId;
     private String comment;
     private Double rating;
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private SimpleUserInfo user;
 }
 
 ------------------------------------------------------------
-Favorite
+CheckUsernameExistsResponse
 
-package com.example.my_books_backend.entity;
+package com.example.my_books_backend.dto.user;
 
-import com.example.my_books_backend.entity.shared.EntityBase;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Table(name = "favorites")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Favorite extends EntityBase {
-    @EmbeddedId
-    private FavoriteId id;
-
-    @ManyToOne
-    @MapsId("userId")
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @ManyToOne
-    @MapsId("bookId")
-    @JoinColumn(name = "book_id", nullable = false)
-    private Book book;
-}
-
-------------------------------------------------------------
-FavoriteId
-
-package com.example.my_books_backend.entity;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Embeddable
 @NoArgsConstructor
 @AllArgsConstructor
-public class FavoriteId implements Serializable {
-    @Column(name = "user_id")
-    private Long userId;
-
-    @Column(name = "book_id")
-    private String bookId;
-}
-
-------------------------------------------------------------
-MyList
-
-package com.example.my_books_backend.entity;
-
-import com.example.my_books_backend.entity.shared.EntityBase;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Table(name = "my_lists")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class MyList extends EntityBase {
-    @EmbeddedId
-    private MyListId id;
-
-    @ManyToOne
-    @MapsId("userId")
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @ManyToOne
-    @MapsId("bookId")
-    @JoinColumn(name = "book_id", nullable = false)
-    private Book book;
-}
-
-------------------------------------------------------------
-MyListId
-
-package com.example.my_books_backend.entity;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import java.io.Serializable;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@Embeddable
-@NoArgsConstructor
-@AllArgsConstructor
-public class MyListId implements Serializable {
-    @Column(name = "user_id")
-    private Long userId;
-
-    @Column(name = "book_id")
-    private String bookId;
-}
-
-------------------------------------------------------------
-Review
-
-package com.example.my_books_backend.entity;
-
-import com.example.my_books_backend.entity.shared.EntityBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Table(name = "reviews")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Review extends EntityBase {
-    @EmbeddedId
-    private ReviewId id;
-
-    @Column(name = "comment", nullable = false)
-    private String comment;
-
-    @Column(name = "rating", nullable = false)
-    private Double rating;
-
-    @ManyToOne
-    @MapsId("userId")
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @ManyToOne
-    @MapsId("bookId")
-    @JoinColumn(name = "book_id", nullable = false)
-    private Book book;
-}
-
-------------------------------------------------------------
-ReviewId
-
-package com.example.my_books_backend.entity;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import java.io.Serializable;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@Embeddable
-@NoArgsConstructor
-@AllArgsConstructor
-public class ReviewId implements Serializable {
-    @Column(name = "user_id")
-    private Long userId;
-
-    @Column(name = "book_id")
-    private String bookId;
-}
-
-------------------------------------------------------------
-BookMapper
-
-package com.example.my_books_backend.mapper;
-
-import java.util.Arrays;
-import java.util.List;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.dto.book.BookDetailResponse;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.entity.Book;
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
-public class BookMapper {
-    private final ModelMapper modelMapper;
-
-    public BookResponse toBookResponse(Book book) {
-        BookResponse bookResponse = modelMapper.map(book, BookResponse.class);
-
-        List<Long> genres = book.getGenres().stream().map(genre -> genre.getId()).toList();
-        bookResponse.setGenreIds(genres);
-
-        List<String> authors = Arrays.asList(book.getAuthors().split(","));
-        bookResponse.setAuthors(authors);
-
-        return bookResponse;
-    }
-
-    public List<BookResponse> toBookResponseList(List<Book> books) {
-        return books.stream().map(book -> toBookResponse(book)).toList();
-    }
-
-    public PaginatedBookResponse toPaginatedBookResponse(Page<Book> pageBook) {
-        Integer page = pageBook.getNumber();
-        Integer totalPages = pageBook.getTotalPages();
-        Integer totalItems = (int) pageBook.getTotalElements();
-        List<BookResponse> booksDto = toBookResponseList(pageBook.getContent());
-        return new PaginatedBookResponse(page, totalPages, totalItems, booksDto);
-    }
-
-    public BookDetailResponse toBookDetailResponse(BookResponse bookResponse) {
-        BookDetailResponse bookDetailResponse =
-                modelMapper.map(bookResponse, BookDetailResponse.class);
-        return bookDetailResponse;
-    }
-}
-
-------------------------------------------------------------
-FavoriteMapper
-
-package com.example.my_books_backend.mapper;
-
-import java.util.List;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.Favorite;
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
-public class FavoriteMapper {
-    private final ModelMapper modelMapper;
-    private final BookMapper bookMapper;
-    private final UserMapper userMapper;
-
-    public FavoriteResponse toFavoriteResponse(Favorite favorite) {
-        FavoriteResponse favoriteResponse = modelMapper.map(favorite, FavoriteResponse.class);
-        favoriteResponse.setUser(userMapper.toSimpleUserInfo(favorite.getUser()));
-        favoriteResponse.setBook(bookMapper.toBookResponse(favorite.getBook()));
-        return favoriteResponse;
-    }
-
-    public List<FavoriteResponse> toFavoriteResponseList(List<Favorite> favorites) {
-        return favorites.stream().map(favorite -> toFavoriteResponse(favorite)).toList();
-    }
-
-    public PaginatedBookResponse toPaginatedBookResponse(Page<Favorite> favorites) {
-        Integer page = favorites.getNumber();
-        Integer totalPages = favorites.getTotalPages();
-        Integer totalItems = (int) favorites.getTotalElements();
-        List<Book> books =
-                favorites.getContent().stream().map(favorite -> favorite.getBook()).toList();
-        List<BookResponse> booksDto = bookMapper.toBookResponseList(books);
-        return new PaginatedBookResponse(page, totalPages, totalItems, booksDto);
-    }
-}
-
-------------------------------------------------------------
-GenreMapper
-
-package com.example.my_books_backend.mapper;
-
-import java.util.List;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.dto.genre.GenreRequest;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-import com.example.my_books_backend.entity.Genre;
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
-public class GenreMapper {
-    private final ModelMapper modelMapper;
-
-    public GenreResponse toGenreResponse(Genre genre) {
-        return modelMapper.map(genre, GenreResponse.class);
-    }
-
-    public List<GenreResponse> toGenreResponseList(List<Genre> genres) {
-        return genres.stream().map(genre -> toGenreResponse(genre)).toList();
-    }
-
-    public Genre toGenreEntity(GenreRequest createGenreRequest) {
-        return modelMapper.map(createGenreRequest, Genre.class);
-    }
-}
-
-------------------------------------------------------------
-MyListMapper
-
-package com.example.my_books_backend.mapper;
-
-import java.util.List;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.my_list.MyListResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.MyList;
-import lombok.RequiredArgsConstructor;
-
-@Component
-@RequiredArgsConstructor
-public class MyListMapper {
-    private final ModelMapper modelMapper;
-    private final BookMapper bookMapper;
-    private final UserMapper userMapper;
-
-    public MyListResponse toMyListResponse(MyList myList) {
-        MyListResponse myListResponse = modelMapper.map(myList, MyListResponse.class);
-        myListResponse.setUser(userMapper.toSimpleUserInfo(myList.getUser()));
-        myListResponse.setBook(bookMapper.toBookResponse(myList.getBook()));
-        return myListResponse;
-    }
-
-    public List<MyListResponse> toMyListResponseList(List<MyList> myLists) {
-        return myLists.stream().map(item -> toMyListResponse(item)).toList();
-    }
-
-    public PaginatedBookResponse toPaginatedBookResponse(Page<MyList> myLists) {
-        Integer page = myLists.getNumber();
-        Integer totalPages = myLists.getTotalPages();
-        Integer totalItems = (int) myLists.getTotalElements();
-        List<Book> books = myLists.getContent().stream().map(item -> item.getBook()).toList();
-        List<BookResponse> booksDto = bookMapper.toBookResponseList(books);
-        return new PaginatedBookResponse(page, totalPages, totalItems, booksDto);
-    }
+public class CheckUsernameExistsResponse {
+    @NotNull
+    private Boolean exists;
 }
 
 ------------------------------------------------------------
@@ -1155,8 +578,11 @@ package com.example.my_books_backend.mapper;
 
 import java.util.List;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import com.example.my_books_backend.dto.review.MyReviewResponse;
+import com.example.my_books_backend.dto.review.PaginatedMyReviewResponse;
+import com.example.my_books_backend.dto.review.PaginatedReviewResponse;
 import com.example.my_books_backend.dto.review.ReviewResponse;
 import com.example.my_books_backend.entity.Book;
 import com.example.my_books_backend.entity.Review;
@@ -1181,6 +607,14 @@ public class ReviewMapper {
         return reviews.stream().map(review -> toReviewResponse(review)).toList();
     }
 
+    public PaginatedReviewResponse toPaginatedReviewResponse(Page<Review> reviews) {
+        Integer page = reviews.getNumber();
+        Integer totalPages = reviews.getTotalPages();
+        Integer totalItems = (int) reviews.getTotalElements();
+        List<ReviewResponse> reviewResponseList = toReviewResponseList(reviews.getContent());
+        return new PaginatedReviewResponse(page, totalPages, totalItems, reviewResponseList);
+    }
+
     public MyReviewResponse toMyReviewResponse(Review review) {
         MyReviewResponse myReviewResponse = modelMapper.map(review, MyReviewResponse.class);
         User user = modelMapper.map(review.getUser(), User.class);
@@ -1193,191 +627,14 @@ public class ReviewMapper {
     public List<MyReviewResponse> toMyReviewResponseList(List<Review> reviews) {
         return reviews.stream().map(review -> toMyReviewResponse(review)).toList();
     }
-}
 
-------------------------------------------------------------
-BookRepositoryCustomImpl
-
-package com.example.my_books_backend.repository;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.Book;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-
-@Repository
-public class BookRepositoryCustomImpl implements BookRepositoryCustom {
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    // // 基本的な呼び出し
-    // List<String> genres = Arrays.asList("ミステリー", "サスペンス");
-    // Pageable pageable = PageRequest.of(0, 10); // 1ページ目、10件ずつ
-    // Page<Book> result = bookRepository.findByGenreIds(genres, pageable);
-
-    // // ソート条件付きの呼び出し
-    // Pageable pageableWithSort = PageRequest.of(
-    // 0,
-    // 10,
-    // Sort.by(Sort.Direction.DESC, "publishedDate")
-    // );
-    // Page<Book> sortedResult = bookRepository.findByGenreIds(genres,
-    // pageableWithSort);
-
-    @Override
-    public Page<Book> findByGenreIds(String genreIdsParam, Pageable pageable) {
-        if (genreIdsParam == null || genreIdsParam.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
-
-        boolean isAndSearch = genreIdsParam.contains(",");
-        List<Long> genreIds = Arrays.stream(genreIdsParam.split("[,|]"))
-                .map(genreId -> Long.parseLong(genreId)).collect(Collectors.toList());
-
-        String sql = "SELECT b.* FROM books b " + "JOIN book_genres bg ON b.id = bg.book_id "
-                + "WHERE bg.genre_id IN (:genreIds) ";
-
-        if (isAndSearch) {
-            sql += "GROUP BY b.id " + "HAVING COUNT(DISTINCT bg.genre_id) = :genreCount";
-        } else {
-            sql += "GROUP BY b.id";
-        }
-
-        sql += buildOrderByClause(pageable);
-
-        Query query = entityManager.createNativeQuery(sql, Book.class);
-        query.setParameter("genreIds", genreIds);
-        if (isAndSearch) {
-            query.setParameter("genreCount", genreIds.size());
-        }
-
-        query.setFirstResult((int) pageable.getOffset());
-        query.setMaxResults(pageable.getPageSize());
-
-        @SuppressWarnings("unchecked")
-        List<Book> books = query.getResultList(); // ここで型の警告がでるので、アノテーション指定
-
-        // トータル件数を取得するためのクエリ
-        String countSql = "SELECT COUNT(DISTINCT b.id) FROM books b "
-                + "JOIN book_genres bg ON b.id = bg.book_id " + "WHERE bg.genre_id IN (:genreIds) ";
-
-        if (isAndSearch) {
-            countSql += "GROUP BY b.id " + "HAVING COUNT(DISTINCT bg.genre_id) = :genreCount";
-        } else {
-            countSql += "GROUP BY b.id";
-        }
-
-        Query countQuery = entityManager.createNativeQuery(countSql);
-        countQuery.setParameter("genreIds", genreIds);
-        if (isAndSearch) {
-            countQuery.setParameter("genreCount", genreIds.size());
-        }
-
-        long total = countQuery.getResultList().size();
-
-        return new PageImpl<>(books, pageable, total);
+    public PaginatedMyReviewResponse toPaginatedMyReviewResponse(Page<Review> reviews) {
+        Integer page = reviews.getNumber();
+        Integer totalPages = reviews.getTotalPages();
+        Integer totalItems = (int) reviews.getTotalElements();
+        List<MyReviewResponse> myReviewResponseList = toMyReviewResponseList(reviews.getContent());
+        return new PaginatedMyReviewResponse(page, totalPages, totalItems, myReviewResponseList);
     }
-
-    // SortオブジェクトからORDER BY句を作成
-    private String buildOrderByClause(Pageable pageable) {
-        Sort sort = pageable.getSort().isSorted() ? pageable.getSort()
-                : Sort.by(Sort.Direction.ASC, "title");
-        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
-        sort.forEach(order -> {
-            // エンティティのフィールド名をデータベースのカラム名に変換
-            String columnName = convertCamelToSnake(order.getProperty());
-            orderBy.append(columnName).append(" ").append(order.isAscending() ? "ASC" : "DESC")
-                    .append(", ");
-        });
-        orderBy.setLength(orderBy.length() - 2); // 最後のカンマを削除
-        return orderBy.toString();
-    }
-
-    private String convertCamelToSnake(String camelCase) {
-        if (camelCase == null || camelCase.isEmpty()) {
-            return camelCase;
-        }
-
-        StringBuilder snakeCase = new StringBuilder();
-        char[] charArray = camelCase.toCharArray();
-
-        for (char c : charArray) {
-            if (Character.isUpperCase(c)) {
-                snakeCase.append('_');
-                snakeCase.append(Character.toLowerCase(c));
-            } else {
-                snakeCase.append(c);
-            }
-        }
-
-        // 先頭にアンダースコアが付く場合があるので削除
-        if (snakeCase.charAt(0) == '_') {
-            snakeCase.deleteCharAt(0);
-        }
-
-        return snakeCase.toString();
-    }
-}
-
-------------------------------------------------------------
-FavoriteRepository
-
-package com.example.my_books_backend.repository;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.Favorite;
-import com.example.my_books_backend.entity.FavoriteId;
-
-@Repository
-public interface FavoriteRepository extends JpaRepository<Favorite, FavoriteId> {
-    Page<Favorite> findByUserId(Long userId, Pageable pageable);
-
-    void deleteById(@NonNull FavoriteId favoriteId);
-
-    Integer countByUserId(Long userId);
-
-    Integer countByBookId(String bookId);
-
-    Integer countByUserIdAndBookId(Long userId, String bookId);
-}
-
-------------------------------------------------------------
-MyListRepository
-
-package com.example.my_books_backend.repository;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.MyList;
-import com.example.my_books_backend.entity.MyListId;
-
-@Repository
-public interface MyListRepository extends JpaRepository<MyList, MyListId> {
-    Page<MyList> findByUserId(Long userId, Pageable pageable);
-
-    void deleteById(@NonNull MyListId myListId);
-
-    Integer countByUserId(Long userId);
-
-    Integer countByBookId(String bookId);
-
-    Integer countByUserIdAndBookId(Long userId, String bookId);
 }
 
 ------------------------------------------------------------
@@ -1385,7 +642,8 @@ ReviewRepository
 
 package com.example.my_books_backend.repository;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -1397,9 +655,9 @@ import com.example.my_books_backend.entity.ReviewId;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, ReviewId> {
-    List<Review> findByUserIdOrderByUpdatedAtDesc(Long userId);
+    Page<Review> findByBookId(String bookId, Pageable pageable);
 
-    List<Review> findByBookIdOrderByUpdatedAtDesc(String bookId);
+    Page<Review> findByUserId(Long userId, Pageable pageable);
 
     void deleteById(@NonNull FavoriteId favoriteId);
 
@@ -1409,359 +667,8 @@ public interface ReviewRepository extends JpaRepository<Review, ReviewId> {
 
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.book.id = :bookId")
     Double findAverageRatingByBookId(@Param("bookId") String bookId);
-}
 
-------------------------------------------------------------
-BookServiceImpl
-
-package com.example.my_books_backend.service.impl;
-
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.book.BookDetailResponse;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.BookMapper;
-import com.example.my_books_backend.repository.BookRepository;
-import com.example.my_books_backend.repository.BookRepositoryCustom;
-import com.example.my_books_backend.repository.FavoriteRepository;
-import com.example.my_books_backend.repository.MyListRepository;
-import com.example.my_books_backend.repository.ReviewRepository;
-import com.example.my_books_backend.service.BookService;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class BookServiceImpl implements BookService {
-    private final BookRepository bookRepository;
-    private final BookRepositoryCustom bookRepositoryCustom;
-    private final BookMapper bookMapper;
-
-    private final FavoriteRepository favoriteRepository;
-    private final MyListRepository myListRepository;
-    private final ReviewRepository reviewRepository;
-
-    private static final Integer DEFAULT_START_PAGE = 0;
-    private static final Integer DEFAULT_MAX_RESULTS = 20;
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "publishedDate");
-
-    @Override
-    public PaginatedBookResponse searchByTitle(String q, Integer page, Integer maxResults) {
-        Pageable pageable = createPageable(page, maxResults);
-        Page<Book> pageBook = bookRepository.findByTitleContaining(q, pageable);
-        return bookMapper.toPaginatedBookResponse(pageBook);
-    }
-
-    @Override
-    public PaginatedBookResponse searchByGenreId(String genreId, Integer page, Integer maxResults) {
-        Pageable pageable = createPageable(page, maxResults);
-        Page<Book> pageBook = bookRepositoryCustom.findByGenreIds(genreId, pageable);
-        return bookMapper.toPaginatedBookResponse(pageBook);
-    }
-
-    @Override
-    public List<BookResponse> getNewReleases() {
-        List<Book> books = bookRepository.findTop10ByOrderByPublishedDateDesc();
-        return bookMapper.toBookResponseList(books);
-    }
-
-    @Override
-    public BookDetailResponse getBookDetailById(String bookId) {
-        Book book = findBookById(bookId);
-        BookResponse bookResponse = bookMapper.toBookResponse(book);
-        BookDetailResponse bookDetailResponse = bookMapper.toBookDetailResponse(bookResponse);
-
-        Integer favoritesCount = favoriteRepository.countByBookId(bookId);
-        Integer myListCount = myListRepository.countByBookId(bookId);
-        Integer reviewCount = reviewRepository.countByBookId(bookId);
-        Double rating = reviewRepository.findAverageRatingByBookId(bookId);
-
-        if (rating == null) {
-            rating = 0.0;
-        }
-
-        bookDetailResponse.setFavoriteCount(favoritesCount);
-        bookDetailResponse.setMyListCount(myListCount);
-        bookDetailResponse.setReviewCount(reviewCount);
-        bookDetailResponse.setRating(rating);
-
-        return bookDetailResponse;
-    }
-
-    private Pageable createPageable(Integer page, Integer maxResults) {
-        page = (page != null) ? page : DEFAULT_START_PAGE;
-        maxResults = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
-        return PageRequest.of(page, maxResults, DEFAULT_SORT);
-    }
-
-    private Book findBookById(String id) {
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("見つかりませんでした。 ID: " + id));
-        return book;
-    }
-}
-
-------------------------------------------------------------
-FavoriteServiceImpl
-
-package com.example.my_books_backend.service.impl;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteRequest;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteStateResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.Favorite;
-import com.example.my_books_backend.entity.FavoriteId;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.FavoriteMapper;
-import com.example.my_books_backend.repository.BookRepository;
-import com.example.my_books_backend.repository.FavoriteRepository;
-import com.example.my_books_backend.service.FavoriteService;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class FavoriteServiceImpl implements FavoriteService {
-    private final FavoriteRepository favoriteRepository;
-    private final FavoriteMapper favoriteMapper;
-    private final BookRepository bookRepository;
-
-    private static final Integer DEFAULT_START_PAGE = 0;
-    private static final Integer DEFAULT_MAX_RESULTS = 20;
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "updatedAt");
-
-    @Override
-    public PaginatedBookResponse getFavorites(Integer page, Integer maxResults) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Pageable pageable = createPageable(page, maxResults);
-        Page<Favorite> favorites = favoriteRepository.findByUserId(user.getId(), pageable);
-        return favoriteMapper.toPaginatedBookResponse(favorites);
-    }
-
-    @Override
-    public FavoriteStateResponse getFavoriteState(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Integer count = favoriteRepository.countByUserIdAndBookId(user.getId(), bookId);
-        Integer favoriteCount = favoriteRepository.countByBookId(bookId);
-
-        FavoriteStateResponse favoriteStateResponse = new FavoriteStateResponse();
-        favoriteStateResponse.setIsFavorite(count > 0 ? true : false);
-        favoriteStateResponse.setFavoriteCount(favoriteCount);
-        return favoriteStateResponse;
-    }
-
-    @Override
-    @Transactional
-    public FavoriteResponse addFavorite(FavoriteRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-        FavoriteId favoriteId = new FavoriteId(user.getId(), request.getBookId());
-        Favorite favorite = new Favorite();
-        favorite.setId(favoriteId);
-        favorite.setUser(user);
-        favorite.setBook(book);
-        Favorite savedFavorite = favoriteRepository.save(favorite);
-        return favoriteMapper.toFavoriteResponse(savedFavorite);
-    }
-
-    @Override
-    @Transactional
-    public void removeFavorite(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        FavoriteId favoriteId = new FavoriteId(user.getId(), bookId);
-        favoriteRepository.deleteById(favoriteId);
-    }
-
-    private Pageable createPageable(Integer page, Integer maxResults) {
-        page = (page != null) ? page : DEFAULT_START_PAGE;
-        maxResults = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
-        return PageRequest.of(page, maxResults, DEFAULT_SORT);
-    }
-}
-
-------------------------------------------------------------
-GenreServiceImpl
-
-package com.example.my_books_backend.service.impl;
-
-import java.util.List;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.genre.GenreRequest;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-import com.example.my_books_backend.entity.Genre;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.GenreMapper;
-import com.example.my_books_backend.repository.GenreRepository;
-import com.example.my_books_backend.service.GenreService;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class GenreServiceImpl implements GenreService {
-    private final GenreRepository genreRepository;
-    private final GenreMapper genreMapper;
-
-    @Override
-    @Cacheable("getAllGenres")
-    public List<GenreResponse> getAllGenres() {
-        List<Genre> genres = genreRepository.findAll();
-        return genreMapper.toGenreResponseList(genres);
-    }
-
-    @Override
-    @Cacheable(value = "getGenreById", key = "#p0")
-    public GenreResponse getGenreById(Long id) {
-        Genre genre = findGenreById(id);
-        return genreMapper.toGenreResponse(genre);
-    }
-
-    @Override
-    @Transactional
-    @CacheEvict(value = "getAllGenres", allEntries = true)
-    public GenreResponse createGenre(GenreRequest request) {
-        Genre genre = genreMapper.toGenreEntity(request);
-        Genre saveGenre = genreRepository.save(genre);
-        return genreMapper.toGenreResponse(saveGenre);
-    }
-
-    @Override
-    @Transactional
-    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getAllGenres", allEntries = true)})
-    public void updateGenre(Long id, GenreRequest request) {
-        Genre genre = findGenreById(id);
-
-        String name = request.getName();
-        String description = request.getDescription();
-
-        if (name != null) {
-            genre.setName(name);
-        }
-
-        if (description != null) {
-            genre.setDescription(description);
-        }
-        genreRepository.save(genre);
-    }
-
-    @Override
-    @Transactional
-    @Caching(evict = {@CacheEvict(value = "getGenreById", key = "#p0"),
-            @CacheEvict(value = "getAllGenres", allEntries = true)})
-    public void deleteGenre(Long id) {
-        Genre genre = findGenreById(id);
-        genreRepository.delete(genre);
-    }
-
-    private Genre findGenreById(Long id) {
-        Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("見つかりませんでした。 ID: " + id));
-        return genre;
-    }
-}
-
-------------------------------------------------------------
-MyListServiceImpl
-
-package com.example.my_books_backend.service.impl;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.my_list.MyListRequest;
-import com.example.my_books_backend.dto.my_list.MyListResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.MyList;
-import com.example.my_books_backend.entity.MyListId;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.MyListMapper;
-import com.example.my_books_backend.repository.BookRepository;
-import com.example.my_books_backend.repository.MyListRepository;
-import com.example.my_books_backend.service.MyListService;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class MyListServiceImpl implements MyListService {
-    private final MyListRepository myListRepository;
-    private final MyListMapper myListMapper;
-    private final BookRepository bookRepository;
-
-    private static final Integer DEFAULT_START_PAGE = 0;
-    private static final Integer DEFAULT_MAX_RESULTS = 20;
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "updatedAt");
-
-    @Override
-    public PaginatedBookResponse getMyLists(Integer page, Integer maxResults) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Pageable pageable = createPageable(page, maxResults);
-        Page<MyList> myLists = myListRepository.findByUserId(user.getId(), pageable);
-        return myListMapper.toPaginatedBookResponse(myLists);
-    }
-
-    @Override
-    @Transactional
-    public MyListResponse addToMyList(MyListRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-        MyListId myListId = new MyListId(user.getId(), request.getBookId());
-        MyList myList = new MyList();
-        myList.setId(myListId);
-        myList.setUser(user);
-        myList.setBook(book);
-        MyList savedMyList = myListRepository.save(myList);
-        return myListMapper.toMyListResponse(savedMyList);
-    }
-
-    @Override
-    @Transactional
-    public void removeFromMyList(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        MyListId myListId = new MyListId(user.getId(), bookId);
-        myListRepository.deleteById(myListId);
-    }
-
-    private Pageable createPageable(Integer page, Integer maxResults) {
-        page = (page != null) ? page : DEFAULT_START_PAGE;
-        maxResults = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
-        return PageRequest.of(page, maxResults, DEFAULT_SORT);
-    }
+    Boolean existsByUserIdAndBookId(Long userId, String bookId);
 }
 
 ------------------------------------------------------------
@@ -1769,12 +676,16 @@ ReviewServiceImpl
 
 package com.example.my_books_backend.service.impl;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.review.MyReviewResponse;
+import com.example.my_books_backend.dto.review.PaginatedMyReviewResponse;
+import com.example.my_books_backend.dto.review.PaginatedReviewResponse;
 import com.example.my_books_backend.dto.review.ReviewRequest;
 import com.example.my_books_backend.dto.review.ReviewResponse;
 import com.example.my_books_backend.entity.Book;
@@ -1795,18 +706,31 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final BookRepository bookRepository;
 
+    private static final Integer DEFAULT_START_PAGE = 0;
+    private static final Integer DEFAULT_MAX_RESULTS = 5;
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "createdAt");
+
     @Override
-    public List<ReviewResponse> getReviewsByBookId(String bookId) {
-        List<Review> reviews = reviewRepository.findByBookIdOrderByUpdatedAtDesc(bookId);
-        return reviewMapper.toReviewResponseList(reviews);
+    public PaginatedReviewResponse getReviews(String bookId, Integer page, Integer maxResults) {
+        Pageable pageable = createPageable(page, maxResults);
+        Page<Review> reviews = reviewRepository.findByBookId(bookId, pageable);
+        return reviewMapper.toPaginatedReviewResponse(reviews);
     }
 
     @Override
-    public List<MyReviewResponse> getMyReviews() {
+    public PaginatedMyReviewResponse getMyReviews(Integer page, Integer maxResults) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
-        List<Review> reviews = reviewRepository.findByUserIdOrderByUpdatedAtDesc(user.getId());
-        return reviewMapper.toMyReviewResponseList(reviews);
+        Pageable pageable = createPageable(page, maxResults);
+        Page<Review> reviews = reviewRepository.findByUserId(user.getId(), pageable);
+        return reviewMapper.toPaginatedMyReviewResponse(reviews);
+    }
+
+    @Override
+    public Boolean checkMyReviewExists(String bookId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        return reviewRepository.existsByUserIdAndBookId(user.getId(), bookId);
     }
 
     @Override
@@ -1858,84 +782,11 @@ public class ReviewServiceImpl implements ReviewService {
         ReviewId reviewId = new ReviewId(user.getId(), bookId);
         reviewRepository.deleteById(reviewId);
     }
-}
 
-------------------------------------------------------------
-RoleServiceImpl
-
-package com.example.my_books_backend.service.impl;
-
-import java.util.List;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.role.CreateRoleRequest;
-import com.example.my_books_backend.dto.role.RoleResponse;
-import com.example.my_books_backend.dto.role.UpdateRoleRequest;
-import com.example.my_books_backend.entity.Role;
-import com.example.my_books_backend.entity.RoleName;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.RoleMapper;
-import com.example.my_books_backend.repository.RoleRepository;
-import com.example.my_books_backend.service.RoleService;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class RoleServiceImpl implements RoleService {
-    private final RoleRepository roleRepository;
-    private final RoleMapper roleMapper;
-
-    @Override
-    @Cacheable("getAllRoles")
-    public List<com.example.my_books_backend.dto.role.RoleResponse> getAllRoles() {
-        List<Role> roles = roleRepository.findAll();
-        return roleMapper.toRoleResponseList(roles);
-    }
-
-    @Override
-    public RoleResponse getRoleById(Long id) {
-        Role role = findRoleById(id);
-        return roleMapper.toRoleResponse(role);
-    }
-
-    @Override
-    @Transactional
-    public RoleResponse createRole(CreateRoleRequest request) {
-        Role role = roleMapper.toRoleEntity(request);
-        Role saveRole = roleRepository.save(role);
-        return roleMapper.toRoleResponse(saveRole);
-    }
-
-    @Override
-    @Transactional
-    public void updateRole(Long id, UpdateRoleRequest request) {
-        Role role = findRoleById(id);
-
-        RoleName name = request.getName();
-        String description = request.getDescription();
-
-        if (name != null) {
-            role.setName(name);
-        }
-
-        if (description != null) {
-            role.setDescription(description);
-        }
-        roleRepository.save(role);
-    }
-
-    @Override
-    @Transactional
-    public void deleteRole(Long id) {
-        Role role = findRoleById(id);
-        roleRepository.delete(role);
-    }
-
-    private Role findRoleById(Long id) {
-        Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("見つかりませんでした。 ID: " + id));
-        return role;
+    private Pageable createPageable(Integer page, Integer maxResults) {
+        page = (page != null) ? page : DEFAULT_START_PAGE;
+        maxResults = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
+        return PageRequest.of(page, maxResults, DEFAULT_SORT);
     }
 }
 
@@ -2127,7 +978,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean checkNameExists(String name) {
+    public Boolean checkUsernameExists(String name) {
         return userRepository.existsByName(name);
     }
 
@@ -2137,107 +988,75 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 }
-
-------------------------------------------------------------
-BookService
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import com.example.my_books_backend.dto.book.BookDetailResponse;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-
-public interface BookService {
-    PaginatedBookResponse searchByTitle(String q, Integer page, Integer maxResults);
-
-    PaginatedBookResponse searchByGenreId(String genreId, Integer page, Integer maxResults);
-
-    List<BookResponse> getNewReleases();
-
-    BookDetailResponse getBookDetailById(String bookId);
-}
-
-------------------------------------------------------------
-FavoriteService
-
-package com.example.my_books_backend.service;
-
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteRequest;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteStateResponse;
-
-public interface FavoriteService {
-    PaginatedBookResponse getFavorites(Integer page, Integer maxResults);
-
-    FavoriteResponse addFavorite(FavoriteRequest request);
-
-    void removeFavorite(String bookId);
-
-    FavoriteStateResponse getFavoriteState(String bookId);
-}
-
-------------------------------------------------------------
-GenreService
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import com.example.my_books_backend.dto.genre.GenreRequest;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-
-public interface GenreService {
-    List<GenreResponse> getAllGenres();
-
-    GenreResponse getGenreById(Long id);
-
-    GenreResponse createGenre(GenreRequest request);
-
-    void updateGenre(Long id, GenreRequest request);
-
-    void deleteGenre(Long id);
-}
-
-------------------------------------------------------------
-MyListService
-
-package com.example.my_books_backend.service;
-
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.my_list.MyListRequest;
-import com.example.my_books_backend.dto.my_list.MyListResponse;
-
-public interface MyListService {
-    PaginatedBookResponse getMyLists(Integer page, Integer maxResults);
-
-    MyListResponse addToMyList(MyListRequest request);
-
-    void removeFromMyList(String bookId);
-}
-
 ------------------------------------------------------------
 ReviewService
 
 package com.example.my_books_backend.service;
 
-import java.util.List;
-import com.example.my_books_backend.dto.review.MyReviewResponse;
+import com.example.my_books_backend.dto.review.PaginatedMyReviewResponse;
+import com.example.my_books_backend.dto.review.PaginatedReviewResponse;
 import com.example.my_books_backend.dto.review.ReviewRequest;
 import com.example.my_books_backend.dto.review.ReviewResponse;
 
 public interface ReviewService {
-    List<ReviewResponse> getReviewsByBookId(String bookId);
+    PaginatedReviewResponse getReviews(String bookId, Integer page, Integer maxResults);
 
-    List<MyReviewResponse> getMyReviews();
+    PaginatedMyReviewResponse getMyReviews(Integer page, Integer maxResults);
 
     ReviewResponse createReview(ReviewRequest request);
 
     ReviewResponse updateReview(ReviewRequest request);
 
     void deleteReview(String bookId);
+
+    Boolean checkMyReviewExists(String bookId);
 }
 
 ------------------------------------------------------------
+UserService
 
+package com.example.my_books_backend.service;
 
+import java.util.List;
+import java.util.Optional;
+import com.example.my_books_backend.dto.user.ChangeEmailRequest;
+import com.example.my_books_backend.dto.user.ChangePasswordRequest;
+import com.example.my_books_backend.dto.user.CreateUserRequest;
+import com.example.my_books_backend.dto.user.ProfileCountsResponse;
+import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.dto.user.UpdateUserRequest;
+import com.example.my_books_backend.entity.User;
+
+public interface UserService {
+    Optional<User> findByEmail(String email);
+
+    List<UserResponse> getAllUsers();
+
+    UserResponse getUserById(Long id);
+
+    void deleteUser(Long id);
+
+    UserResponse createUser(CreateUserRequest request);
+
+    UserResponse getCurrentUser();
+
+    ProfileCountsResponse getProfileCounts();
+
+    void updateCurrentUser(UpdateUserRequest request);
+
+    void changeEmail(ChangeEmailRequest request);
+
+    void changePassword(ChangePasswordRequest request);
+
+    Boolean checkUsernameExists(String name);
+}
+
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
