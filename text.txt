@@ -1,4 +1,4 @@
-３９ファイル
+８ファイル
 
 ------------------------------------------------------------
 book-detail
@@ -9,25 +9,30 @@ import MyListButton from '@/components/my-list-button';
 import Rating from '@/components/rating';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useFetchData } from '@/hooks/use-fetch-data';
 import { useUser } from '@/hooks/use-user';
 import { getBookDetailById, getGenres } from '@/lib/data';
 import { formatDateJP, formatIsbn, priceToString } from '@/lib/util';
-import { Genre, type BookDetail } from '@/types';
+import { useSuspenseQueries } from '@tanstack/react-query';
 
 type Props = {
   bookId: string;
 };
 
 export default function BookDetail({ bookId }: Props) {
-  const { data } = useFetchData<[BookDetail, Genre[]]>({
-    queryKey: ['BookDetail', bookId],
-    queryFn: () => Promise.all([getBookDetailById(bookId), getGenres()]),
+  const [{ data: bookDetail }, { data: genres }] = useSuspenseQueries({
+    queries: [
+      {
+        queryKey: ['getBookDetailById', bookId],
+        queryFn: () => getBookDetailById(bookId),
+      },
+      {
+        queryKey: ['getGenres'],
+        queryFn: () => getGenres(),
+      },
+    ],
   });
 
   const { user } = useUser();
-
-  const [bookDetail, genres] = data;
 
   return (
     <div className="flex flex-col justify-center p-3 pt-10 sm:p-6 lg:flex-row">
@@ -61,9 +66,7 @@ export default function BookDetail({ bookId }: Props) {
                 {bookDetail.myListCount}
               </p>
             </div>
-            <div className="flex items-center gap-x-1">
-              <FavoriteButton bookId={bookId} withCount />
-            </div>
+            <FavoriteButton bookId={bookId} animation={true} />
           </div>
         </div>
 
@@ -125,408 +128,6 @@ export default function BookDetail({ bookId }: Props) {
 }
 
 ------------------------------------------------------------
-book-list-by-genre-id
-
-import BookList from '@/components/book-list/book-list';
-import BookPagination from '@/components/book-list/book-pagination';
-import { useFetchData } from '@/hooks/use-fetch-data';
-import { getBooksByGenreId } from '@/lib/data';
-import { PaginatedBook } from '@/types';
-
-type Props = {
-  genreId: string;
-  page: number;
-};
-
-export default function BookListByGenreId({ genreId, page }: Props) {
-  const { data: paginatedBook } = useFetchData<PaginatedBook>({
-    queryKey: ['BookListByGenreId', genreId, page],
-    queryFn: () => getBooksByGenreId(genreId, page - 1),
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <BookPagination totalPages={paginatedBook.totalPages} />
-      <BookList books={paginatedBook.books} />
-      <BookPagination totalPages={paginatedBook.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-by-query
-
-import BookList from '@/components/book-list/book-list';
-import BookPagination from '@/components/book-list/book-pagination';
-import { useFetchData } from '@/hooks/use-fetch-data';
-import { getBooksByQuery } from '@/lib/data';
-import { PaginatedBook } from '@/types';
-
-type Props = {
-  query: string;
-  page: number;
-};
-
-export default function BookListByQuery({ query, page }: Props) {
-  const { data: paginatedBook } = useFetchData<PaginatedBook>({
-    queryKey: ['BookListByQuery', query, page],
-    queryFn: () => getBooksByQuery(query, page - 1),
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <BookPagination totalPages={paginatedBook.totalPages} />
-      <BookList books={paginatedBook.books} />
-      <BookPagination totalPages={paginatedBook.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-favorites
-
-import BookList from '@/components/book-list/book-list';
-import BookPagination from '@/components/book-list/book-pagination';
-import { useFetchData } from '@/hooks/use-fetch-data';
-import { getFavorites } from '@/lib/data';
-import { PaginatedBook } from '@/types';
-
-type Props = {
-  page: number;
-};
-
-export default function BookListFavorites({ page }: Props) {
-  const { data: paginatedBook } = useFetchData<PaginatedBook>({
-    queryKey: ['BookListFavorites', page],
-    queryFn: () => getFavorites(page - 1),
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <BookPagination totalPages={paginatedBook.totalPages} />
-      <BookList books={paginatedBook.books} />
-      <BookPagination totalPages={paginatedBook.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-my-lists
-
-import BookList from '@/components/book-list/book-list';
-import BookPagination from '@/components/book-list/book-pagination';
-import { useFetchData } from '@/hooks/use-fetch-data';
-import { getMyLists } from '@/lib/data';
-import { PaginatedBook } from '@/types';
-
-type Props = {
-  page: number;
-};
-
-export default function BookListMyLists({ page }: Props) {
-  const { data: paginatedBook } = useFetchData<PaginatedBook>({
-    queryKey: ['BookListMyLists', page],
-    queryFn: () => getMyLists(page - 1),
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <BookPagination totalPages={paginatedBook.totalPages} />
-      <BookList books={paginatedBook.books} />
-      <BookPagination totalPages={paginatedBook.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-new-releases
-
-import BookList from '@/components/book-list/book-list';
-import { useFetchData } from '@/hooks/use-fetch-data';
-import { getNewReleases } from '@/lib/data';
-import { Book } from '@/types';
-
-export default function BookListNewReleases() {
-  const { data: books } = useFetchData<Book[]>({
-    queryKey: ['BookListNewReleases'],
-    queryFn: () => getNewReleases(),
-  });
-
-  return (
-    <div className="pb-4">
-      <BookList books={books} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-pagination
-
-import { Pagination } from '@/components/pagination';
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-
-type Props = {
-  totalPages: number;
-};
-
-export default function BookPagination({ totalPages }: Props) {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = Number(params.get('page') ?? '1');
-    setPage(page);
-  }, [location.search]);
-
-  const handleChange = (page: number) => {
-    setPage(page);
-    const params = new URLSearchParams(location.search);
-    params.set('page', page.toString());
-    navigate(`${location.pathname}?${params.toString()}`);
-  };
-
-  return (
-    <div className="flex justify-center">
-      {totalPages > 1 && (
-        <Pagination total={totalPages} page={page} onChangePage={handleChange} />
-      )}
-    </div>
-  );
-}
-
-------------------------------------------------------------
-genre-list-area
-
-import GenreList from '@/components/genre-list/genre-list';
-import GenreListSkeleton from '@/components/genre-list/genre-list-skeleton';
-import { useFetchData } from '@/hooks/use-fetch-data';
-import { getGenres } from '@/lib/data';
-import { Genre } from '@/types';
-import { Await } from 'react-router-dom';
-
-export default function GenreListArea() {
-  const { data: genres } = useFetchData({
-    queryKey: ['GenreListArea'],
-    queryFn: () => getGenres(),
-  });
-
-  return (
-    <Await resolve={genres}>
-      {(genres: Genre[]) => {
-        if (!genres) return <GenreListSkeleton />;
-        return <GenreList genres={genres} variant="ghost" />;
-      }}
-    </Await>
-  );
-}
-
-------------------------------------------------------------
-genre-list-skeleton
-
-import { Skeleton } from '@/components/ui/skeleton';
-
-export default function GenreListSkeleton() {
-  return (
-    <>
-      <ul className="flex flex-wrap gap-x-2">
-        {[...Array<number>(3)].map((_, index) => (
-          <li key={index}>
-            <Skeleton className="h-9 w-24 rounded-full bg-muted-foreground/5" />
-          </li>
-        ))}
-      </ul>
-    </>
-  );
-}
-
-------------------------------------------------------------
-genre-list
-
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/util';
-import { Genre } from '@/types';
-import { Link } from 'react-router-dom';
-
-type Props = {
-  className?: string;
-  genres: Genre[];
-  filterList?: number[];
-  variant?: 'default' | 'outline' | 'secondary' | 'ghost';
-};
-
-export default function GenreList({
-  className,
-  genres,
-  filterList = [],
-  variant = 'default',
-}: Props) {
-  const filteredGenres =
-    filterList.length === 0
-      ? genres
-      : genres.filter((genre) => filterList.includes(genre.id));
-
-  return (
-    <ul className={cn('flex flex-wrap', className)}>
-      {filteredGenres.map((genre) => (
-        <li key={genre.id}>
-          <Button
-            className={cn('rounded-full', variant === 'outline' && 'bg-transparent')}
-            variant={variant}
-            size="sm"
-            asChild
-          >
-            <Link to={`/discover?genreId=${genre.id}`}>{genre.name}</Link>
-          </Button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-------------------------------------------------------------
-genre-selector
-
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Separator } from '@/components/ui/separator';
-import { useFetchData } from '@/hooks/use-fetch-data';
-import { getGenres } from '@/lib/data';
-import { cn } from '@/lib/util';
-import { Genre } from '@/types';
-import { CheckIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-
-type ConditionType = {
-  id: string;
-  value: string;
-  splitCode: string;
-};
-
-const CONDITIONS: ConditionType[] = [
-  { id: 'and-condition', value: 'AND', splitCode: ',' },
-  { id: 'or-condition', value: 'OR', splitCode: '|' },
-];
-
-const parseGenreIdQuery = (genreIdQuery: string) => {
-  for (const condition of CONDITIONS) {
-    if (genreIdQuery.includes(condition.splitCode)) {
-      return {
-        ids: genreIdQuery.split(condition.splitCode).map((id) => Number(id)),
-        condition,
-      };
-    }
-  }
-  const ids = genreIdQuery ? [Number(genreIdQuery)] : [];
-  return { ids, condition: CONDITIONS[0] };
-};
-
-export default function GenreSelector() {
-  const { data: genres } = useFetchData<Genre[]>({
-    queryKey: ['GenreSelector'],
-    queryFn: () => getGenres(),
-  });
-
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
-  const [selectedCondition, setSelectedCondition] = useState<ConditionType>(
-    CONDITIONS[0]
-  );
-
-  const isActive = (id: number) => selectedGenres.includes(id);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const genreIdQuery = params.get('genreId') ?? '';
-
-    const { ids, condition } = parseGenreIdQuery(genreIdQuery);
-
-    setSelectedGenres(ids);
-    if (ids.length > 1) setSelectedCondition(condition);
-  }, [location.search]);
-
-  const handleClickGenre = (genreId: number) => {
-    const ids = isActive(genreId)
-      ? selectedGenres.filter((id) => id !== genreId)
-      : [...selectedGenres, genreId];
-    setSelectedGenres(ids);
-
-    const genreIdQuery = ids.join(selectedCondition.splitCode);
-    updateDiscoverUrl(genreIdQuery);
-  };
-
-  const handleValueChange = (value: string) => {
-    const selected =
-      CONDITIONS.find((condition) => condition.value === value) || CONDITIONS[0];
-    setSelectedCondition(selected);
-
-    const genreIdQuery = selectedGenres.join(selected.splitCode);
-    updateDiscoverUrl(genreIdQuery);
-  };
-
-  const updateDiscoverUrl = (genreIdQuery: string) => {
-    const params = new URLSearchParams(location.search);
-    params.set('genreId', genreIdQuery);
-    params.set('page', '1');
-    navigate(`/discover?${params.toString()}`);
-  };
-
-  return (
-    <>
-      <div className="my-4 flex items-center justify-between">
-        <p className="my-2">ジャンル</p>
-        <RadioGroup
-          className="flex gap-x-4"
-          value={selectedCondition.value}
-          onValueChange={handleValueChange}
-        >
-          {CONDITIONS.map((condition) => (
-            <div className="flex items-center" key={condition.id}>
-              <RadioGroupItem value={condition.value} id={condition.id} />
-              <Label className="cursor-pointer select-none p-2" htmlFor={condition.id}>
-                {condition.value}
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
-      </div>
-
-      <Separator className="my-4 bg-foreground/10" />
-
-      <ul className="flex flex-wrap">
-        {genres.map((genre) => (
-          <li key={genre.id}>
-            <Button
-              className={cn(
-                'rounded-full m-1 text-muted-foreground text-xs sm:text-sm',
-                isActive(genre.id) && 'text-foreground'
-              )}
-              variant={isActive(genre.id) ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => handleClickGenre(genre.id)}
-            >
-              {isActive(genre.id) && (
-                <CheckIcon className="mr-1 size-4" strokeWidth={4} />
-              )}
-              {genre.name}
-            </Button>
-          </li>
-        ))}
-      </ul>
-
-      <Separator className="my-4 bg-foreground/10" />
-    </>
-  );
-}
-
-------------------------------------------------------------
 review-create-dialog
 
 import Rating from '@/components/rating';
@@ -538,16 +139,17 @@ import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
 import { createReview } from '@/lib/action';
-import { Loader2Icon } from 'lucide-react';
-import React, { useEffect, useRef, useState, useTransition } from 'react';
+import { ReviewRequest } from '@/types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useEffect, useRef, useState } from 'react';
 
 type Props = {
   bookId: string;
   reviewExists: boolean;
-  refetch: () => void;
+  queryKey: unknown[];
 };
 
-export default function ReviewCreateDialog({ bookId, reviewExists, refetch }: Props) {
+export default function ReviewCreateDialog({ bookId, reviewExists, queryKey }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -556,8 +158,15 @@ export default function ReviewCreateDialog({ bookId, reviewExists, refetch }: Pr
 
   const { toast } = useToast();
   const { user } = useUser();
-  const [isPending, startTransition] = useTransition();
   const { confirmDialog } = useConfirmDialog();
+
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: (reqestBody: ReviewRequest) => createReview(reqestBody),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -583,24 +192,24 @@ export default function ReviewCreateDialog({ bookId, reviewExists, refetch }: Pr
       if (isCancel) return;
     }
 
-    const isSuccess = await createReview({ comment, rating, bookId });
-    if (!isSuccess) {
-      toast({
-        title: 'レビュー投稿に失敗しました',
-        description: '管理者へ連絡してください',
-        variant: 'destructive',
-        duration: 5000,
-      });
-      setIsOpen(false);
-      return;
-    }
-
-    setIsOpen(false);
-
-    startTransition(() => {
-      refetch();
-      toast({ description: 'レビューを投稿しました' });
-    });
+    mutate(
+      { comment, rating, bookId },
+      {
+        onSuccess: () => {
+          toast({ description: 'レビューを投稿しました' });
+          setIsOpen(false);
+        },
+        onError: () => {
+          toast({
+            title: 'レビュー投稿に失敗しました',
+            description: '管理者へ連絡してください',
+            variant: 'destructive',
+            duration: 5000,
+          });
+          setIsOpen(false);
+        },
+      }
+    );
   };
 
   const handleCloseDialog = async () => {
@@ -627,13 +236,7 @@ export default function ReviewCreateDialog({ bookId, reviewExists, refetch }: Pr
             disabled={reviewExists}
             onClick={() => user && setIsOpen(true)}
           >
-            {isPending ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : reviewExists ? (
-              'レビュー済み'
-            ) : (
-              'レビューする'
-            )}
+            {reviewExists ? 'レビュー済み' : 'レビューする'}
           </Button>
         </TooltipTrigger>
         {!user && (
@@ -701,20 +304,27 @@ import { useUser } from '@/hooks/use-user';
 import { deleteReview } from '@/lib/action';
 import { formatDateJP, formatTime } from '@/lib/util';
 import { Review } from '@/types';
-import { Loader2Icon, Trash2Icon } from 'lucide-react';
-import { useTransition } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Trash2Icon } from 'lucide-react';
 
 type Props = {
   review: Review;
   bookId: string;
-  refetch: () => void;
+  queryKey: unknown[];
 };
 
-export default function ReviewItem({ review, bookId, refetch }: Props) {
+export default function ReviewItem({ review, bookId, queryKey }: Props) {
   const { user } = useUser();
   const { toast } = useToast();
   const { confirmDialog } = useConfirmDialog();
-  const [isPending, startTransition] = useTransition();
+
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: (bookId: string) => deleteReview(bookId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
 
   const handleClickDelete = async () => {
     const { isCancel } = await confirmDialog({
@@ -725,11 +335,10 @@ export default function ReviewItem({ review, bookId, refetch }: Props) {
     });
     if (isCancel) return;
 
-    await deleteReview(bookId);
-
-    startTransition(() => {
-      refetch();
-      toast({ description: 'レビューを削除しました' });
+    mutate(bookId, {
+      onSuccess: () => {
+        toast({ description: 'レビューを削除しました' });
+      },
     });
   };
 
@@ -759,20 +368,15 @@ export default function ReviewItem({ review, bookId, refetch }: Props) {
                     <ReviewUpdateDialog
                       bookId={bookId}
                       review={review}
-                      refetch={refetch}
+                      queryKey={queryKey}
                     />
                     <Button
                       className="size-8 rounded-full text-muted-foreground"
                       variant="ghost"
                       size="icon"
-                      disabled={isPending}
                       onClick={handleClickDelete}
                     >
-                      {isPending ? (
-                        <Loader2Icon className="size-4 animate-spin" />
-                      ) : (
-                        <Trash2Icon className="size-4" />
-                      )}
+                      <Trash2Icon className="size-4" />
                     </Button>
                   </>
                 )}
@@ -788,121 +392,6 @@ export default function ReviewItem({ review, bookId, refetch }: Props) {
 }
 
 ------------------------------------------------------------
-review-list-skeleton
-
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { FETCH_REVIEWS_MAX_RESULTS } from '@/constants/constants';
-
-const ReviewListSkeletonItem = () => {
-  return (
-    <div className="p-4">
-      <div className="flex flex-col items-center justify-between sm:flex-row">
-        <div className="flex w-full items-center gap-x-4">
-          <Skeleton className="size-16 rounded-full bg-muted-foreground/5" />
-          <div>
-            <div className="-mb-1">
-              <Skeleton className="my-2 h-5 w-20 rounded-full bg-muted-foreground/5" />
-            </div>
-            <div className="flex items-center">
-              <Skeleton className="my-1.5 h-5 w-32 rounded-full bg-muted-foreground/5" />
-              <div className="ml-2 flex w-14"></div>
-            </div>
-          </div>
-        </div>
-        <Skeleton className="my-1 h-8 w-40 rounded-full bg-muted-foreground/5" />
-      </div>
-      <div className="mt-2 text-muted-foreground sm:pl-20">
-        <Skeleton className="h-6 w-full rounded-full bg-muted-foreground/5" />
-      </div>
-    </div>
-  );
-};
-
-export default function ReviewListSkeleton() {
-  return (
-    <div className="mx-auto w-full lg:w-3/4">
-      <div className="flex items-center justify-end px-3 sm:px-6">
-        <Skeleton className="h-10 w-44 rounded-full bg-muted-foreground/5" />
-      </div>
-      <ul className="flex flex-col p-3 sm:p-6">
-        {[...Array<number>(FETCH_REVIEWS_MAX_RESULTS)].map((_, index) => (
-          <li key={index}>
-            <Separator className="bg-foreground/10" />
-            <ReviewListSkeletonItem />
-          </li>
-        ))}
-      </ul>
-      <div className="mb-4 flex justify-center">
-        <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
-        <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
-        <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
-      </div>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-review-list
-
-import { Pagination } from '@/components/pagination';
-import ReviewCreateDialog from '@/components/review-list/review-create-dialog';
-import ReviewItem from '@/components/review-list/review-item';
-import { Separator } from '@/components/ui/separator';
-import { useFetchData } from '@/hooks/use-fetch-data';
-import { checkMyReviewExists, getReviews } from '@/lib/data';
-import { PaginatedReview } from '@/types';
-import { useState } from 'react';
-
-type Props = {
-  bookId: string;
-};
-
-export default function ReviewList({ bookId }: Props) {
-  const [page, setPage] = useState(1);
-
-  const { data, refetch } = useFetchData<[PaginatedReview, boolean]>({
-    queryKey: ['ReviewList', bookId, page],
-    queryFn: () =>
-      Promise.all([getReviews(bookId, page - 1), checkMyReviewExists(bookId)]),
-  });
-
-  const [paginatedreview, reviewExists] = data;
-
-  return (
-    <div className="mx-auto w-full lg:w-3/4">
-      <div className="flex flex-col-reverse items-center justify-end gap-y-4 sm:flex-row sm:gap-x-4 sm:px-6">
-        <p>レビュー {paginatedreview.totalItems} 件</p>
-        <ReviewCreateDialog
-          bookId={bookId}
-          reviewExists={reviewExists}
-          refetch={refetch}
-        />
-      </div>
-
-      <ul className="flex flex-col p-3 sm:p-6">
-        {paginatedreview.reviews.map((review) => (
-          <li key={review.reviewId.userId}>
-            <Separator className="bg-foreground/10" />
-            <ReviewItem review={review} bookId={bookId} refetch={refetch} />
-          </li>
-        ))}
-      </ul>
-
-      <div className="mb-4 flex justify-center">
-        {paginatedreview.totalPages > 1 && (
-          <Pagination
-            total={paginatedreview.totalPages}
-            page={page}
-            onChangePage={setPage}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-------------------------------------------------------------
 review-update-dialog
 
 import Rating from '@/components/rating';
@@ -913,17 +402,18 @@ import { Tooltip, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
 import { updateReview } from '@/lib/action';
-import { Review } from '@/types';
-import { Loader2Icon, SquarePenIcon } from 'lucide-react';
-import React, { useEffect, useRef, useState, useTransition } from 'react';
+import { Review, ReviewRequest } from '@/types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { SquarePenIcon } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 type Props = {
   bookId: string;
   review: Review;
-  refetch: () => void;
+  queryKey: unknown[];
 };
 
-export default function ReviewUpdateDialog({ bookId, review, refetch }: Props) {
+export default function ReviewUpdateDialog({ bookId, review, queryKey }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -932,7 +422,14 @@ export default function ReviewUpdateDialog({ bookId, review, refetch }: Props) {
 
   const { toast } = useToast();
   const { user } = useUser();
-  const [isPending, startTransition] = useTransition();
+
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: (reqestBody: ReviewRequest) => updateReview(reqestBody),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -948,24 +445,24 @@ export default function ReviewUpdateDialog({ bookId, review, refetch }: Props) {
   };
 
   const handlePost = async () => {
-    const isSuccess = await updateReview({ bookId, comment, rating });
-    if (!isSuccess) {
-      toast({
-        title: 'レビュー投稿に失敗しました',
-        description: '管理者へ連絡してください',
-        variant: 'destructive',
-        duration: 5000,
-      });
-      setIsOpen(false);
-      return;
-    }
-
-    toast({ description: 'レビューを投稿しました' });
-    setIsOpen(false);
-
-    startTransition(() => {
-      refetch();
-    });
+    mutate(
+      { comment, rating, bookId },
+      {
+        onSuccess: () => {
+          toast({ description: 'レビューを投稿しました' });
+          setIsOpen(false);
+        },
+        onError: () => {
+          toast({
+            title: 'レビュー投稿に失敗しました',
+            description: '管理者へ連絡してください',
+            variant: 'destructive',
+            duration: 5000,
+          });
+          setIsOpen(false);
+        },
+      }
+    );
   };
 
   const handleCloseDialog = async () => {
@@ -980,14 +477,9 @@ export default function ReviewUpdateDialog({ bookId, review, refetch }: Props) {
             className="size-8 rounded-full text-muted-foreground"
             variant="ghost"
             size="icon"
-            disabled={isPending}
             onClick={() => user && setIsOpen(true)}
           >
-            {isPending ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : (
-              <SquarePenIcon className="size-4" />
-            )}
+            <SquarePenIcon className="size-4" />
           </Button>
         </TooltipTrigger>
       </Tooltip>
@@ -1040,111 +532,6 @@ export default function ReviewUpdateDialog({ bookId, review, refetch }: Props) {
 }
 
 ------------------------------------------------------------
-textarea
-
-import { cn } from '@/lib/util';
-import React from 'react';
-
-const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<'textarea'>>(
-  ({ className, ...props }, ref) => {
-    return (
-      <textarea
-        ref={ref}
-        className={cn(
-          'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-          className
-        )}
-        {...props}
-      />
-    );
-  }
-);
-
-export { Textarea };
-
-------------------------------------------------------------
-count-up-number
-
-import { useCallback, useEffect, useState } from 'react';
-
-type Props = {
-  className?: string;
-  start?: number;
-  end: number;
-  minInterval?: number; // 最小間隔
-  maxInterval?: number; // 最大間隔
-  normalInterval?: number; // 高速カウントアップ時の間隔
-  delay?: number; // カウントアップ開始までの遅延時間（ミリ秒）
-};
-
-export default function CountUpNumber({
-  className,
-  start,
-  end,
-  minInterval = 20,
-  maxInterval = 300,
-  normalInterval = 20,
-  delay = 0,
-}: Props) {
-  const initialStart = start ?? Math.max(0, end - 30);
-
-  const [count, setCount] = useState(initialStart);
-  const [isDelayComplete, setIsDelayComplete] = useState(delay === 0);
-  const [countUpFinished, setCountUpFinished] = useState(false);
-
-  // 遅延処理
-  useEffect(() => {
-    if (delay === 0) return;
-
-    const delayTimeout = setTimeout(() => {
-      setIsDelayComplete(true);
-    }, delay);
-
-    return () => clearTimeout(delayTimeout);
-  }, [delay]);
-
-  // イージング関数：最後の10カウント用
-  const easeInOut = useCallback((progress: number): number => {
-    return progress < 0.5
-      ? 4 * progress ** 3 // 前半は加速 (ease-in)
-      : 1 - Math.pow(-3 * progress + 3, 7) / 2; // 後半を非常に緩やかに減速
-  }, []);
-
-  useEffect(() => {
-    // 遅延が完了していない場合は何もしない
-    if (!isDelayComplete) return;
-    if (count >= end) return; // カウント終了
-
-    const isFinalPhase = count >= end - 10; // 最後の10カウントかどうかを判定
-
-    let currentInterval: number;
-
-    if (isFinalPhase) {
-      // 最後の10カウントの場合、イージングを適用
-      const progress = (count - (end - 10)) / 10; // 進捗率 (0 ~ 1)
-      const easedProgress = easeInOut(progress);
-      currentInterval = minInterval + (maxInterval - minInterval) * easedProgress;
-    } else {
-      // 高速カウントアップ
-      currentInterval = normalInterval;
-    }
-
-    const timeout = setTimeout(() => {
-      setCount((prev) => prev + 1);
-
-      // カウントアップアニメーションが完了したらフラグ変更
-      if (count + 1 >= end) {
-        setCountUpFinished(true);
-      }
-    }, currentInterval);
-
-    return () => clearTimeout(timeout);
-  }, [count, easeInOut, end, isDelayComplete, maxInterval, minInterval, normalInterval]);
-
-  return <span className={className}>{countUpFinished ? end : count}</span>;
-}
-
-------------------------------------------------------------
 favorite-button
 
 import CountUpNumber from '@/components/count-up-number';
@@ -1152,73 +539,82 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUser } from '@/hooks/use-user';
 import { addFavorite, removeFavorite } from '@/lib/action';
-import { getFavoriteCount, getFavoriteState } from '@/lib/data';
+import { getFavoriteInfo, getFavoriteInfoWithAuth } from '@/lib/data';
 import { cn } from '@/lib/util';
+import { FavoriteInfo } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { HeartIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
-const BUTTON_SIZE = {
-  sm: 'size-6',
-  md: 'size-8',
-  lg: '',
-};
-const ICON_SIZE = {
-  sm: 'size-3',
-  md: 'size-4',
-  lg: '',
-};
+const BUTTON_SIZE = { sm: 'size-6', md: 'size-8' };
+const ICON_SIZE = { sm: 'size-3', md: 'size-4' };
+const TEXT_SIZE = { sm: 'text-xs', md: 'text-sm' };
 
 type Props = {
   bookId: string;
-  size?: 'sm' | 'md' | 'lg';
-  withCount?: boolean;
+  size?: 'sm' | 'md';
+  animation?: boolean;
 };
 
 export default function FavoriteButton({
   bookId,
   size = 'md',
-  withCount = false,
+  animation = false,
 }: Props) {
   const { user } = useUser();
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [count, setCount] = useState(0);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const init = async () => {
-      const favoriteCount = await getFavoriteCount(bookId);
-      setCount(favoriteCount);
+  const queryKey = ['getFavoriteInfo', bookId];
+  const { data: favoriteInfo } = useQuery({
+    queryKey,
+    queryFn: () => (user ? getFavoriteInfoWithAuth(bookId) : getFavoriteInfo(bookId)),
+  });
 
-      if (!user) return;
+  const { mutate, variables, isPending } = useMutation({
+    mutationFn: async (newFavoriteInfo: FavoriteInfo) => {
+      if (newFavoriteInfo.isFavorite) {
+        await addFavorite(bookId);
+      } else {
+        await removeFavorite(bookId);
+      }
+    },
+    onMutate: async (newFavoriteInfo: FavoriteInfo) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousFavoriteInfo = queryClient.getQueryData(queryKey);
+      queryClient.setQueryData(queryKey, newFavoriteInfo);
+      return { previousFavoriteInfo };
+    },
+    onSettled: (_newFavoriteInfo, error, _variables, context) => {
+      if (error) {
+        queryClient.setQueryData(queryKey, context?.previousFavoriteInfo);
+      }
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
 
-      const isFavorite = await getFavoriteState(bookId);
-      setIsFavorite(isFavorite);
+  const handleClick = () => {
+    if (!user || !favoriteInfo) return;
+
+    const newFavoriteInfo: FavoriteInfo = {
+      ...favoriteInfo,
+      isFavorite: !favoriteInfo.isFavorite,
+      favoriteCount: favoriteInfo.isFavorite
+        ? favoriteInfo.favoriteCount - 1
+        : favoriteInfo.favoriteCount + 1,
     };
-    init();
-  }, [bookId, user]);
-
-  const handleClick = async () => {
-    if (!user) return;
-
-    if (isFavorite) {
-      setCount(count - 1);
-      setIsFavorite(false);
-      await removeFavorite(bookId);
-    } else {
-      setCount(count + 1);
-      setIsFavorite(true);
-      await addFavorite(bookId);
-    }
+    mutate(newFavoriteInfo);
   };
 
+  const optimisticData = isPending ? variables : favoriteInfo;
+
   return (
-    <>
+    <div className="flex items-center gap-x-0">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
             className={cn(
               'rounded-full text-muted-foreground',
               BUTTON_SIZE[size],
-              isFavorite && 'text-primary bg-transparent'
+              optimisticData?.isFavorite && 'text-primary bg-transparent'
             )}
             variant="ghost"
             size="icon"
@@ -1227,14 +623,14 @@ export default function FavoriteButton({
             <HeartIcon
               className={ICON_SIZE[size]}
               style={{
-                fill: isFavorite ? 'hsl(var(--primary))' : '',
+                fill: optimisticData?.isFavorite ? 'hsl(var(--primary))' : '',
               }}
             />
           </Button>
         </TooltipTrigger>
         {user ? (
           <TooltipContent>
-            {isFavorite ? 'お気に入りから削除' : 'お気に入りに追加'}
+            {optimisticData?.isFavorite ? 'お気に入りから削除' : 'お気に入りに追加'}
           </TooltipContent>
         ) : (
           <TooltipContent>
@@ -1243,327 +639,24 @@ export default function FavoriteButton({
         )}
       </Tooltip>
 
-      {withCount && (
-        <p className="flex min-w-6 text-sm text-muted-foreground">
-          <CountUpNumber end={count} />
-        </p>
-      )}
-    </>
-  );
-}
-
-------------------------------------------------------------
-profile-counts
-
-import CountUpNumber from '@/components/count-up-number';
-import { useFetchData } from '@/hooks/use-fetch-data';
-import { getProfileCounts } from '@/lib/data';
-import { type ProfileCounts } from '@/types';
-
-export default function ProfileCounts() {
-  const { data: profileCounts } = useFetchData<ProfileCounts>({
-    queryKey: ['ProfileCounts'],
-    queryFn: () => getProfileCounts(),
-  });
-
-  return (
-    <div className="flex justify-between pt-8">
-      <div className="animate-fadeInUp-4 delay-0">
-        <div className="w-20 text-center">
-          <p className="text-xl font-bold">
-            <CountUpNumber end={profileCounts.favoriteCount} delay={300} />
-          </p>
-          <p className="text-sm">お気に入り</p>
-        </div>
-      </div>
-      <div className="animate-fadeInUp-4 delay-100">
-        <div className="w-20 text-center">
-          <p className="text-xl font-bold">
-            <CountUpNumber end={profileCounts.myListCount} delay={400} />
-          </p>
-          <p className="text-sm">マイリスト</p>
-        </div>
-      </div>
-      <div className="animate-fadeInUp-4 delay-200">
-        <div className="w-20 text-center">
-          <p className="text-xl font-bold">
-            <CountUpNumber end={profileCounts.reviewCount} delay={500} />
-          </p>
-          <p className="text-sm">レビュー</p>
-        </div>
-      </div>
+      <p className={cn('flex min-w-6 text-muted-foreground', TEXT_SIZE[size])}>
+        {animation ? (
+          <CountUpNumber end={optimisticData?.favoriteCount || 0} />
+        ) : (
+          optimisticData?.favoriteCount
+        )}
+      </p>
     </div>
   );
 }
 
 ------------------------------------------------------------
-constants
-
-import { HeartIcon, ListIcon, SettingsIcon } from 'lucide-react';
-
-// ロゴ
-export const LOGO_TITLE = 'My Books';
-
-// メニュー一覧
-export const MENU_LIST = [
-  { href: '/favorites', title: 'お気に入り', icon: HeartIcon },
-  { href: '/my-lists', title: 'マイリスト', icon: ListIcon },
-  { href: '/settings/profile', title: '設定', icon: SettingsIcon },
-];
-
-// API Endpoits
-// export const BOOKS_API_ENDPOINT = 'http://vsv-emerald/my-books/api/v1';
-// export const BOOKS_IMAGE_URL = 'http://vsv-emerald/images';
-// export const AVATER_IMAGE_URL = 'https://vsv-emerald/images/avatars';
-
-export const BOOKS_API_ENDPOINT = 'https://localhost/my-books/api/v1';
-export const BOOKS_IMAGE_URL = 'https://localhost/images';
-export const AVATER_IMAGE_URL = 'https://localhost/images/avatars';
-
-export const FETCH_BOOKS_MAX_RESULTS = 20;
-export const FETCH_REVIEWS_MAX_RESULTS = 5;
-
-------------------------------------------------------------
-use-fetch-data
-
-// 参考：https://zenn.dev/uhyo/books/react-concurrent-handson/viewer/introduction
-
-import { useEffect, useState } from 'react';
-
-const dataMap: Map<string, unknown> = new Map();
-
-type PropsFn<T> = {
-  queryKey: unknown[];
-  queryFn: () => Promise<T>;
-};
-
-export const useFetchData = <T>({ queryKey, queryFn }: PropsFn<T>) => {
-  const key = queryKey.join();
-  const [data, setData] = useState<T | undefined>(dataMap.get(key) as T | undefined);
-  const [error, setError] = useState<Error | null>(null);
-
-  const refetch = async () => {
-    try {
-      const newData = await queryFn();
-      dataMap.set(key, newData);
-      setData(newData);
-    } catch (err) {
-      setError(err as Error);
-    }
-  };
-
-  useEffect(() => {
-    if (data === undefined) {
-      refetch();
-    }
-    return () => setData(undefined);
-  }, [key]);
-
-  if (error) {
-    throw error;
-  }
-
-  if (data === undefined) {
-    throw refetch();
-  }
-
-  return { data, refetch };
-};
-
-------------------------------------------------------------
-action/favorite
-
-import { fetchActionWithAuth } from '@/lib/auth';
-
-export const addFavorite = async (bookId: string) => {
-  try {
-    const url = `/favorites`;
-    const options: RequestInit = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookId }),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-export const removeFavorite = async (bookId: string) => {
-  try {
-    const url = `/favorites/${bookId}`;
-    const options: RequestInit = { method: 'DELETE' };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-------------------------------------------------------------
-action/review
-
-import { fetchActionWithAuth } from '@/lib/auth';
-import { ReviewRequest } from '@/types';
-
-export const createReview = async (reqestBody: ReviewRequest) => {
-  try {
-    const url = `/reviews`;
-    const options: RequestInit = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(reqestBody),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-export const updateReview = async (reqestBody: ReviewRequest) => {
-  try {
-    const url = `/reviews`;
-    const options: RequestInit = {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(reqestBody),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-export const deleteReview = async (bookId: string) => {
-  try {
-    const url = `/reviews/${bookId}`;
-    const options: RequestInit = { method: 'DELETE' };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-------------------------------------------------------------
-action/user
-
-import { fetchActionWithAuth } from '@/lib/auth';
-import { ChangeEmail, ChangePassword, UpdateCurrentUser } from '@/types';
-
-export const updateCurrentUser = async (requestBody: UpdateCurrentUser) => {
-  try {
-    const url = `/me`;
-    const options: RequestInit = {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-export const changePassword = async (requestBody: ChangePassword) => {
-  try {
-    const url = `/me/password`;
-    const options: RequestInit = {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-export const changeEmail = async (requestBody: ChangeEmail) => {
-  try {
-    const url = `/me/email`;
-    const options: RequestInit = {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-------------------------------------------------------------
-data/book
-
-import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
-import { fetchJson } from '@/lib/data';
-import { Book, BookDetail, PaginatedBook } from '@/types';
-
-export const getBookDetailById = async (bookId: string) => {
-  try {
-    const url = `/books/${bookId}`;
-    const bookDetail = await fetchJson<BookDetail>(url);
-    return bookDetail;
-  } catch {
-    throw new Error('書籍情報の読み込みが失敗しました。');
-  }
-};
-
-export const getBooksByQuery = async (q: string, page: number = 0) => {
-  try {
-    const url = `/books/search?q=${q}&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
-    const paginatedBook = await fetchJson<PaginatedBook>(url);
-    return paginatedBook;
-  } catch {
-    throw new Error('書籍検索が失敗しました。');
-  }
-};
-
-export const getBooksByGenreId = async (genreIdsQuery: string, page: number = 0) => {
-  try {
-    // 「|」はそのまま渡すとエラーになるので、URLエンコードする
-    const encodedParams = genreIdsQuery.replace(/\|/g, encodeURIComponent('|'));
-
-    const url = `/books/discover?genreId=${encodedParams}&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
-    const paginatedBook = await fetchJson<PaginatedBook>(url);
-    return paginatedBook;
-  } catch {
-    throw new Error('ジャンル検索が失敗しました。');
-  }
-};
-
-export const getNewReleases = async () => {
-  try {
-    const url = `/books/new-releases`;
-    const books = await fetchJson<Book[]>(url);
-    return books;
-  } catch {
-    throw new Error('ニューリリース一覧の読み込みが失敗しました。');
-  }
-};
-
-------------------------------------------------------------
-data/favorite
+favorite
 
 import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
 import { fetchJsonWithAuth } from '@/lib/auth';
 import { fetchJson } from '@/lib/data';
-import { FavoriteCount, FavoriteState, PaginatedBook } from '@/types';
+import { FavoriteInfo, PaginatedBook } from '@/types';
 
 export const getFavorites = async (page: number = 0) => {
   try {
@@ -1575,842 +668,34 @@ export const getFavorites = async (page: number = 0) => {
   }
 };
 
-export const getFavoriteState = async (bookId: string) => {
-  if (!bookId) return false;
-
+export const getFavoriteInfo = async (bookId: string) => {
   try {
-    const url = `/favorites/state/${bookId}`;
-    const favoriteState = await fetchJsonWithAuth<FavoriteState>(url);
-    if (!favoriteState) return false;
-    return favoriteState.isFavorite;
+    const url = `/favorites/${bookId}/info`;
+    const favoriteInfo = await fetchJson<FavoriteInfo>(url);
+    return favoriteInfo;
   } catch {
     throw new Error('お気に入り情報の読み込みが失敗しました。');
   }
 };
 
-export const getFavoriteCount = async (bookId: string) => {
-  if (!bookId) return 0;
-
+export const getFavoriteInfoWithAuth = async (bookId: string) => {
   try {
-    const url = `/favorites/count/${bookId}`;
-    const favoriteCount = await fetchJson<FavoriteCount>(url);
-    return favoriteCount.count;
+    const url = `/favorites/${bookId}/info`;
+    const favoriteInfo = await fetchJsonWithAuth<FavoriteInfo>(url);
+    return favoriteInfo;
   } catch {
-    throw new Error('お気に入りカウントの読み込みが失敗しました。');
+    throw new Error('お気に入り情報の読み込みが失敗しました。');
   }
 };
 
 ------------------------------------------------------------
-data/genre
+favorite
 
-import { fetchJson } from '@/lib/data';
-import { Genre } from '@/types';
-
-export const getGenres = async () => {
-  try {
-    const url = `/genres`;
-    const genres = await fetchJson<Genre[]>(url);
-    return genres;
-  } catch {
-    throw new Error('ジャンル一覧の読み込みが失敗しました。');
-  }
-};
-
-------------------------------------------------------------
-data/index
-
-import { BOOKS_API_ENDPOINT } from '@/constants/constants';
-
-export * from './book';
-export * from './favorite';
-export * from './genre';
-export * from './my-list';
-export * from './review';
-export * from './user';
-
-export const fetchJson = async <T>(
-  url: string,
-  options: RequestInit = {}
-): Promise<T> => {
-  const res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
-  if (!res.ok) {
-    throw new Error(`失敗しました。URL: ${url} ステータス: ${res.status}`);
-  }
-  return res.json();
-};
-
-------------------------------------------------------------
-data/my-list
-
-import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
-import { fetchJsonWithAuth } from '@/lib/auth';
-import { PaginatedBook } from '@/types';
-
-export const getMyLists = async (page: number = 0) => {
-  try {
-    const url = `/my-lists?&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
-    const paginatedBook = await fetchJsonWithAuth<PaginatedBook>(url);
-    return paginatedBook;
-  } catch {
-    throw new Error('マイリスト一覧の読み込みが失敗しました。');
-  }
-};
-
-------------------------------------------------------------
-data/review
-
-import { FETCH_REVIEWS_MAX_RESULTS } from '@/constants/constants';
-import { fetchJsonWithAuth } from '@/lib/auth';
-import { fetchJson } from '@/lib/data';
-import { CheckMyReviewExists, PaginatedReview } from '@/types';
-
-export const getReviews = async (bookId: string, page: number = 0) => {
-  try {
-    const url = `/reviews/${bookId}?&page=${page}&maxResults=${FETCH_REVIEWS_MAX_RESULTS}`;
-    const paginatedReview = await fetchJson<PaginatedReview>(url);
-    return paginatedReview;
-  } catch {
-    throw new Error('レビュー一覧の読み込みが失敗しました。');
-  }
-};
-
-export const checkMyReviewExists = async (bookId: string) => {
-  try {
-    const url = `/reviews/my-reviews/exists?bookId=${bookId}`;
-    const data = await fetchJsonWithAuth<CheckMyReviewExists>(url);
-    if (!data) return false;
-    return data.exists;
-  } catch {
-    return false;
-  }
-};
-
-------------------------------------------------------------
-data/user
-
-import { fetchJsonWithAuth } from '@/lib/auth';
-import { fetchJson } from '@/lib/data';
-import { CheckUsernameExists, ProfileCounts, User } from '@/types';
-
-export const getCurrentUser = async () => {
-  try {
-    const url = `/me`;
-    const user = await fetchJsonWithAuth<User>(url);
-    return user;
-  } catch {
-    throw new Error('ユーザー情報の読み込みが失敗しました。');
-  }
-};
-
-export const getProfileCounts = async () => {
-  try {
-    const url = `/me/profile-counts`;
-    const profieleCounts = await fetchJsonWithAuth<ProfileCounts>(url);
-    return profieleCounts;
-  } catch {
-    throw new Error('ユーザーのプロフィール情報の読み込みが失敗しました。');
-  }
-};
-
-export const checkUsernameExists = async (name: string) => {
-  try {
-    const url = `/users/exists?name=${name}`;
-    const data = await fetchJson<CheckUsernameExists>(url);
-    return data.exists;
-  } catch {
-    return false; // エラーの場合「存在しない」とするのはどうかと思うけどいったんfalse
-  }
-};
-
-------------------------------------------------------------
-auth
-
-import { BOOKS_API_ENDPOINT } from '@/constants/constants';
-import {
-  AccessToken,
-  CustomError,
-  LoginRequest,
-  LoginResponse,
-  SignupRequest,
-} from '@/types';
-
-const ACCESS_TOKEN_KEY = 'accessToken';
-const getAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
-const setAccessToken = (token: string) => localStorage.setItem(ACCESS_TOKEN_KEY, token);
-const clearAccessToken = () => localStorage.removeItem(ACCESS_TOKEN_KEY);
-
-export const login = async ({ email, password }: LoginRequest) => {
-  const url = '/login';
-  const options: RequestInit = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-    credentials: 'include',
-  };
-
-  const res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
-  if (!res.ok) {
-    const data = await res.json();
-    console.error(`status:${data.status} message:${data.messages.join()}`);
-    return false;
-  }
-
-  const loginResponse = (await res.json()) as LoginResponse;
-  setAccessToken(loginResponse.accessToken);
-  return true;
-};
-
-export const signup = async ({ name, email, password }: SignupRequest) => {
-  const url = '/signup';
-  const options: RequestInit = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password }),
-  };
-
-  const res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
-  if (!res.ok) {
-    const data = await res.json();
-    console.error(`status:${data.status} message:${data.messages.join()}`);
-    return false;
-  }
-
-  await login({ email, password });
-  return true;
-};
-
-export const logout = async () => {
-  const url = '/logout';
-  const options: RequestInit = {
-    method: 'POST',
-    credentials: 'include',
-  };
-
-  const res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
-  if (!res.ok) {
-    return false;
-  }
-
-  clearAccessToken();
-  return true;
-};
-
-export const fetchJsonWithAuth = async <T>(
-  url: string,
-  options?: RequestInit
-): Promise<T> => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error(`アクセストークンがありません。URL: ${url}`);
-  }
-
-  let res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
-    ...options,
-    headers: {
-      ...options?.headers,
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (res.status === 401) {
-    const newToken = await refreshAccessToken();
-    if (!newToken) {
-      clearAccessToken();
-      const error: CustomError = new Error(
-        `リフレッシュトークンの有効期限が切れました。URL: ${url}`
-      );
-      error.code = 'REFRESH_TOKEN_EXPIRED';
-      throw error;
-    }
-
-    setAccessToken(newToken);
-    res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
-      ...options,
-      headers: {
-        ...options?.headers,
-        Authorization: `Bearer ${newToken}`,
-      },
-    });
-  }
-
-  if (!res.ok) {
-    throw new Error(`失敗しました。URL: ${url} ステータス: ${res.status}`);
-  }
-  return res.json();
-};
-
-export const fetchActionWithAuth = async (url: string, options?: RequestInit) => {
-  const token = getAccessToken();
-  if (!token) {
-    throw new Error(`アクセストークンがありません。URL: ${url}`);
-  }
-
-  let res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
-    ...options,
-    headers: {
-      ...options?.headers,
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (res.status === 401) {
-    const newToken = await refreshAccessToken();
-    if (!newToken) {
-      clearAccessToken();
-      const error: CustomError = new Error(
-        `リフレッシュトークンの有効期限が切れました。URL: ${url}`
-      );
-      error.code = 'REFRESH_TOKEN_EXPIRED';
-      throw error;
-    }
-
-    setAccessToken(newToken);
-    res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
-      ...options,
-      headers: {
-        ...options?.headers,
-        Authorization: `Bearer ${newToken}`,
-      },
-    });
-  }
-
-  if (!res.ok) {
-    throw new Error(`失敗しました。URL: ${url} ステータス: ${res.status}`);
-  }
-  return null;
-};
-
-export const refreshAccessToken = async () => {
-  try {
-    const options: RequestInit = {
-      method: 'POST',
-      credentials: 'include',
-    };
-    const res = await fetch(`${BOOKS_API_ENDPOINT}/refresh-token`, options);
-    const AccessToken = (await res.json()) as AccessToken;
-    return AccessToken.accessToken;
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-};
-
-export const validateToken = async () => {
-  try {
-    const url = `/validate-token`;
-    const options = { method: 'POST' };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    // リフレッシュトークンが無効な場合はnull返却
-    if ((e as CustomError).code) return null;
-    return false;
-  }
-};
-
-------------------------------------------------------------
-change-user-info
-
-import AvatarCarousel from '@/components/avatar-carousel';
-import Logo from '@/components/layout/logo';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { AVATER_IMAGE_URL } from '@/constants/constants';
-import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/hooks/use-user';
-import { updateCurrentUser } from '@/lib/action';
-import { checkUsernameExists, getCurrentUser } from '@/lib/data';
-import { CircleHelpIcon, Loader2Icon } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-
-const AVATARS = [
-  { index: 0, avatarUrl: `${AVATER_IMAGE_URL}/avatar00.png` },
-  { index: 1, avatarUrl: `${AVATER_IMAGE_URL}/avatar01.png` },
-  { index: 2, avatarUrl: `${AVATER_IMAGE_URL}/avatar02.png` },
-  { index: 3, avatarUrl: `${AVATER_IMAGE_URL}/avatar03.png` },
-  { index: 4, avatarUrl: `${AVATER_IMAGE_URL}/avatar04.png` },
-  { index: 5, avatarUrl: `${AVATER_IMAGE_URL}/avatar05.png` },
-  { index: 6, avatarUrl: `${AVATER_IMAGE_URL}/avatar06.png` },
-  { index: 7, avatarUrl: `${AVATER_IMAGE_URL}/avatar07.png` },
-  { index: 8, avatarUrl: `${AVATER_IMAGE_URL}/avatar08.png` },
-  { index: 9, avatarUrl: `${AVATER_IMAGE_URL}/avatar09.png` },
-  { index: 10, avatarUrl: `${AVATER_IMAGE_URL}/avatar10.png` },
-];
-
-export default function Page() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [nameErrorMessage, setNameErrorMessage] = useState('');
-
-  const [defaultAvatar, setDefaultAvatar] = useState<number | undefined>(undefined);
-  const nameRef = useRef<HTMLInputElement | null>(null);
-  const avatarUrlRef = useRef<HTMLInputElement | null>(null);
-
-  const navigate = useNavigate();
-  const { user, setUser } = useUser();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const initUserInfo = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-
-      if (nameRef.current && avatarUrlRef.current && currentUser) {
-        nameRef.current.focus();
-        nameRef.current.value = currentUser.name || '';
-        avatarUrlRef.current.value = currentUser.avatarUrl;
-
-        const index =
-          AVATARS.find((avatar) => avatar.avatarUrl === currentUser.avatarUrl)?.index ||
-          0;
-
-        setDefaultAvatar(index);
-      }
-    };
-    initUserInfo();
-  }, [setUser]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = new FormData(e.currentTarget);
-    const name = form.get('name') as string;
-    const avatarUrl = form.get('avatar-url') as string;
-
-    if (name === '') {
-      setNameErrorMessage('ユーザー名は必須です。');
-      return;
-    }
-
-    if (user?.name !== name && (await checkUsernameExists(name))) {
-      setNameErrorMessage('そのユーザー名はすでに使われています。');
-      return;
-    }
-
-    setIsSubmitting(true);
-    const isSuccess = await updateCurrentUser({
-      name,
-      avatarUrl,
-    });
-    if (!isSuccess) {
-      setIsSubmitting(false);
-      toast({
-        title: 'ユーザー情報を変更できませんでした',
-        description: '入力内容を確認してください',
-        variant: 'destructive',
-        duration: 5000,
-      });
-      return;
-    }
-
-    toast({ title: 'ユーザー情報を変更しました' });
-
-    const currentUser = await getCurrentUser();
-    setUser(currentUser);
-    setIsSubmitting(false);
-
-    navigate('/settings/profile');
-  };
-
-  const handleSelectedAvatar = (selectedIndex: number) => {
-    if (avatarUrlRef.current) {
-      avatarUrlRef.current.value = AVATARS[selectedIndex].avatarUrl;
-    }
-  };
-
-  return (
-    <div className="my-3 flex flex-col items-center justify-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <p className="font-semibold">ユーザー情報の編集</p>
-      <Card className="w-80 rounded-3xl sm:w-96">
-        <CardContent className="p-6 sm:px-10">
-          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                ユーザー名
-              </Label>
-              <Input
-                ref={nameRef}
-                className="my-2 rounded-full"
-                id="name"
-                name="name"
-                autoComplete="off"
-                spellCheck="false"
-              />
-              <p className="h-4 text-xs text-destructive">{nameErrorMessage}</p>
-            </div>
-
-            <div className="mb-4">
-              <div className="flex items-center gap-x-1">
-                <Label className="text-xs" htmlFor="name">
-                  アバター画像
-                </Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <CircleHelpIcon className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>チェックマークは現在のアバターです</TooltipContent>
-                </Tooltip>
-              </div>
-              <div className="flex justify-center">
-                <AvatarCarousel
-                  items={AVATARS}
-                  itemWidth={80}
-                  frameWidth={220}
-                  defaultSelected={defaultAvatar}
-                  onSelected={handleSelectedAvatar}
-                />
-              </div>
-              <input
-                ref={avatarUrlRef}
-                className="w-[400px] text-black"
-                type="text"
-                name="avatar-url"
-                hidden
-              />
-            </div>
-
-            <Button className="w-full rounded-full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? <Loader2Icon className="animate-spin" /> : '変更'}
-            </Button>
-            <Button
-              className="w-full rounded-full bg-transparent"
-              type="button"
-              variant="outline"
-              asChild
-            >
-              <Link to="/settings/profile">キャンセル</Link>
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-signup
-
-import Logo from '@/components/layout/logo';
-import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/hooks/use-user';
-import { signup } from '@/lib/auth';
-import { checkUsernameExists, getCurrentUser } from '@/lib/data';
-import { cn } from '@/lib/util';
-import { Loader2Icon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-
-export default function Page() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [nameErrorMessage, setNameErrorMessage] = useState('');
-  const [emailErrorMessage, setEmailErrorMessage] = useState('');
-  const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
-
-  const nameRef = useRef<HTMLInputElement | null>(null);
-  const emailRef = useRef<HTMLInputElement | null>(null);
-  const passwordRef = useRef<HTMLInputElement | null>(null);
-
-  const navigate = useNavigate();
-  const { setUser } = useUser();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    nameRef.current?.focus();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = new FormData(e.currentTarget);
-    const name = form.get('name') as string;
-    const email = form.get('email') as string;
-    const password = form.get('password') as string;
-
-    if (!(name && email && password)) {
-      if (name === '') setNameErrorMessage('ユーザー名は必須です。');
-      if (email === '') setEmailErrorMessage('メールアドレスは必須です。');
-      if (password === '') setPasswordErrorMessage('パスワードは必須です。');
-      return;
-    }
-
-    setIsSubmitting(true);
-    const isSuccess = await signup({ name, email, password });
-    if (!isSuccess) {
-      setIsSubmitting(false);
-      toast({
-        title: '新規登録できませんでした',
-        description: '入力内容を確認してください',
-        variant: 'destructive',
-        duration: 5000,
-      });
-      return;
-    }
-
-    const currentUser = await getCurrentUser();
-    setUser(currentUser);
-    setIsSubmitting(false);
-
-    navigate('/');
-  };
-
-  const handleCheckName = async () => {
-    setNameErrorMessage('');
-
-    if (!nameRef.current?.value) return;
-
-    if (await checkUsernameExists(nameRef.current.value)) {
-      setNameErrorMessage('そのユーザー名はすでに使われています。');
-    }
-  };
-
-  const handleCheckEmail = () => {
-    setEmailErrorMessage('');
-
-    if (!emailRef.current?.value) return;
-
-    const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(emailRef.current.value)) {
-      setEmailErrorMessage('無効なメールアドレスです。');
-    }
-  };
-
-  const handleCheckPassword = () => {
-    setPasswordErrorMessage('');
-
-    if (!passwordRef.current?.value) return;
-
-    if (passwordRef.current.value.length < 4) {
-      setPasswordErrorMessage('パスワードは4文字以上で設定してください。');
-    }
-  };
-
-  return (
-    <div className="my-3 flex flex-col items-center justify-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <p className="font-semibold">アカウントの作成</p>
-      <Card className="w-80 rounded-3xl sm:w-96">
-        <CardContent className="p-6 sm:px-10">
-          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                ユーザー名
-              </Label>
-              <Input
-                ref={nameRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  nameErrorMessage && 'border-destructive'
-                )}
-                id="name"
-                name="name"
-                autoComplete="off"
-                spellCheck="false"
-                onBlur={handleCheckName}
-              />
-              {nameErrorMessage && (
-                <p className="text-xs text-destructive">{nameErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="email">
-                メールアドレス
-              </Label>
-              <Input
-                ref={emailRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  emailErrorMessage && 'border-destructive'
-                )}
-                id="email"
-                name="email"
-                autoComplete="off"
-                spellCheck="false"
-                onBlur={handleCheckEmail}
-              />
-              {emailErrorMessage && (
-                <p className="text-xs text-destructive">{emailErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="password">
-                パスワード
-              </Label>
-              <PasswordInput
-                ref={passwordRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  passwordErrorMessage && 'border-destructive'
-                )}
-                id="password"
-                name="password"
-                onBlur={handleCheckPassword}
-              />
-              {passwordErrorMessage && (
-                <p className="text-xs text-destructive">{passwordErrorMessage}</p>
-              )}
-            </div>
-
-            <Button
-              className="mt-6 w-full rounded-full"
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? <Loader2Icon className="animate-spin" /> : '新規登録'}
-            </Button>
-          </form>
-
-          <div className="mt-6 flex justify-center gap-x-1 text-xs">
-            <p className="text-muted-foreground">アカウントをお持ちですか？</p>
-            <Link to={'/login'}>
-              <p className="text-primary hover:underline">ログイン</p>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-route/page
-
-import BookListNewReleases from '@/components/book-list/book-list-new-releases';
-import BookListSkeleton from '@/components/book-list/book-list-skeleton';
-import GenreListArea from '@/components/genre-list/genre-list-area';
-import GenreListSkeleton from '@/components/genre-list/genre-list-skeleton';
-import Hero from '@/components/layout/hero';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-
-export default function Page() {
-  return (
-    <>
-      <Hero />
-
-      <div className="flex flex-col">
-        <p className="font-bold text-primary">ジャンルから探す</p>
-
-        <div className="my-4">
-          <ErrorBoundary fallback={<ErrorElement />}>
-            <Suspense fallback={<GenreListSkeleton />}>
-              <GenreListArea />
-            </Suspense>
-          </ErrorBoundary>
-        </div>
-      </div>
-
-      <div className="flex flex-col">
-        <p className="mb-4 font-bold text-primary">ニューリリース</p>
-        <ErrorBoundary fallback={<ErrorElement />}>
-          <Suspense fallback={<BookListSkeleton paginationOff />}>
-            <BookListNewReleases />
-          </Suspense>
-        </ErrorBoundary>
-      </div>
-    </>
-  );
-}
-
-------------------------------------------------------------
-types/
-
-import { SimpleUserInfo } from '@/types';
-
-export interface ReviewId {
-  userId: number;
+export interface FavoriteInfo {
   bookId: string;
-}
-
-export interface Review {
-  reviewId: ReviewId;
-  comment: string;
-  rating: number;
-  createdAt: string;
-  updatedAt: string;
-  user: SimpleUserInfo;
-}
-
-export interface ReviewRequest {
-  bookId: string;
-  comment: string;
-  rating: number;
-}
-
-export interface PaginatedReview {
-  page: number;
-  totalPages: number;
-  totalItems: number;
-  reviews: Review[];
-}
-
-export interface CheckMyReviewExists {
-  exists: boolean;
-}
-
-------------------------------------------------------------
-types/
-
-export interface User {
-  id: number;
-  email: string;
-  roles: string[];
-  name: string;
-  avatarUrl: string;
-}
-
-export interface ProfileCounts {
+  isFavorite: boolean;
   favoriteCount: number;
-  myListCount: number;
-  reviewCount: number;
 }
 
-export interface UserDetails {
-  user: User;
-  profieleCounts: ProfileCounts;
-}
-
-export interface SimpleUserInfo {
-  id: number;
-  name: string;
-  avatarUrl: string;
-}
-
-export interface UpdateCurrentUser {
-  name: string;
-  avatarUrl: string;
-}
-
-export interface ChangePassword {
-  currentPassword: string;
-  newPassword: string;
-  confirmNewPassword: string;
-}
-
-export interface ChangeEmail {
-  email: string;
-  password: string;
-}
-
-export interface CheckUsernameExists {
-  exists: boolean;
-}
-
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
