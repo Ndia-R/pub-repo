@@ -1,85 +1,392 @@
-１７ファイル
+２１ファイル
 
 ------------------------------------------------------------
-SecurityConfig
+init
 
-package com.example.my_books_backend.config;
+DROP DATABASE IF EXISTS `my-books-db`;
+CREATE DATABASE `my-books-db`;
 
-import java.util.Arrays;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+USE `my-books-db`;
+
+DROP TABLE IF EXISTS `books`;
+DROP TABLE IF EXISTS `genres`;
+DROP TABLE IF EXISTS `book_genres`;
+DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `roles`;
+DROP TABLE IF EXISTS `user_roles`;
+DROP TABLE IF EXISTS `reviews`;
+DROP TABLE IF EXISTS `favorites`;
+DROP TABLE IF EXISTS `bookmarks`;
+DROP TABLE IF EXISTS `book_chapters`;
+DROP TABLE IF EXISTS `book_content_pages`;
+
+
+CREATE TABLE `books` (
+  `id` VARCHAR(255) NOT NULL PRIMARY KEY,
+  `title` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` TEXT NOT NULL,
+  `authors` VARCHAR(255) NOT NULL DEFAULT '',
+  `publisher` VARCHAR(255) NOT NULL DEFAULT '',
+  `published_date` DATE NOT NULL,
+  `price` INT NOT NULL DEFAULT 0,
+  `page_count` INT NOT NULL DEFAULT 0,
+  `isbn` VARCHAR(255) NOT NULL DEFAULT '',
+  `image_url` VARCHAR(255) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE `genres` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` VARCHAR(255) NOT NULL DEFAULT '',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE `book_genres` (
+  `book_id` VARCHAR(255) NOT NULL,
+  `genre_id` BIGINT NOT NULL,
+  PRIMARY KEY (`book_id`, `genre_id`),
+  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`genre_id`) REFERENCES `genres`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `users` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `email` VARCHAR(255) NOT NULL DEFAULT '',
+  `password` VARCHAR(255) NOT NULL DEFAULT '',
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `avatar_url` VARCHAR(255) DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE `roles` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(255) NOT NULL DEFAULT '',
+  `description` VARCHAR(255) NOT NULL DEFAULT '',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE `user_roles` (
+  `user_id` BIGINT NOT NULL,
+  `role_id` BIGINT NOT NULL,
+  PRIMARY KEY (`user_id`, `role_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `reviews` (
+  `user_id` BIGINT NOT NULL,
+  `book_id` VARCHAR(255) NOT NULL,
+  `comment` TEXT NOT NULL,
+  `rating` DECIMAL(2, 1) CHECK (`rating` >= 0 AND `rating` <= 5),
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`user_id`, `book_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `favorites` (
+  `user_id` BIGINT NOT NULL,
+  `book_id` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`user_id`, `book_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `bookmarks` (
+  `user_id` BIGINT NOT NULL,
+  `book_id` VARCHAR(255) NOT NULL,
+  `chapter_number` INT NOT NULL,
+  `page_number` INT NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`user_id`, `book_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `book_chapters` (
+  `book_id` VARCHAR(255) NOT NULL,
+  `chapter_number` INT NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`book_id`, `chapter_number`),
+  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `book_content_pages` (
+  `book_id` VARCHAR(255) NOT NULL,
+  `chapter_number` INT NOT NULL,
+  `page_number` INT NOT NULL,
+  `content` TEXT NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`book_id`, `chapter_number`, `page_number`),
+  FOREIGN KEY (`book_id`, `chapter_number`) REFERENCES `book_chapters`(`book_id`, `chapter_number`) ON DELETE CASCADE
+);
+
+-- データのロード
+LOAD DATA INFILE '/docker-entrypoint-initdb.d/books.csv'
+INTO TABLE books
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+(`id`, `title`, `description`, `authors`, `publisher`, `published_date`, `price`, `page_count`, `isbn`, `image_url`);
+
+INSERT INTO `genres` (`name`, `description`) VALUES
+('ミステリー', '謎解きや推理をテーマにした作品'),
+('サスペンス', '緊張感や驚きを伴う作品'),
+('ロマンス', '恋愛をテーマにした作品'),
+('ファンタジー', '魔法や異世界を舞台にした作品'),
+('SF', '科学技術や未来をテーマにした作品'),
+('ホラー', '恐怖をテーマにした作品'),
+('歴史', '歴史的な出来事や人物をテーマにした作品'),
+('絵本', '子供向けのイラストが多い本'),
+('教科書', '教育機関で使用される教材'),
+('専門書', '特定の分野に特化した書籍'),
+('研究書', '学術的な研究をまとめた書籍'),
+('環境', '自然や環境問題をテーマにした作品'),
+('冒険', '冒険や探検をテーマにした作品'),
+('図鑑', '特定のテーマに関する情報を集めた書籍'),
+('音楽', '音楽に関する書籍'),
+('ドラマ', '人間関係や感情を描いた作品'),
+('教育', '教育に関する書籍');
+
+LOAD DATA INFILE '/docker-entrypoint-initdb.d/book_genres.csv'
+INTO TABLE book_genres
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+(`book_id`, `genre_id`);
+
+INSERT INTO `users` (`name`, `email`, `password`, `avatar_url`) VALUES
+('Lars', 'lars@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar01.png'),
+('Nina', 'nina@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar02.png'),
+('Paul', 'paul@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar03.png'),
+('Julia', 'julia@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar04.png'),
+('Lee', 'lee@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar05.png'),
+('Lili', 'lili@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar06.png'),
+('Steve', 'steve@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar07.png'),
+('Anna', 'anna@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar08.png'),
+('Law', 'law@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar09.png'),
+('Alisa', 'alisa@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar10.png');
+
+INSERT INTO `roles` (`name`, `description`) VALUES
+('ROLE_ADMIN', '管理者権限'),
+('ROLE_USER', 'ユーザー権限');
+
+INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
+(1, 2),
+(2, 2),
+(3, 2),
+(4, 2),
+(5, 2),
+(6, 2),
+(7, 2),
+(8, 2),
+(9, 2),
+(10, 2),
+(3, 1),
+(4, 1);
+
+INSERT INTO `reviews` (`user_id`, `book_id`, `comment`, `rating`) VALUES
+(1, 'afcIMuetDuzj', '知識の宝庫で、読み終える頃には少し賢くなった気がした。', 4.5),
+(2, 'afcIMuetDuzj', '人生観が変わるほどの深い洞察が詰まっていました。', 3.0),
+(3, 'afcIMuetDuzj', '読む手が止まらないほど引き込まれた。', 3.5),
+(4, 'afcIMuetDuzj', '心に響く言葉が何度も胸を打った。', 5.0),
+(5, 'afcIMuetDuzj', '言葉の美しさに何度もページをめくり直した。', 4.0),
+(6, 'afcIMuetDuzj', '想像力をかき立てられる素晴らしいストーリーだった。', 4.5),
+(7, 'afcIMuetDuzj', '感動しました。何度も読み直したいと思いました。', 3.0),
+(8, 'afcIMuetDuzj', '登場人物に感情移入しすぎて泣いてしまった。', 5.0),
+(9, 'afcIMuetDuzj', '終わるのが惜しいほど楽しかった。', 4.5),
+(10, 'afcIMuetDuzj', '感動的な結末に、読後の余韻が心地よかった。', 3.5),
+(1, '9UizZw491wye', '読み進むにつれドンドン引き込まれていきました。', 3.5),
+(2, '9UizZw491wye', '首を長くして待っていました。非常に楽しかったです。', 3.0),
+(3, '9UizZw491wye', '読んでいる間、時間を忘れるほど夢中になれました。', 3.0),
+(4, '9UizZw491wye', '物語の展開が巧妙で、予想を超える展開が続いて面白かったです。', 3.0),
+(1, 'pDYIwtdahwkp', '私もこんな経験をしたいと思いました。', 5.0);
+
+INSERT INTO `favorites` (`user_id`, `book_id`) VALUES
+(1, 'afcIMuetDuzj'),
+(2, 'afcIMuetDuzj'),
+(3, 'afcIMuetDuzj'),
+(4, 'afcIMuetDuzj'),
+(4, 'pDYIwtdahwkp'),
+(5, 'pDYIwtdahwkp'),
+(6, 'pDYIwtdahwkp'),
+(3, '9UizZw491wye'),
+(3, 'ln5NiMJq02V7');
+
+INSERT INTO `bookmarks` (`user_id`, `book_id`, `chapter_number`, `page_number`) VALUES
+(1, 'afcIMuetDuzj', 1, 1),
+(3, 'afcIMuetDuzj', 3, 3),
+(4, 'afcIMuetDuzj', 5, 4);
+
+INSERT INTO `book_chapters` (`book_id`, `chapter_number`, `title`) VALUES
+('afcIMuetDuzj', 0, 'プロローグ'),
+('afcIMuetDuzj', 1, '第一章：湖畔の招待状'),
+('afcIMuetDuzj', 2, '第二章：運命の出会い'),
+('afcIMuetDuzj', 3, '第三章：舞踏会の奇跡'),
+('afcIMuetDuzj', 4, '第四章：消えゆく光'),
+('afcIMuetDuzj', 5, '第五章：新たな誓い');
+
+INSERT INTO `book_content_pages` (`book_id`, `chapter_number`, `page_number`, `content`) VALUES
+('afcIMuetDuzj', 0, 1, '月が湖面に銀の道を描く夜、静寂の森の奥深くで、ワニたちの秘密の舞踏会が開かれる。年に一度、満月の夜にだけ現れるこの神秘の宴は、選ばれた者だけが参加を許される。'),
+
+('afcIMuetDuzj', 1, 1, '若きワニのルカは、幼いころからこの舞踏会の伝説を聞かされて育った。しかし、実際にその場に足を踏み入れた者は少なく、語られる話のほとんどは夢物語のようだった。月の舞踏会とは、一体どのようなものなのか。その幻想的な響きに、ルカは幼いころから憧れを抱いていた。\n\nある日、湖の畔を散歩していると、微かに光るものが目に入った。近づいてみると、青い蓮の葉の上に、一枚の紙が置かれていた。それは銀色の文字で「月の舞踏会へようこそ」と記された招待状だった。光を帯びた紙は、まるで月の欠片のように輝いている。\n\nルカは驚きと共にそれを手に取った。招待状は、信じられないほど滑らかな手触りで、触れると心が温かくなるような気がした。なぜ自分が選ばれたのか、考えても答えは出なかったが、胸の奥に湧き上がる興奮を抑えることはできなかった。\n\nその夜、ルカは星空の下で静かに湖を見つめた。湖面には月が映り、ゆらゆらと揺れていた。その光景が、まるでこれから訪れる運命を象徴しているかのように感じられた。月は優しく光を投げかけ、まるでルカを舞踏会へ誘うように湖面を照らしていた。'),
+('afcIMuetDuzj', 1, 2, '翌日、ルカは森の長老のもとを訪れ、舞踏会について尋ねた。長老はゆっくりと目を閉じ、深い呼吸をしたあと、静かに語り始めた。「月の舞踏会は、心を持つ者のみが招かれる。お前が選ばれたということは、運命がお前に試練を与えたのかもしれん」\n\n「試練……？」ルカは長老の言葉を反芻した。\n\n「そうじゃ。舞踏会に足を踏み入れた者は、ただ踊るだけではない。そこでは、心の奥底に眠る想いが試されるのじゃ」\n\n長老は遠い目をしながら続けた。「かつて、舞踏会に参加した者の中には、愛を見つけた者もおれば、悲しみを抱えた者もいた。だが、いずれもこの宴が人生にとって大切な瞬間になったことは確かじゃ」\n\nルカはその言葉の意味を考えながら、招待状を大切に胸に抱いた。そして、舞踏会の夜が訪れるのを、今か今かと待ちわびた。'),
+
+('afcIMuetDuzj', 2, 1, '舞踏会の夜、ルカは湖のほとりへと向かった。湖は鏡のように月の光を映し、その周囲には神秘的な青白い霧が漂っていた。湖畔にはすでに多くのワニたちが集まっていた。彼らの鱗は月光を浴びて淡く輝き、まるでこの世のものとは思えないほど幻想的な光景が広がっていた。\n\nルカは緊張しながらその輪の中へと足を踏み入れた。すると、遠くの方でひときわ美しく輝くワニの姿が目に入った。彼女の名はセレナ。透き通るような銀色の鱗を持ち、瞳は夜空の星を映したように輝いていた。その姿は、まるで月の化身のようだった。\n\n「今夜は特別な夜よ」\n\nセレナは微笑みながらルカに手を差し出した。その瞬間、ルカの胸の奥にかすかな震えが走った。彼の鼓動は高鳴り、時間が止まったかのように感じられた。迷うことなくルカは彼女の手を取り、二人はゆっくりと舞踏の輪の中へと入っていった。\n\n最初はぎこちない動きだったが、セレナが優しくリードしてくれた。彼女の手は驚くほど柔らかく温かかった。ルカの緊張は徐々に解け、二人のステップはしだいに調和を生み出し始めた。湖の水面には、月の光と二人の姿が映り込み、ゆらめく波紋とともに美しい模様を描いていた。'),
+('afcIMuetDuzj', 2, 2, '他のワニたちもそれぞれのパートナーと踊り、湖全体がまるで幻想の世界へと変わっていく。水のさざめきと夜風の旋律が、音楽のように響き渡る。ルカはこの夜が永遠に続けばいいと心から願った。\n\n「ここでは、過去も未来も関係ない。私たちは今、この瞬間だけを生きているの」\n\nセレナはルカの耳元で囁いた。その声は心の奥深くに響き、ルカの胸を熱くした。彼はセレナの手を強く握りしめ、踊り続けた。言葉を交わさずとも、彼らの間には確かな絆が生まれつつあった。\n\n夜が更けるにつれ、湖面の霧はますます濃くなり、まるで夢の世界へと足を踏み入れたかのようだった。ワニたちは次第に踊りに没頭し、時間の流れを忘れていった。ルカはふと、セレナの瞳を覗き込んだ。その深い輝きの中には、何か秘密が隠されているように感じられた。\n\n「セレナ……君は、なぜこの舞踏会に？」\n\nルカが尋ねると、セレナは少し寂しそうに微笑んだ。「私は、月に仕える一族のワニなの。だから、満月の夜にだけこの場所へ来ることができるの」\n\n「満月の夜だけ……？」ルカは思わず息を呑んだ。'),
+('afcIMuetDuzj', 2, 3, 'セレナは静かに頷いた。「この舞踏会は、月の光によって開かれる。でも、その光が消えれば、私は再び湖の奥深くへ戻らなければならないの」\n\nルカは彼女の言葉を飲み込みながら、胸が締めつけられるような感覚を覚えた。この夜が終われば、彼女とは離れ離れになってしまうのだろうか。\n\nしかし、ルカはその思いを押し殺し、今はただこの瞬間を大切にしようと決めた。彼はセレナの手をそっと引き寄せ、静かに言った。「今は……この夜を楽しもう」\n\nセレナの瞳が驚いたように揺れ、そして優しく微笑んだ。「ええ、そうね」\n\n二人は再び踊り始めた。湖の水面はまるで鏡のように彼らを映し出し、月の光が二人の周りを優しく包み込んでいた。ルカは、今この瞬間だけは、彼女とずっと一緒にいられるのだと信じたかった。\n\nその夜、彼らの心は一つになり、運命が新たな軌跡を描き始めたのだった。'),
+
+('afcIMuetDuzj', 3, 1, 'ワニたちのダンスは、水面を揺らす優雅な波紋となり、月の光がそれに呼応するかのように輝きを増した。音もなく進むダンスの中で、ルカはセレナに心を奪われていく。\n\n「ここでは、時間が止まるの」\n\nセレナの言葉どおり、この夜の間だけ、ワニたちは自由に心を通わせることができる。しかし、夜明けとともに舞踏会は終わり、それぞれの生活へと戻らなければならなかった。\n\nルカはその言葉の意味を考えながら、彼女の手をぎゅっと握った。セレナの温もりが、彼の胸の中に深く刻まれていく。彼女の微笑みが、この場所の魔法そのものであるかのように感じられた。'),
+('afcIMuetDuzj', 3, 2, 'しかし、彼の心には小さな不安が芽生え始めていた。この夜が終わったら、彼はまた孤独に戻るのだろうか？セレナと過ごした時間は夢のように消えてしまうのか？\n\n「セレナ……この夜が終わっても、君に会う方法はないの？」\n\nルカが問いかけると、セレナは一瞬言葉を飲み込んだ。しかし、彼の真剣なまなざしを見つめると、静かに微笑んだ。\n\n「ルカ、私は月の光によってここに来ることができるの。だから……あなたが月を信じてくれるなら、私はまたここに戻ってこられるわ」\n\n彼女の言葉には確かな優しさと切なさが込められていた。ルカはその意味を深く理解した。彼女は、自らの運命に縛られているのだ。それでも、彼女はこの夜を楽しもうとしている。\n\n「だったら……僕は月を信じる。君を信じるよ、セレナ」\n\n彼は力強く言い、彼女の手を握る。その瞬間、月の光が二人を包み込み、まるで二人だけの世界が広がったかのようだった。'),
+('afcIMuetDuzj', 3, 3, '舞踏会はますます盛り上がり、ワニたちは次々と踊りに身を委ねていく。湖の水面には、光の粒が浮かび、まるで星々が降り注いでいるかのようだった。ルカとセレナは、その美しさに酔いしれながら、静かに踊り続けた。\n\n「ルカ……ありがとう」\n\nセレナがそっと囁く。彼女の声には、感謝と切なさが混じっていた。\n\n「セレナ、僕は……」\n\nルカが何かを言おうとした瞬間、遠くの空に一筋の流れ星が走った。その光が湖に反射し、まるで二人の未来を示すように揺らめいた。ルカはその輝きを見上げながら、心に誓った。\n\nこの夜がどれだけ儚くても、この出会いは永遠のものにしよう。\n\n彼らは夜明けまで踊り続けた。時が止まったように、ただひたすらに。\n\nルカは願った。この時間が永遠に続くようにと。'),
+
+('afcIMuetDuzj', 4, 1, '夜が更けるにつれ、月はゆっくりと傾き始めた。そして、舞踏会が終わる時が近づいてくる。湖の水面に映る月の光が揺らめき、ワニたちは一匹また一匹と静かに去っていった。しかし、ルカはその場を動けなかった。セレナの手を握りしめたまま、彼は心の奥からこみ上げる感情を抑えきれずにいた。\n\n「朝が来ても、僕たちはまた会えるの？」\n\nルカの問いかけに、セレナはわずかに微笑んだ。しかし、その笑顔の奥には悲しみが滲んでいた。\n\n「この夜を信じて……」\n\nそう囁くと、彼女の体はゆっくりと透明になり始めた。ルカは目を見開いた。彼女の手の感触が消えていく。彼の目の前で、セレナは淡い月光とともに霧のように消えていったのだ。\n\n「セレナ！！」\n\nルカは叫んだ。彼女の名を何度も呼び、手を伸ばした。しかし、彼が触れることができたのは冷たい湖の風だけだった。湖面には静かな波紋が広がり、すべてが夢であったかのように静寂に包まれた。'),
+('afcIMuetDuzj', 4, 2, '彼女はどこへ行ってしまったのか？ なぜ突然消えてしまったのか？\n\nそのとき、ルカの後ろから低い声が響いた。\n\n「お前も気づいたか……？」\n\nルカが振り返ると、そこには長老のワニ、エルダーが立っていた。彼は湖の舞踏会を何十年も見守ってきた賢者だった。\n\n「彼女は……どこへ？」\n\n震える声でルカが尋ねると、エルダーは深いため息をついた。\n\n「セレナは……もともとこの世界の住人ではないのだよ」\n\nルカの心臓が跳ねた。\n\n「それは、どういうことですか？」\n\nエルダーは湖面を見つめながら語り始めた。\n\n「昔、この湖には月の使者がいた。彼らは満月の夜にだけ現れ、地上の者と交流を持つことが許されていた。しかし、それは決して永遠には続かない掟だった。舞踏会が終わるとともに、彼らは月へと帰らなければならないのだ」\n\nルカの心臓が強く打った。'),
+('afcIMuetDuzj', 4, 3, '「セレナが……月の使者？」\n\n「そうだ。彼女は湖に住むワニではなく、月の民の一人だった。お前と出会ったのも偶然ではない。彼女は、この湖で自分を待ってくれる者を探していたのかもしれない」\n\nルカは震えた。彼の心の中に生まれた愛は、彼女の運命によって引き裂かれてしまうのか。彼は拳を握りしめた。\n\n「でも……彼女は僕に言ったんです。また会えるって」\n\nエルダーは静かに頷いた。\n\n「確かに、満月の夜になれば彼女は再びここへ来ることができる。しかし、それはお前の想いの強さにかかっているのだ」\n\n「僕の……想い？」\n\n「そうだ。月の使者が地上に留まるためには、強い絆が必要だ。もし、お前が彼女を心から信じ続けるなら、彼女は再びこの湖に降り立つことができるかもしれない」\n\nルカは湖を見つめた。月の光が優しく揺らめき、まるでセレナの面影を映しているようだった。彼の胸に強い決意が生まれた。\n\n「僕は、彼女を信じます。何があっても、満月の夜を待ちます」\n\nエルダーは静かに微笑んだ。\n\n「ならば、お前に試練が与えられるだろう。次の満月までに、心を揺らがせぬよう強く持ち続けるのだ。そうすれば、月はお前の願いを聞き入れてくれるかもしれない」\n\nルカは深く息を吸った。湖の冷たい風が、彼の心に決意を刻み込んだ。\n\n「セレナ……僕は君を待つよ。何があっても……」\n\nそう誓った夜、湖の奥からかすかな光が浮かび上がった。月の使者が残した、わずかな奇跡のように。彼はその場を離れることができず、ただ彼女の影を探し続けた。'),
+
+('afcIMuetDuzj', 5, 1, 'ルカは満月の夜を待ち続けた。日が昇り、日が沈むたびに、彼の心はセレナへの想いを募らせていった。彼女が本当に戻ってくるのか、それともこれは儚い夢だったのか。不安と希望が入り混じりながらも、彼は誓いを守り続けた。\n\nそして、運命の夜が訪れた。\n\n湖のほとりに立つルカの前で、水面が光を帯び始めた。その光は月と呼応するように輝き、やがて湖の中心からセレナの姿が浮かび上がった。\n\n「ルカ……」\n\n彼女の声は、夜風に溶けるように優しく響いた。ルカは目を見開き、彼女へと駆け寄った。\n\n「セレナ！ 本当に戻ってきたんだね！」\n\n彼は彼女の手を取った。その温もりが、確かにここにいることを証明していた。\n\n「私はあなたの想いに導かれて戻ってきたの。でも……私は決めなければならないの」\n\n「決める？」\n\n「私は月へ戻るか、ここに残るかの選択を迫られているの」\n\n湖の光が強くなり、セレナの姿を包み込むように揺らめいた。'),
+('afcIMuetDuzj', 5, 2, '「ルカ、私は……」\n\n彼女の目が揺れ動いていた。戸惑い、恐れ、そして希望。すべての感情が交錯していた。\n\n「私は、あなたと共に生きたい。でも、もし私がこの世界に残るなら、二度と月の光に触れることはできないの」\n\nルカの心臓が強く打った。\n\n「それは……どういうこと？」\n\nセレナは静かに湖を見つめた。月の光が彼女の足元に淡く差し込み、その身体を透かしていた。\n\n「私は月の使者。私の存在は月と結びついている。でも、もし私がこの湖に残るなら、私は……」\n\n彼女は言葉を飲み込んだ。\n\n「私は、ただのワニになる」\n\nルカは息をのんだ。\n\n「それって……どういうこと？」\n\n「私は、今までの記憶を失い、この湖の住人として生きることになるの」\n\n静寂が広がった。\n\n「君のことも、全部忘れるってこと？」\n\nセレナは小さく頷いた。\n\n「でも、私はあなたと生きたい。あなたが私を愛してくれるなら……たとえ記憶がなくなっても、私はあなたのそばにいたいの」\n\nルカは拳を握りしめた。セレナのそばにいられるなら、それだけでいいと思うべきなのか。でも、彼女が自分のことを忘れてしまうのなら、それは本当に幸せと言えるのか。'),
+('afcIMuetDuzj', 5, 3, '「……セレナ、本当にそれでいいの？」\n\n「怖い。でも、あなたのそばにいたい。だから……選ぶのはあなた」\n\nルカは震える手で彼女の頬に触れた。\n\n「僕は……」\n\nそのとき、湖の奥から新たな光が差し込んだ。エルダーが静かに現れた。\n\n「決断の時だ。ルカ、お前が彼女を心から愛し、彼女のすべてを受け入れるなら……月の掟を超える方法がある」\n\n「方法が？」\n\nエルダーは湖に手をかざし、湖面が波打った。\n\n「お前が彼女を愛し続け、どんな時もその想いを忘れなければ……セレナは月の使者としてではなく、一個の存在として生きることができる。記憶を失わずに」\n\n「本当か？」\n\n「ただし、それにはお前の魂も試される。お前が彼女を信じ続け、どんな困難にも負けない覚悟が必要だ」\n\nルカはセレナを見つめた。\n\n「セレナ、僕は君と共に生きたい。君の記憶が消えるなんて、そんなの耐えられない。でも、もし僕の想いが君をつなぎとめるなら……」\n\nセレナは微笑んだ。'),
+('afcIMuetDuzj', 5, 4, '「なら……試してみる？」\n\nルカは深く頷いた。\n\n「どんな試練でも、僕は乗り越える。君と一緒にいるためなら」\n\nその瞬間、湖の光が大きく揺らぎ、二人を包み込んだ。世界が眩しい光に満たされ、すべてが溶け合うような感覚に襲われた。\n\n気が付くと、ルカは湖のほとりに倒れていた。\n\n「ルカ？」\n\n優しい声が聞こえた。顔を上げると、そこには変わらぬ姿のセレナがいた。\n\n「セレナ……？」\n\n「私、まだ覚えてる……！」\n\nルカの胸に喜びが広がった。彼はセレナを抱きしめた。\n\n「やった……！」\n\n湖の水面には、二匹のワニが寄り添う影が映っていた。月は穏やかに輝き、二人の未来を祝福するように照らしていた。\n\n彼らの愛は、月の掟すら超えたのだ。\n\n──ワニと月の舞踏会は、終わりを迎えた。\n\nしかし、それは二人の新たな物語の始まりでもあった。');
+
+------------------------------------------------------------
+BookController
+
+package com.example.my_books_backend.controller;
+
+import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.example.my_books_backend.dto.book.BookResponse;
+import com.example.my_books_backend.dto.book.BookPageResponse;
+import com.example.my_books_backend.service.BookService;
 import lombok.RequiredArgsConstructor;
 
-@Configuration
-@EnableWebSecurity
+@RestController
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@EnableMethodSecurity(prePostEnabled = true)
-public class SecurityConfig {
-    private final AuthTokenFilter authTokenFilter;
+public class BookController {
+    private final BookService bookService;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable());
-
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-
-        http.sessionManagement(
-                session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/v1/login", "/api/v1/signup", "/api/v1/logout").permitAll()
-                .requestMatchers("/api/v1/refresh-token", "/api/v1/validate-token").permitAll()
-                .requestMatchers("/api/v1/users/exists").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/books/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/genres/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/favorites/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/my-lists/**").permitAll()
-                // .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-                // .permitAll()
-                .anyRequest().authenticated());
-
-        http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+    @GetMapping("/books/{bookId}")
+    public ResponseEntity<BookResponse> getBookById(@PathVariable String bookId) {
+        BookResponse bookResponse = bookService.getBookById(bookId);
+        return ResponseEntity.ok(bookResponse);
     }
 
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    @GetMapping("/books/new-books")
+    public ResponseEntity<List<BookResponse>> getNewBooks() {
+        List<BookResponse> bookResponses = bookService.getNewBooks();
+        return ResponseEntity.ok(bookResponses);
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    @GetMapping("/books/search")
+    public ResponseEntity<BookPageResponse> getBookPageByTitle(@RequestParam String q,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        BookPageResponse bookPageResponse = bookService.getBookPageByTitle(q, page, maxResults);
+        return ResponseEntity.ok(bookPageResponse);
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("https://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true);
+    @GetMapping("/books/discover")
+    public ResponseEntity<BookPageResponse> getBookPageByGenreId(@RequestParam String genreId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        BookPageResponse bookPageResponse =
+                bookService.getBookPageByGenreId(genreId, page, maxResults);
+        return ResponseEntity.ok(bookPageResponse);
+    }
+}
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+------------------------------------------------------------
+BookmarkController
+
+package com.example.my_books_backend.controller;
+
+import java.net.URI;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import com.example.my_books_backend.dto.bookmark.BookmarkRequest;
+import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
+import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
+import com.example.my_books_backend.service.BookmarkService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/v1")
+@RequiredArgsConstructor
+public class BookmarkController {
+    private final BookmarkService bookmarkService;
+
+    @GetMapping("/me/bookmarks")
+    public ResponseEntity<BookmarkPageResponse> getBookmarkPage(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        BookmarkPageResponse bookmarkPageResponse = bookmarkService.getBookmarkPage(page, maxResults);
+        return ResponseEntity.ok(bookmarkPageResponse);
+    }
+
+    @GetMapping("/me/bookmarks/{bookId}")
+    public ResponseEntity<BookmarkResponse> getBookmarkById(@PathVariable String bookId) {
+        BookmarkResponse bookmarkResponse = bookmarkService.getBookmarkById(bookId);
+        return ResponseEntity.ok(bookmarkResponse);
+    }
+
+    @PostMapping("/me/bookmarks")
+    public ResponseEntity<BookmarkResponse> createBookmark(
+            @Valid @RequestBody BookmarkRequest request) {
+        BookmarkResponse bookmarkResponse = bookmarkService.createBookmark(request);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{bookId}")
+                .buildAndExpand(bookmarkResponse.getBookId()).toUri();
+        return ResponseEntity.created(location).body(bookmarkResponse);
+    }
+
+    @PutMapping("/me/bookmarks")
+    public ResponseEntity<BookmarkResponse> updateBookmark(
+            @Valid @RequestBody BookmarkRequest request) {
+        BookmarkResponse bookmarkResponse = bookmarkService.updateBookmark(request);
+        return ResponseEntity.ok(bookmarkResponse);
+    }
+
+    @DeleteMapping("/me/bookmarks/{bookId}")
+    public ResponseEntity<Void> deleteBookmark(@PathVariable String bookId) {
+        bookmarkService.deleteBookmark(bookId);
+        return ResponseEntity.noContent().build();
     }
 }
 
@@ -99,66 +406,59 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteCountResponse;
 import com.example.my_books_backend.dto.favorite.FavoriteRequest;
 import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteStatusResponse;
 import com.example.my_books_backend.dto.favorite.FavoriteInfoResponse;
+import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
 import com.example.my_books_backend.service.FavoriteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/favorites")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class FavoriteController {
     private final FavoriteService favoriteService;
 
-    @GetMapping("")
-    public ResponseEntity<PaginatedBookResponse> getFavorites(
+    @GetMapping("/me/favorites")
+    public ResponseEntity<FavoritePageResponse> getFavoritePage(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer maxResults) {
-        PaginatedBookResponse favorites = favoriteService.getFavorites(page, maxResults);
-        return ResponseEntity.ok(favorites);
+        FavoritePageResponse favoritePageResponse = favoriteService.getFavoritePage(page, maxResults);
+        return ResponseEntity.ok(favoritePageResponse);
     }
 
-    @PostMapping("")
-    public ResponseEntity<FavoriteResponse> addFavorite(
-            @Valid @RequestBody FavoriteRequest request) {
-        FavoriteResponse favorite = favoriteService.addFavorite(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(favorite.getFavoriteId()).toUri();
-        return ResponseEntity.created(location).body(favorite);
+    @GetMapping("/me/favorites/{bookId}")
+    public ResponseEntity<FavoriteResponse> getFavoriteById(@PathVariable String bookId) {
+        FavoriteResponse favoriteResponse = favoriteService.getFavoriteById(bookId);
+        return ResponseEntity.ok(favoriteResponse);
     }
 
-    @DeleteMapping("/{bookId}")
-    public ResponseEntity<Void> removeFavorite(@PathVariable String bookId) {
-        favoriteService.removeFavorite(bookId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{bookId}/status")
-    public ResponseEntity<FavoriteStatusResponse> getFavoriteStatus(@PathVariable String bookId) {
-        FavoriteStatusResponse favoriteStateResponse = favoriteService.getFavoriteStatus(bookId);
-        return ResponseEntity.ok(favoriteStateResponse);
-    }
-
-    @GetMapping("/{bookId}/count")
-    public ResponseEntity<FavoriteCountResponse> getFavoriteCount(@PathVariable String bookId) {
-        FavoriteCountResponse favoriteCountResponse = favoriteService.getFavoriteCount(bookId);
-        return ResponseEntity.ok(favoriteCountResponse);
-    }
-
-    @GetMapping("/{bookId}/info")
-    public ResponseEntity<FavoriteInfoResponse> getFavoriteInfo(@PathVariable String bookId) {
-        FavoriteInfoResponse favoriteInfoResponse = favoriteService.getFavoriteInfo(bookId);
+    @GetMapping("/books/{bookId}/favorites")
+    public ResponseEntity<FavoriteInfoResponse> getFavoriteInfo(@PathVariable String bookId,
+            @RequestParam(required = false) Long userId) {
+        FavoriteInfoResponse favoriteInfoResponse = favoriteService.getFavoriteInfo(bookId, userId);
         return ResponseEntity.ok(favoriteInfoResponse);
+    }
+
+    @PostMapping("/me/favorites")
+    public ResponseEntity<FavoriteResponse> createFavorite(
+            @Valid @RequestBody FavoriteRequest request) {
+        FavoriteResponse favoriteResponse = favoriteService.createFavorite(request);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{bookId}")
+                .buildAndExpand(favoriteResponse.getBookId()).toUri();
+        return ResponseEntity.created(location).body(favoriteResponse);
+    }
+
+    @DeleteMapping("/me/favorites/{bookId}")
+    public ResponseEntity<Void> deleteFavorite(@PathVariable String bookId) {
+        favoriteService.deleteFavorite(bookId);
+        return ResponseEntity.noContent().build();
     }
 }
 
 ------------------------------------------------------------
-MyListController
+ReviewController
 
 package com.example.my_books_backend.controller;
 
@@ -168,73 +468,76 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.my_list.MyListCountResponse;
-import com.example.my_books_backend.dto.my_list.MyListRequest;
-import com.example.my_books_backend.dto.my_list.MyListResponse;
-import com.example.my_books_backend.dto.my_list.MyListStatusResponse;
-import com.example.my_books_backend.dto.my_list.MyListInfoResponse;
-import com.example.my_books_backend.service.MyListService;
+import com.example.my_books_backend.dto.review.ReviewPageResponse;
+import com.example.my_books_backend.dto.review.ReviewSummaryResponse;
+import com.example.my_books_backend.dto.review.ReviewRequest;
+import com.example.my_books_backend.dto.review.ReviewResponse;
+import com.example.my_books_backend.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/my-lists")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
-public class MyListController {
-    private final MyListService myListService;
+public class ReviewController {
+    private final ReviewService reviewService;
 
-    @GetMapping("")
-    public ResponseEntity<PaginatedBookResponse> getMyLists(
+    @GetMapping("/books/{bookId}/reviews")
+    public ResponseEntity<ReviewPageResponse> getReviewPage(@PathVariable String bookId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer maxResults) {
-        PaginatedBookResponse mylists = myListService.getMyLists(page, maxResults);
-        return ResponseEntity.ok(mylists);
+        ReviewPageResponse reviewPageResponse = reviewService.getReviewPage(bookId, page, maxResults);
+        return ResponseEntity.ok(reviewPageResponse);
     }
 
-    @PostMapping("")
-    public ResponseEntity<MyListResponse> addMyList(@Valid @RequestBody MyListRequest request) {
-        MyListResponse mylist = myListService.addMyList(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(mylist.getMyListId()).toUri();
-        return ResponseEntity.created(location).body(mylist);
+    @GetMapping("/books/{bookId}/reviews/{userId}")
+    public ResponseEntity<ReviewResponse> getReviewById(@PathVariable String bookId,
+            @PathVariable Long userId) {
+        ReviewResponse reviewResponse = reviewService.getReviewById(bookId, userId);
+        return ResponseEntity.ok(reviewResponse);
     }
 
-    @DeleteMapping("/{bookId}")
-    public ResponseEntity<Void> removeMyList(@PathVariable String bookId) {
-        myListService.removeMyList(bookId);
+    @GetMapping("/books/{bookId}/reviews/summary")
+    public ResponseEntity<ReviewSummaryResponse> getReviewSummary(@PathVariable String bookId) {
+        ReviewSummaryResponse reviewSummaryResponse = reviewService.getReviewSummary(bookId);
+        return ResponseEntity.ok(reviewSummaryResponse);
+    }
+
+    @PostMapping("/books/{bookId}/reviews")
+    public ResponseEntity<ReviewResponse> createReview(@PathVariable String bookId,
+            @Valid @RequestBody ReviewRequest request) {
+        ReviewResponse reviewResponse = reviewService.createReview(bookId, request);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{userId}")
+                .buildAndExpand(reviewResponse.getUserId()).toUri();
+        return ResponseEntity.created(location).body(reviewResponse);
+    }
+
+    @PutMapping("/books/{bookId}/reviews")
+    public ResponseEntity<ReviewResponse> updateReview(@PathVariable String bookId,
+            @Valid @RequestBody ReviewRequest request) {
+        ReviewResponse reviewResponse = reviewService.updateReview(bookId, request);
+        return ResponseEntity.ok(reviewResponse);
+    }
+
+    @DeleteMapping("/books/{bookId}/reviews")
+    public ResponseEntity<Void> deleteReview(@PathVariable String bookId) {
+        reviewService.deleteReview(bookId);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{bookId}/status")
-    public ResponseEntity<MyListStatusResponse> getMyListStatus(@PathVariable String bookId) {
-        MyListStatusResponse myListStateResponse = myListService.getMyListStatus(bookId);
-        return ResponseEntity.ok(myListStateResponse);
-    }
-
-    @GetMapping("/{bookId}/count")
-    public ResponseEntity<MyListCountResponse> getMyListCount(@PathVariable String bookId) {
-        MyListCountResponse myListCountResponse = myListService.getMyListCount(bookId);
-        return ResponseEntity.ok(myListCountResponse);
-    }
-
-    @GetMapping("/{bookId}/info")
-    public ResponseEntity<MyListInfoResponse> getMyListInfo(@PathVariable String bookId) {
-        MyListInfoResponse myListInfoResponse = myListService.getMyListInfo(bookId);
-        return ResponseEntity.ok(myListInfoResponse);
     }
 }
 
 ------------------------------------------------------------
-FavoriteCountResponse
+BookmarkRequest
 
-package com.example.my_books_backend.dto.favorite;
+package com.example.my_books_backend.dto.bookmark;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -242,9 +545,38 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FavoriteCountResponse {
+public class BookmarkRequest {
+    @NotNull
     private String bookId;
-    private Integer favoriteCount;
+
+    @NotNull
+    private Integer chapterNumber;
+
+    @NotNull
+    private Integer pageNumber;
+}
+
+------------------------------------------------------------
+BookmarkResponse
+
+package com.example.my_books_backend.dto.bookmark;
+
+import java.time.LocalDateTime;
+import com.example.my_books_backend.dto.book.BookResponse;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class BookmarkResponse {
+    private Long userId;
+    private String bookId;
+    private Integer chapterNumber;
+    private Integer pageNumber;
+    private LocalDateTime updatedAt;
+    private BookResponse book;
 }
 
 ------------------------------------------------------------
@@ -260,78 +592,53 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FavoriteInfoResponse {
-    private String bookId;
     private Boolean isFavorite;
     private Integer favoriteCount;
 }
 
 ------------------------------------------------------------
-FavoriteStatusResponse
+Bookmark
 
-package com.example.my_books_backend.dto.favorite;
+package com.example.my_books_backend.entity;
 
+import com.example.my_books_backend.entity.shared.EntityBase;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "bookmarks")
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class FavoriteStatusResponse {
-    private String bookId;
-    private Boolean isFavorite;
-}
+public class Bookmark extends EntityBase {
+    @EmbeddedId
+    private BookmarkId id;
 
-------------------------------------------------------------
-MyListCountResponse
+    @Column(name = "chapter_number", nullable = false)
+    private Integer chapterNumber;
 
-package com.example.my_books_backend.dto.my_list;
+    @Column(name = "page_number", nullable = false)
+    private Integer pageNumber;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+    @ManyToOne
+    @MapsId("userId")
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class MyListCountResponse {
-    private String bookId;
-    private Integer myListCount;
-}
-
-------------------------------------------------------------
-MyListInfoResponse
-
-package com.example.my_books_backend.dto.my_list;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class MyListInfoResponse {
-    private String bookId;
-    private Boolean isMyList;
-    private Integer myListCount;
-}
-
-------------------------------------------------------------
-MyListStatusResponse
-
-package com.example.my_books_backend.dto.my_list;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class MyListStatusResponse {
-    private String bookId;
-    private Boolean isMyList;
+    @ManyToOne
+    @MapsId("bookId")
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;
 }
 
 ------------------------------------------------------------
@@ -343,53 +650,221 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import com.example.my_books_backend.entity.Favorite;
 import com.example.my_books_backend.entity.FavoriteId;
 
 @Repository
 public interface FavoriteRepository extends JpaRepository<Favorite, FavoriteId> {
+    List<Favorite> findByBookId(String bookId);
+
     Page<Favorite> findByUserId(Long userId, Pageable pageable);
 
-    void deleteById(@NonNull FavoriteId favoriteId);
-
     Integer countByUserId(Long userId);
-
-    Integer countByBookId(String bookId);
-
-    Integer countByUserIdAndBookId(Long userId, String bookId);
-
-    List<Favorite> findByBookId(String bookId);
 }
 
 ------------------------------------------------------------
-MyListRepository
+ReviewRepository
 
 package com.example.my_books_backend.repository;
 
 import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.MyList;
-import com.example.my_books_backend.entity.MyListId;
+import com.example.my_books_backend.entity.Review;
+import com.example.my_books_backend.entity.ReviewId;
 
 @Repository
-public interface MyListRepository extends JpaRepository<MyList, MyListId> {
-    Page<MyList> findByUserId(Long userId, Pageable pageable);
+public interface ReviewRepository extends JpaRepository<Review, ReviewId> {
+    List<Review> findByBookId(String bookId);
 
-    void deleteById(@NonNull MyListId myListId);
+    Page<Review> findByBookId(String bookId, Pageable pageable);
 
     Integer countByUserId(Long userId);
+}
 
-    Integer countByBookId(String bookId);
+------------------------------------------------------------
+BookmarkServiceImpl
 
-    Integer countByUserIdAndBookId(Long userId, String bookId);
+package com.example.my_books_backend.service.impl;
 
-    List<MyList> findByBookId(String bookId);
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.example.my_books_backend.dto.bookmark.BookmarkRequest;
+import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
+import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
+import com.example.my_books_backend.entity.Book;
+import com.example.my_books_backend.entity.Bookmark;
+import com.example.my_books_backend.entity.BookmarkId;
+import com.example.my_books_backend.entity.User;
+import com.example.my_books_backend.exception.NotFoundException;
+import com.example.my_books_backend.mapper.BookmarkMapper;
+import com.example.my_books_backend.repository.BookRepository;
+import com.example.my_books_backend.repository.BookmarkRepository;
+import com.example.my_books_backend.service.BookmarkService;
+import com.example.my_books_backend.util.PaginationUtil;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class BookmarkServiceImpl implements BookmarkService {
+    private final BookmarkRepository bookmarkRepository;
+    private final BookmarkMapper bookmarkMapper;
+
+    private final BookRepository bookRepository;
+    private final PaginationUtil paginationUtil;
+
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "updatedAt");
+
+    @Override
+    public BookmarkResponse getBookmarkById(String bookId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        BookmarkId bookmarkId = new BookmarkId(user.getId(), bookId);
+        Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
+                .orElseThrow(() -> new NotFoundException("Bookmark not found"));
+        return bookmarkMapper.toBookmarkResponse(bookmark);
+    }
+
+    @Override
+    public BookmarkPageResponse getBookmarkPage(Integer page, Integer maxResults) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
+        Page<Bookmark> bookmarkPage = bookmarkRepository.findByUserId(user.getId(), pageable);
+        return bookmarkMapper.toBookmarkPageResponse(bookmarkPage);
+    }
+
+    @Override
+    @Transactional
+    public BookmarkResponse createBookmark(BookmarkRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        Book book = bookRepository.findById(request.getBookId())
+                .orElseThrow(() -> new NotFoundException("Book not found"));
+        BookmarkId bookmarkId = new BookmarkId(user.getId(), request.getBookId());
+        Bookmark bookmark = new Bookmark();
+        bookmark.setId(bookmarkId);
+        bookmark.setUser(user);
+        bookmark.setBook(book);
+        bookmark.setChapterNumber(request.getChapterNumber());
+        bookmark.setPageNumber(request.getPageNumber());
+        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
+        return bookmarkMapper.toBookmarkResponse(savedBookmark);
+    }
+
+    @Override
+    @Transactional
+    public BookmarkResponse updateBookmark(BookmarkRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        BookmarkId bookmarkId = new BookmarkId(user.getId(), request.getBookId());
+        Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
+                .orElseThrow(() -> new NotFoundException("Bookmark not found"));
+
+        Integer chapterNumber = request.getChapterNumber();
+        Integer pageNumber = request.getPageNumber();
+
+        if (chapterNumber != null) {
+            bookmark.setChapterNumber(chapterNumber);
+        }
+
+        if (pageNumber != null) {
+            bookmark.setPageNumber(pageNumber);
+        }
+
+        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
+        return bookmarkMapper.toBookmarkResponse(savedBookmark);
+    }
+
+    @Override
+    @Transactional
+    public void deleteBookmark(String bookId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        BookmarkId bookmarkId = new BookmarkId(user.getId(), bookId);
+        bookmarkRepository.deleteById(bookmarkId);
+    }
+}
+
+------------------------------------------------------------
+BookServiceImpl
+
+package com.example.my_books_backend.service.impl;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import com.example.my_books_backend.dto.book.BookResponse;
+import com.example.my_books_backend.dto.book.BookPageResponse;
+import com.example.my_books_backend.entity.Book;
+import com.example.my_books_backend.exception.NotFoundException;
+import com.example.my_books_backend.mapper.BookMapper;
+import com.example.my_books_backend.repository.BookRepository;
+import com.example.my_books_backend.service.BookService;
+import com.example.my_books_backend.util.PaginationUtil;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class BookServiceImpl implements BookService {
+    private final BookRepository bookRepository;
+    private final BookMapper bookMapper;
+
+    private final PaginationUtil paginationUtil;
+
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "publishedDate");
+
+    @Override
+    public BookResponse getBookById(String id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Book not found"));
+        return bookMapper.toBookResponse(book);
+    }
+
+    @Override
+    public List<BookResponse> getNewBooks() {
+        List<Book> books = bookRepository.findTop10ByOrderByPublishedDateDesc();
+        return bookMapper.toBookResponseList(books);
+    }
+
+    @Override
+    public BookPageResponse getBookPageByTitle(String q, Integer page, Integer maxResults) {
+        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
+        Page<Book> bookPage = bookRepository.findByTitleContaining(q, pageable);
+        return bookMapper.toBookPageResponse(bookPage);
+    }
+
+    @Override
+    public BookPageResponse getBookPageByGenreId(String genreId, Integer page, Integer maxResults) {
+        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
+
+        Boolean isAndSearch = genreId.contains(",");
+
+        // split()で、"|"を正規表現として解釈されないようにエスケープ
+        String splitStr = isAndSearch ? "," : "\\|";
+
+        List<Long> genreIds = Arrays.stream(genreId.split(splitStr)).map(Long::parseLong)
+                .collect(Collectors.toList());
+
+        Page<Book> bookPage =
+                isAndSearch ? bookRepository.findByAllGenreIds(genreIds, genreIds.size(), pageable)
+                        : bookRepository.findByGenreIds(genreIds, pageable);
+
+        return bookMapper.toBookPageResponse(bookPage);
+    }
 }
 
 ------------------------------------------------------------
@@ -397,21 +872,19 @@ FavoriteServiceImpl
 
 package com.example.my_books_backend.service.impl;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteCountResponse;
 import com.example.my_books_backend.dto.favorite.FavoriteRequest;
 import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteStatusResponse;
 import com.example.my_books_backend.dto.favorite.FavoriteInfoResponse;
+import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
 import com.example.my_books_backend.entity.Book;
 import com.example.my_books_backend.entity.Favorite;
 import com.example.my_books_backend.entity.FavoriteId;
@@ -421,6 +894,7 @@ import com.example.my_books_backend.mapper.FavoriteMapper;
 import com.example.my_books_backend.repository.BookRepository;
 import com.example.my_books_backend.repository.FavoriteRepository;
 import com.example.my_books_backend.service.FavoriteService;
+import com.example.my_books_backend.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -428,24 +902,48 @@ import lombok.RequiredArgsConstructor;
 public class FavoriteServiceImpl implements FavoriteService {
     private final FavoriteRepository favoriteRepository;
     private final FavoriteMapper favoriteMapper;
-    private final BookRepository bookRepository;
 
-    private static final Integer DEFAULT_START_PAGE = 0;
-    private static final Integer DEFAULT_MAX_RESULTS = 20;
+    private final BookRepository bookRepository;
+    private final PaginationUtil paginationUtil;
+
     private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "updatedAt");
 
     @Override
-    public PaginatedBookResponse getFavorites(Integer page, Integer maxResults) {
+    public FavoriteResponse getFavoriteById(String bookId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
-        Pageable pageable = createPageable(page, maxResults);
-        Page<Favorite> favorites = favoriteRepository.findByUserId(user.getId(), pageable);
-        return favoriteMapper.toPaginatedBookResponse(favorites);
+        FavoriteId favoriteId = new FavoriteId(user.getId(), bookId);
+        Favorite favorite = favoriteRepository.findById(favoriteId)
+                .orElseThrow(() -> new NotFoundException("Favorite not found"));
+        return favoriteMapper.toFavoriteResponse(favorite);
+    }
+
+    @Override
+    public FavoritePageResponse getFavoritePage(Integer page, Integer maxResults) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
+        Page<Favorite> favoritePage = favoriteRepository.findByUserId(user.getId(), pageable);
+        return favoriteMapper.toFavoritePageResponse(favoritePage);
+    }
+
+    @Override
+    public FavoriteInfoResponse getFavoriteInfo(String bookId, Long userId) {
+        List<Favorite> favorites = favoriteRepository.findByBookId(bookId);
+
+        boolean isFavorite = favorites.stream()
+                .anyMatch(favorite -> favorite.getId().getUserId().equals(userId));
+
+        FavoriteInfoResponse favoriteInfoResponse = new FavoriteInfoResponse();
+        favoriteInfoResponse.setIsFavorite(isFavorite);
+        favoriteInfoResponse.setFavoriteCount(favorites.size());
+
+        return favoriteInfoResponse;
     }
 
     @Override
     @Transactional
-    public FavoriteResponse addFavorite(FavoriteRequest request) {
+    public FavoriteResponse createFavorite(FavoriteRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
         Book book = bookRepository.findById(request.getBookId())
@@ -461,184 +959,173 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Override
     @Transactional
-    public void removeFavorite(String bookId) {
+    public void deleteFavorite(String bookId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
         FavoriteId favoriteId = new FavoriteId(user.getId(), bookId);
         favoriteRepository.deleteById(favoriteId);
     }
-
-    @Override
-    public FavoriteStatusResponse getFavoriteStatus(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Integer count = favoriteRepository.countByUserIdAndBookId(user.getId(), bookId);
-
-        FavoriteStatusResponse favoriteStateResponse = new FavoriteStatusResponse();
-        favoriteStateResponse.setBookId(bookId);
-        favoriteStateResponse.setIsFavorite(count > 0 ? true : false);
-        return favoriteStateResponse;
-    }
-
-    @Override
-    public FavoriteCountResponse getFavoriteCount(String bookId) {
-        Integer favoriteCount = favoriteRepository.countByBookId(bookId);
-
-        FavoriteCountResponse favoriteCountResponse = new FavoriteCountResponse();
-        favoriteCountResponse.setBookId(bookId);
-        favoriteCountResponse.setFavoriteCount(favoriteCount);
-        return favoriteCountResponse;
-    }
-
-    @Override
-    public FavoriteInfoResponse getFavoriteInfo(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Integer count = 0;
-        // 認証済みであればユーザー情報取得（匿名ユーザーは未認証とする）
-        if (authentication != null && authentication.isAuthenticated()
-                && !(authentication instanceof AnonymousAuthenticationToken)) {
-            User user = (User) authentication.getPrincipal();
-            count = favoriteRepository.countByUserIdAndBookId(user.getId(), bookId);
-        }
-        Integer favoriteCount = favoriteRepository.countByBookId(bookId);
-
-        FavoriteInfoResponse favoriteInfoResponse = new FavoriteInfoResponse();
-        favoriteInfoResponse.setBookId(bookId);
-        favoriteInfoResponse.setIsFavorite(count > 0 ? true : false);
-        favoriteInfoResponse.setFavoriteCount(favoriteCount);
-
-        return favoriteInfoResponse;
-    }
-
-    private Pageable createPageable(Integer page, Integer maxResults) {
-        page = (page != null) ? page : DEFAULT_START_PAGE;
-        maxResults = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
-        return PageRequest.of(page, maxResults, DEFAULT_SORT);
-    }
 }
 
 ------------------------------------------------------------
-MyListServiceImpl
+ReviewServiceImpl
 
 package com.example.my_books_backend.service.impl;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.my_list.MyListCountResponse;
-import com.example.my_books_backend.dto.my_list.MyListRequest;
-import com.example.my_books_backend.dto.my_list.MyListResponse;
-import com.example.my_books_backend.dto.my_list.MyListStatusResponse;
-import com.example.my_books_backend.dto.my_list.MyListInfoResponse;
+import com.example.my_books_backend.dto.review.ReviewPageResponse;
+import com.example.my_books_backend.dto.review.ReviewSummaryResponse;
+import com.example.my_books_backend.dto.review.ReviewRequest;
+import com.example.my_books_backend.dto.review.ReviewResponse;
 import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.MyList;
-import com.example.my_books_backend.entity.MyListId;
+import com.example.my_books_backend.entity.Review;
+import com.example.my_books_backend.entity.ReviewId;
 import com.example.my_books_backend.entity.User;
 import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.MyListMapper;
+import com.example.my_books_backend.mapper.ReviewMapper;
 import com.example.my_books_backend.repository.BookRepository;
-import com.example.my_books_backend.repository.MyListRepository;
-import com.example.my_books_backend.service.MyListService;
+import com.example.my_books_backend.repository.ReviewRepository;
+import com.example.my_books_backend.service.ReviewService;
+import com.example.my_books_backend.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class MyListServiceImpl implements MyListService {
-    private final MyListRepository myListRepository;
-    private final MyListMapper myListMapper;
+public class ReviewServiceImpl implements ReviewService {
+    private final ReviewRepository reviewRepository;
+    private final ReviewMapper reviewMapper;
+
     private final BookRepository bookRepository;
+    private final PaginationUtil paginationUtil;
 
-    private static final Integer DEFAULT_START_PAGE = 0;
-    private static final Integer DEFAULT_MAX_RESULTS = 20;
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "updatedAt");
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "createdAt");
 
     @Override
-    public PaginatedBookResponse getMyLists(Integer page, Integer maxResults) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Pageable pageable = createPageable(page, maxResults);
-        Page<MyList> myLists = myListRepository.findByUserId(user.getId(), pageable);
-        return myListMapper.toPaginatedBookResponse(myLists);
+    public ReviewResponse getReviewById(String bookId, Long userId) {
+        ReviewId reviewId = new ReviewId(userId, bookId);
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NotFoundException("Review not found"));
+        return reviewMapper.toReviewResponse(review);
+    }
+
+    @Override
+    public ReviewPageResponse getReviewPage(String bookId, Integer page, Integer maxResults) {
+        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
+        Page<Review> reviewPage = reviewRepository.findByBookId(bookId, pageable);
+        return reviewMapper.toReviewPageResponse(reviewPage);
+    }
+
+    @Override
+    public ReviewSummaryResponse getReviewSummary(String bookId) {
+        List<Review> reviews = reviewRepository.findByBookId(bookId);
+        Double averageRating =
+                reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
+
+        ReviewSummaryResponse reviewSummaryResponse = new ReviewSummaryResponse();
+        reviewSummaryResponse.setBookId(bookId);
+        reviewSummaryResponse.setReviewCount(reviews.size());
+        reviewSummaryResponse.setAverageRating(averageRating);
+
+        return reviewSummaryResponse;
     }
 
     @Override
     @Transactional
-    public MyListResponse addMyList(MyListRequest request) {
+    public ReviewResponse createReview(String bookId, ReviewRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
-        Book book = bookRepository.findById(request.getBookId())
+        Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new NotFoundException("Book not found"));
-        MyListId myListId = new MyListId(user.getId(), request.getBookId());
-        MyList myList = new MyList();
-        myList.setId(myListId);
-        myList.setUser(user);
-        myList.setBook(book);
-        MyList savedMyList = myListRepository.save(myList);
-        return myListMapper.toMyListResponse(savedMyList);
+        ReviewId reviewId = new ReviewId(user.getId(), book.getId());
+        Review review = new Review();
+        review.setId(reviewId);
+        review.setUser(user);
+        review.setBook(book);
+        review.setRating(request.getRating());
+        review.setComment(request.getComment());
+        Review savedReview = reviewRepository.save(review);
+        return reviewMapper.toReviewResponse(savedReview);
     }
 
     @Override
     @Transactional
-    public void removeMyList(String bookId) {
+    public ReviewResponse updateReview(String bookId, ReviewRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
-        MyListId myListId = new MyListId(user.getId(), bookId);
-        myListRepository.deleteById(myListId);
-    }
+        ReviewId reviewId = new ReviewId(user.getId(), bookId);
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NotFoundException("Review not found"));
 
-    @Override
-    public MyListStatusResponse getMyListStatus(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Integer count = myListRepository.countByUserIdAndBookId(user.getId(), bookId);
+        String comment = request.getComment();
+        Double rating = request.getRating();
 
-        MyListStatusResponse myListStateResponse = new MyListStatusResponse();
-        myListStateResponse.setBookId(bookId);
-        myListStateResponse.setIsMyList(count > 0 ? true : false);
-        return myListStateResponse;
-    }
-
-    @Override
-    public MyListCountResponse getMyListCount(String bookId) {
-        Integer myListCount = myListRepository.countByBookId(bookId);
-
-        MyListCountResponse myListCountResponse = new MyListCountResponse();
-        myListCountResponse.setBookId(bookId);
-        myListCountResponse.setMyListCount(myListCount);
-        return myListCountResponse;
-    }
-
-    @Override
-    public MyListInfoResponse getMyListInfo(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Integer count = 0;
-        // 認証済みであればユーザー情報取得（匿名ユーザーは未認証とする）
-        if (authentication != null && authentication.isAuthenticated()
-                && !(authentication instanceof AnonymousAuthenticationToken)) {
-            User user = (User) authentication.getPrincipal();
-            count = myListRepository.countByUserIdAndBookId(user.getId(), bookId);
+        if (comment != null) {
+            review.setComment(comment);
         }
-        Integer myListCount = myListRepository.countByBookId(bookId);
 
-        MyListInfoResponse myListInfoResponse = new MyListInfoResponse();
-        myListInfoResponse.setBookId(bookId);
-        myListInfoResponse.setIsMyList(count > 0 ? true : false);
-        myListInfoResponse.setMyListCount(myListCount);
-        return myListInfoResponse;
+        if (rating != null) {
+            review.setRating(rating);
+        }
+        Review savedReview = reviewRepository.save(review);
+        return reviewMapper.toReviewResponse(savedReview);
     }
 
-    private Pageable createPageable(Integer page, Integer maxResults) {
-        page = (page != null) ? page : DEFAULT_START_PAGE;
-        maxResults = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
-        return PageRequest.of(page, maxResults, DEFAULT_SORT);
+    @Override
+    @Transactional
+    public void deleteReview(String bookId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        ReviewId reviewId = new ReviewId(user.getId(), bookId);
+        reviewRepository.deleteById(reviewId);
     }
+}
+
+------------------------------------------------------------
+BookmarkService
+
+package com.example.my_books_backend.service;
+
+import com.example.my_books_backend.dto.bookmark.BookmarkRequest;
+import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
+import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
+
+public interface BookmarkService {
+    BookmarkResponse getBookmarkById(String bookId);
+
+    BookmarkPageResponse getBookmarkPage(Integer page, Integer maxResults);
+
+    BookmarkResponse createBookmark(BookmarkRequest request);
+
+    BookmarkResponse updateBookmark(BookmarkRequest request);
+
+    void deleteBookmark(String bookId);
+}
+
+------------------------------------------------------------
+BookService
+
+package com.example.my_books_backend.service;
+
+import java.util.List;
+import com.example.my_books_backend.dto.book.BookResponse;
+import com.example.my_books_backend.dto.book.BookPageResponse;
+
+public interface BookService {
+    BookResponse getBookById(String id);
+
+    List<BookResponse> getNewBooks();
+
+    BookPageResponse getBookPageByTitle(String q, Integer page, Integer maxResults);
+
+    BookPageResponse getBookPageByGenreId(String genreId, Integer page, Integer maxResults);
 }
 
 ------------------------------------------------------------
@@ -646,53 +1133,78 @@ FavoriteService
 
 package com.example.my_books_backend.service;
 
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteCountResponse;
 import com.example.my_books_backend.dto.favorite.FavoriteRequest;
 import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteStatusResponse;
 import com.example.my_books_backend.dto.favorite.FavoriteInfoResponse;
+import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
 
 public interface FavoriteService {
-    PaginatedBookResponse getFavorites(Integer page, Integer maxResults);
+    FavoriteResponse getFavoriteById(String bookId);
 
-    FavoriteResponse addFavorite(FavoriteRequest request);
+    FavoritePageResponse getFavoritePage(Integer page, Integer maxResults);
 
-    void removeFavorite(String bookId);
+    FavoriteInfoResponse getFavoriteInfo(String bookId, Long userId);
 
-    FavoriteStatusResponse getFavoriteStatus(String bookId);
+    FavoriteResponse createFavorite(FavoriteRequest request);
 
-    FavoriteCountResponse getFavoriteCount(String bookId);
-
-    FavoriteInfoResponse getFavoriteInfo(String bookId);
+    void deleteFavorite(String bookId);
 }
 
 ------------------------------------------------------------
-MyListService
+ReviewService
 
 package com.example.my_books_backend.service;
 
-import com.example.my_books_backend.dto.book.PaginatedBookResponse;
-import com.example.my_books_backend.dto.my_list.MyListCountResponse;
-import com.example.my_books_backend.dto.my_list.MyListRequest;
-import com.example.my_books_backend.dto.my_list.MyListResponse;
-import com.example.my_books_backend.dto.my_list.MyListStatusResponse;
-import com.example.my_books_backend.dto.my_list.MyListInfoResponse;
+import com.example.my_books_backend.dto.review.ReviewPageResponse;
+import com.example.my_books_backend.dto.review.ReviewSummaryResponse;
+import com.example.my_books_backend.dto.review.ReviewRequest;
+import com.example.my_books_backend.dto.review.ReviewResponse;
 
-public interface MyListService {
-    PaginatedBookResponse getMyLists(Integer page, Integer maxResults);
+public interface ReviewService {
+    ReviewResponse getReviewById(String bookId, Long userId);
 
-    MyListResponse addMyList(MyListRequest request);
+    ReviewPageResponse getReviewPage(String bookId, Integer page, Integer maxResults);
 
-    void removeMyList(String bookId);
+    ReviewSummaryResponse getReviewSummary(String bookId);
 
-    MyListStatusResponse getMyListStatus(String bookId);
+    ReviewResponse createReview(String bookId, ReviewRequest request);
 
-    MyListCountResponse getMyListCount(String bookId);
+    ReviewResponse updateReview(String bookId, ReviewRequest request);
 
-    MyListInfoResponse getMyListInfo(String bookId);
+    void deleteReview(String bookId);
 }
 
+------------------------------------------------------------
+PaginationUtil
+
+package com.example.my_books_backend.util;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Component;
+
+@Component
+public class PaginationUtil {
+    private static final Integer DEFAULT_START_PAGE = 0;
+    private static final Integer DEFAULT_MAX_RESULTS = 20;
+
+    public Pageable createPageable(Integer page, Integer maxResults, Sort sort) {
+        int pageNumber = (page != null) ? page : DEFAULT_START_PAGE;
+        int pageSize = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
+        return PageRequest.of(pageNumber, pageSize, sort);
+    }
+}
+
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
