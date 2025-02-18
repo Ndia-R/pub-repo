@@ -1,85 +1,18 @@
-３９ファイル
-
-------------------------------------------------------------
-book-detail-skeleton
-
-import { Skeleton } from '@/components/ui/skeleton';
-
-export default function BookDetailSkeleton() {
-  return (
-    <>
-      <div className="flex flex-col justify-center p-3 pt-10 sm:p-6 lg:flex-row">
-        <div className="flex flex-col items-center justify-center lg:w-1/2">
-          <Skeleton className="h-[360px] w-[280px] rounded bg-muted-foreground/5 object-cover sm:h-[480px] sm:w-[360px]" />
-          <div className="mt-2 flex flex-col items-center sm:w-[440px]">
-            <div className="my-1 flex justify-center gap-x-10">
-              <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
-              <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
-            </div>
-            <div className="flex items-center gap-x-2">
-              <Skeleton className="mt-2 h-6 w-48 rounded-full bg-muted-foreground/5" />
-            </div>
-          </div>
-          <div className="my-4 flex items-center">
-            <Skeleton className="h-11 w-48 rounded-full bg-muted-foreground/5" />
-          </div>
-        </div>
-
-        <div className="p-4 lg:w-1/2">
-          <div className="text-3xl font-bold sm:text-4xl">
-            <Skeleton className="h-9 w-64 rounded-full bg-muted-foreground/5 sm:h-10" />
-          </div>
-          <div className="my-4 flex w-full flex-wrap items-center justify-end gap-x-3">
-            <Skeleton className="h-7 w-24 rounded-full bg-muted-foreground/5 sm:h-8" />
-          </div>
-
-          <div className="flex gap-x-2">
-            <Skeleton className="h-9 w-24 rounded-full bg-muted-foreground/5" />
-            <Skeleton className="h-9 w-24 rounded-full bg-muted-foreground/5" />
-          </div>
-
-          <div className="my-6 md:my-10">
-            <Skeleton className="my-2 h-6 w-full rounded-full bg-muted-foreground/5" />
-            <Skeleton className="my-2 h-6 w-full rounded-full bg-muted-foreground/5" />
-            <Skeleton className="my-2 h-6 w-full rounded-full bg-muted-foreground/5" />
-          </div>
-
-          <div className="flex flex-col justify-between gap-y-4 lg:flex-row">
-            <div className="flex flex-col gap-y-1 text-muted-foreground">
-              <div className="flex">
-                <Skeleton className="mb-1 h-5 w-48 rounded-full bg-muted-foreground/5" />
-              </div>
-              <div className="flex">
-                <Skeleton className="mb-1 h-5 w-36 rounded-full bg-muted-foreground/5" />
-              </div>
-              <div className="flex">
-                <Skeleton className="mb-1 h-5 w-44 rounded-full bg-muted-foreground/5" />
-              </div>
-              <div className="flex">
-                <Skeleton className="mb-1 h-5 w-36 rounded-full bg-muted-foreground/5" />
-              </div>
-              <div className="flex">
-                <Skeleton className="mb-1 h-5 w-32 rounded-full bg-muted-foreground/5" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+４３ファイル
 
 ------------------------------------------------------------
 book-detail
 
-import FavoriteButton from '@/components/favorite-button';
+import CountIconSkeleton from '@/components/count-icon/count-icon-skeleton';
+import FavoriteCountIcon from '@/components/count-icon/favorite-count-icon';
+import ReviewCountIcon from '@/components/count-icon/review-count-icon';
 import GenreList from '@/components/genre-list/genre-list';
 import Rating from '@/components/rating';
-import ReviewCommentButton from '@/components/review-comment-count';
 import { Button } from '@/components/ui/button';
-import { getBookById, getGenres, getReviewSummary } from '@/lib/data';
-import { formatDateJP, formatIsbn, priceToString } from '@/lib/util';
+import { getBookDetailsById, getReviewSummary } from '@/lib/data';
+import { formatDateJP, formatIsbn, formatPrice } from '@/lib/util';
 import { useSuspenseQueries } from '@tanstack/react-query';
+import { Suspense } from 'react';
 import { Link } from 'react-router-dom';
 
 type Props = {
@@ -87,99 +20,81 @@ type Props = {
 };
 
 export default function BookDetail({ bookId }: Props) {
-  const [{ data: book }, { data: reviewRatingInfo }, { data: genres }] =
-    useSuspenseQueries({
-      queries: [
-        {
-          queryKey: ['getBookById', bookId],
-          queryFn: () => getBookById(bookId),
-        },
-        {
-          queryKey: ['getReviewSummary', bookId],
-          queryFn: () => getReviewSummary(bookId),
-        },
-        {
-          queryKey: ['getGenres'],
-          queryFn: () => getGenres(),
-        },
-      ],
-    });
+  const [{ data: book }, { data: reviewRatingInfo }] = useSuspenseQueries({
+    queries: [
+      {
+        queryKey: ['getBookDetailsById', bookId],
+        queryFn: () => getBookDetailsById(bookId),
+      },
+      {
+        queryKey: ['getReviewSummary', bookId],
+        queryFn: () => getReviewSummary(bookId),
+      },
+    ],
+  });
 
   return (
     <div className="flex flex-col justify-center p-3 pt-10 sm:p-6 lg:flex-row">
       <div className="flex flex-col items-center justify-center lg:w-1/2">
-        <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-top-10 fill-mode-both">
+        <Link to={`/read/${bookId}/table-of-contents`}>
           <img
             className="h-[360px] rounded object-cover sm:h-[480px]"
             src={book.imageUrl}
             alt={book.title}
           />
-        </div>
-        <div className="delay-150 duration-500 animate-in fade-in-0 slide-in-from-bottom-10">
-          <div className="mt-2 flex flex-col items-center sm:w-[440px]">
-            <div className="flex justify-center gap-x-10">
-              <ReviewCommentButton bookId={bookId} countUpAnimation={true} />
-              <FavoriteButton bookId={bookId} countUpAnimation={true} />
-            </div>
-            <div className="flex items-center gap-x-2">
-              <Rating rating={reviewRatingInfo.averageRating} readOnly />
-            </div>
+        </Link>
+        <div className="mt-2 flex flex-col items-center justify-around sm:w-[440px] sm:flex-row">
+          <div className="flex justify-center gap-x-2">
+            <Suspense fallback={<CountIconSkeleton />}>
+              <FavoriteCountIcon bookId={bookId} />
+            </Suspense>
+            <ReviewCountIcon reviewCount={book.reviewCount} />
           </div>
+          <Rating rating={reviewRatingInfo.averageRating} readOnly />
         </div>
-        <div className="delay-300 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
-          <div className="my-4 flex items-center">
-            <Button className="w-48 rounded-full" size="lg" asChild>
-              <Link to={`/book/${bookId}/read/1`}>読む</Link>
-            </Button>
-          </div>
+        <div className="my-4 flex items-center">
+          <Button className="w-44 rounded-full bg-transparent" variant="outline" asChild>
+            <Link to={`/read/${bookId}/table-of-contents`}>目次を見る</Link>
+          </Button>
         </div>
       </div>
 
       <div className="p-4 lg:w-1/2">
-        <div className="delay-150 duration-500 animate-in fade-in-0 slide-in-from-right-10 fill-mode-both">
-          <p className="text-3xl font-bold sm:text-4xl">{book.title}</p>
+        <p className="text-3xl font-bold sm:text-4xl">{book.title}</p>
 
-          <div className="my-4 flex w-full flex-wrap items-center justify-end gap-x-3">
-            <p>著者</p>
-            {book.authors.map((author) => (
-              <p className="text-lg font-bold sm:text-2xl" key={author}>
-                {author}
-              </p>
-            ))}
-          </div>
+        <div className="my-4 flex w-full flex-wrap items-center justify-end gap-x-3">
+          <p>著者</p>
+          {book.authors.map((author) => (
+            <p className="text-lg font-bold sm:text-2xl" key={author}>
+              {author}
+            </p>
+          ))}
         </div>
-        <div className="delay-300 duration-500 animate-in fade-in-0 slide-in-from-right-10 fill-mode-both">
-          <GenreList
-            className="gap-2"
-            genres={genres}
-            filterList={book.genreIds}
-            variant="outline"
-          />
+        <GenreList className="gap-2" genres={book.genres} variant="outline" />
 
-          <div className="my-6 md:my-10">{book.description}</div>
+        <div className="my-6 md:my-10">{book.description}</div>
 
-          <div className="flex flex-col justify-between gap-y-4 lg:flex-row">
-            <div className="flex flex-col gap-y-1 text-muted-foreground">
-              <div className="flex">
-                <p className="min-w-20">ISBN</p>
-                <p>{formatIsbn(book.isbn)}</p>
-              </div>
-              <div className="flex">
-                <p className="min-w-20">出版社</p>
-                <p>{book.publisher}</p>
-              </div>
-              <div className="flex">
-                <p className="min-w-20">発売日</p>
-                <p className="tracking-wide">{formatDateJP(book.publishedDate)}</p>
-              </div>
-              <div className="flex">
-                <p className="min-w-20">ページ数</p>
-                <p>{`${book.pageCount}ページ`}</p>
-              </div>
-              <div className="flex">
-                <p className="min-w-20">価格</p>
-                <p>{priceToString(book.price)}</p>
-              </div>
+        <div className="flex flex-col justify-between gap-y-4 lg:flex-row">
+          <div className="flex flex-col gap-y-1 text-muted-foreground">
+            <div className="flex">
+              <p className="min-w-20">ISBN</p>
+              <p>{formatIsbn(book.isbn)}</p>
+            </div>
+            <div className="flex">
+              <p className="min-w-20">出版社</p>
+              <p>{book.publisher}</p>
+            </div>
+            <div className="flex">
+              <p className="min-w-20">発売日</p>
+              <p className="tracking-wide">{formatDateJP(book.publishedDate)}</p>
+            </div>
+            <div className="flex">
+              <p className="min-w-20">ページ数</p>
+              <p>{`${book.pageCount}ページ`}</p>
+            </div>
+            <div className="flex">
+              <p className="min-w-20">価格</p>
+              <p>{formatPrice(book.price)}</p>
             </div>
           </div>
         </div>
@@ -189,585 +104,293 @@ export default function BookDetail({ bookId }: Props) {
 }
 
 ------------------------------------------------------------
-book-list-by-genre-id
+book-card
 
-import BookList from '@/components/book-list/book-list';
-import BookPagination from '@/components/book-list/book-pagination';
-import { getBookPageByGenreId } from '@/lib/data';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-type Props = {
-  genreId: string;
-  page: number;
-};
-
-export default function BookListByGenreId({ genreId, page }: Props) {
-  const { data: paginatedBook } = useSuspenseQuery({
-    queryKey: ['getBookPageByGenreId', genreId, page],
-    queryFn: () => getBookPageByGenreId(genreId, page - 1),
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <BookPagination totalPages={paginatedBook.totalPages} />
-      <BookList books={paginatedBook.books} />
-      <BookPagination totalPages={paginatedBook.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-by-query
-
-import BookList from '@/components/book-list/book-list';
-import BookPagination from '@/components/book-list/book-pagination';
-import { getBookPageByQuery } from '@/lib/data';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import AverageRatingIcon from '@/components/count-icon/average-rating-icon';
+import FavoriteCountIcon from '@/components/count-icon/favorite-count-icon';
+import ReviewCountIcon from '@/components/count-icon/review-count-icon';
+import { Card, CardContent } from '@/components/ui/card';
+import { formatDateJP } from '@/lib/util';
+import { Book } from '@/types';
+import { Link } from 'react-router-dom';
 
 type Props = {
-  query: string;
-  page: number;
+  book: Book;
 };
 
-export default function BookListByQuery({ query, page }: Props) {
-  const { data: paginatedBook } = useSuspenseQuery({
-    queryKey: ['getBookPageByQuery', query, page],
-    queryFn: () => getBookPageByQuery(query, page - 1),
-  });
-
+export default function BookCard({ book }: Props) {
   return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <BookPagination totalPages={paginatedBook.totalPages} />
-      <BookList books={paginatedBook.books} />
-      <BookPagination totalPages={paginatedBook.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-favorites
-
-import BookList from '@/components/book-list/book-list';
-import BookPagination from '@/components/book-list/book-pagination';
-import { getFavoritePage } from '@/lib/data';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-type Props = {
-  page: number;
-};
-
-export default function BookListFavorites({ page }: Props) {
-  const { data: bookPage } = useSuspenseQuery({
-    queryKey: ['getFavoritePage', page],
-    queryFn: () => getFavoritePage(page - 1),
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <BookPagination totalPages={bookPage.totalPages} />
-      <BookList books={bookPage.favorites.map((favorite) => favorite.book)} />
-      <BookPagination totalPages={bookPage.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-new-releases
-
-import BookList from '@/components/book-list/book-list';
-import { getNewBooks } from '@/lib/data';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-export default function BookListNewReleases() {
-  const { data: books } = useSuspenseQuery({
-    queryKey: ['getNewBooks'],
-    queryFn: () => getNewBooks(),
-  });
-
-  return (
-    <div className="pb-4">
-      <BookList books={books} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-review-create-dialog
-
-import Rating from '@/components/rating';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { createReview } from '@/lib/action';
-import { ReviewRequest } from '@/types';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import React, { useEffect, useRef, useState } from 'react';
-
-type Props = {
-  bookId: string;
-  queryKey: unknown[];
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-};
-
-export default function ReviewCreateDialog({
-  bookId,
-  queryKey,
-  isOpen,
-  setIsOpen,
-}: Props) {
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
-
-  const ref = useRef<HTMLTextAreaElement | null>(null);
-
-  const { toast } = useToast();
-  const { confirmDialog } = useConfirmDialog();
-
-  const queryClient = useQueryClient();
-  const { mutate } = useMutation({
-    mutationFn: (reqestBody: ReviewRequest) => createReview(bookId, reqestBody),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: ['getReviewSummary', bookId] });
-    },
-  });
-
-  useEffect(() => {
-    if (isOpen) {
-      setRating(0);
-      setComment('');
-    }
-  }, [isOpen]);
-
-  const handleAnimationStart = (e: React.AnimationEvent) => {
-    if (e.animationName === 'enter') {
-      ref.current?.focus();
-    }
-  };
-
-  const handlePost = async () => {
-    if (rating === 0) {
-      const { isCancel } = await confirmDialog({
-        icon: '?',
-        title: 'このまま投稿しますか？',
-        message: '星の数が「0」のままです。',
-        actionLabel: '投稿する',
-      });
-      if (isCancel) return;
-    }
-
-    const requestBody: ReviewRequest = { comment, rating };
-    mutate(requestBody, {
-      onSuccess: () => {
-        toast({ description: 'レビューを投稿しました' });
-        setIsOpen(false);
-      },
-      onError: () => {
-        toast({
-          title: 'レビュー投稿に失敗しました',
-          description: '管理者へ連絡してください',
-          variant: 'destructive',
-          duration: 5000,
-        });
-        setIsOpen(false);
-      },
-    });
-  };
-
-  const handleCloseDialog = async () => {
-    if (comment) {
-      const { isCancel } = await confirmDialog({
-        icon: '?',
-        title: '本当に閉じますか？',
-        message: 'コメントはまだ投稿していません。',
-        actionLabel: '閉じる',
-        persistent: true,
-      });
-      if (isCancel) return;
-    }
-    setIsOpen(false);
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent
-        className="w-3/4 min-w-[360px] max-w-[600px] p-4 sm:p-6"
-        onEscapeKeyDown={handleCloseDialog}
-        onPointerDownOutside={handleCloseDialog}
-        onAnimationStart={handleAnimationStart}
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="font-semibold leading-10">レビュー</p>
-            <p className="text-xs text-muted-foreground sm:text-sm">
-              素敵な感想を伝えましょう！
-            </p>
-          </div>
-          <div>
-            <Rating rating={rating} onChange={setRating} />
-            <p className="text-center text-xs text-muted-foreground sm:text-sm">
-              星をクリックして決定
-            </p>
-          </div>
-        </div>
-
-        <Textarea
-          ref={ref}
-          spellCheck={false}
-          value={comment}
-          onChange={(e) => setComment(e.currentTarget.value)}
-        />
-
-        <DialogFooter>
-          <Button className="rounded-full" variant="ghost" onClick={handleCloseDialog}>
-            閉じる
-          </Button>
-          <Button
-            className="rounded-full"
-            disabled={comment === '' ? true : false}
-            onClick={handlePost}
-          >
-            投稿する
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-------------------------------------------------------------
-review-item
-
-import Rating from '@/components/rating';
-import ReviewUpdateDialog from '@/components/review-list/review-update-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/hooks/use-user';
-import { deleteReview } from '@/lib/action';
-import { formatDateJP, formatTime } from '@/lib/util';
-import { Review } from '@/types';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { SquarePenIcon, Trash2Icon } from 'lucide-react';
-import { useState } from 'react';
-
-type Props = {
-  review: Review;
-  bookId: string;
-  queryKey: unknown[];
-};
-
-export default function ReviewItem({ review, bookId, queryKey }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
-  const { user } = useUser();
-  const { toast } = useToast();
-  const { confirmDialog } = useConfirmDialog();
-
-  const queryClient = useQueryClient();
-  const { mutate } = useMutation({
-    mutationFn: (bookId: string) => deleteReview(bookId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: ['getReviewSummary', bookId] });
-    },
-  });
-
-  const handleClickDelete = async () => {
-    const { isCancel } = await confirmDialog({
-      icon: '!',
-      title: '削除しますか？',
-      message: '削除すると元に戻りません。',
-      actionLabel: '削除する',
-    });
-    if (isCancel) return;
-
-    mutate(bookId, {
-      onSuccess: () => {
-        toast({ description: 'レビューを削除しました' });
-      },
-    });
-  };
-
-  return (
-    <div className="p-4">
-      <div className="flex flex-col items-center justify-between sm:flex-row">
-        <div className="flex w-full items-center gap-x-4">
-          <Avatar className="size-16">
-            <AvatarImage
-              className="bg-primary/50"
-              src={review.user.avatarUrl}
-              alt="avatar-image"
+    <>
+      <Card className="border-card-foreground/5 bg-card/70">
+        <CardContent className="relative flex w-40 flex-col items-center px-3 pb-2 pt-4 sm:w-48 sm:px-4">
+          <Link className="flex justify-center" to={`/book/${book.id}`}>
+            <img
+              className="h-44 rounded object-cover sm:h-52"
+              src={book.imageUrl}
+              alt={book.title}
             />
-            <AvatarFallback className="font-semibold">
-              {review.user.name.slice(0, 1)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="-mb-1 text-lg font-semibold">{review.user.name}</p>
-            <div className="flex items-center">
-              <p className="whitespace-nowrap text-sm leading-8 tracking-wide text-muted-foreground">
-                {formatDateJP(review.updatedAt)} {formatTime(review.updatedAt)}
-              </p>
-              <div className="ml-2 flex w-16">
-                {user?.id === review.user.id && (
-                  <>
-                    <Button
-                      className="size-8 rounded-full text-muted-foreground"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => user && setIsOpen(true)}
-                    >
-                      <SquarePenIcon className="size-4" />
-                    </Button>
-                    <ReviewUpdateDialog
-                      bookId={bookId}
-                      review={review}
-                      queryKey={queryKey}
-                      isOpen={isOpen}
-                      setIsOpen={setIsOpen}
-                    />
-                    <Button
-                      className="size-8 rounded-full text-muted-foreground"
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleClickDelete}
-                    >
-                      <Trash2Icon className="size-4" />
-                    </Button>
-                  </>
-                )}
-              </div>
+          </Link>
+          <Link
+            className="mt-1 flex h-8 w-full items-center justify-center text-xs hover:text-primary sm:h-10 sm:text-sm"
+            to={`/book/${book.id}`}
+          >
+            <p className="line-clamp-2 text-center">{book.title}</p>
+          </Link>
+          <div className="mt-1 flex w-full flex-col items-center gap-y-1">
+            <p className="text-xs tracking-wide text-muted-foreground">
+              {formatDateJP(book.publishedDate)}
+            </p>
+            <div className="flex justify-around gap-x-4">
+              <FavoriteCountIcon size="sm" bookId={book.id} />
+              <ReviewCountIcon size="sm" reviewCount={book.reviewCount} />
+              <AverageRatingIcon size="sm" averageRating={book.averageRating} />
             </div>
           </div>
-        </div>
-        <Rating rating={review.rating} readOnly />
-      </div>
-      <p className="mt-2 text-muted-foreground sm:pl-20">{review.comment}</p>
-    </div>
+        </CardContent>
+      </Card>
+    </>
   );
 }
 
 ------------------------------------------------------------
-review-list
+book-pagination
 
 import { Pagination } from '@/components/pagination';
-import ReviewCreateDialog from '@/components/review-list/review-create-dialog';
-import ReviewItem from '@/components/review-list/review-item';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+type Props = {
+  totalPages: number;
+};
+
+export default function BookPagination({ totalPages }: Props) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const page = Number(params.get('page') ?? '1');
+    setPage(page);
+  }, [location.search]);
+
+  const handleChange = (page: number) => {
+    setPage(page);
+    const params = new URLSearchParams(location.search);
+    params.set('page', page.toString());
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  };
+
+  return (
+    <div className="flex justify-center">
+      {totalPages > 1 && (
+        <Pagination total={totalPages} page={page} onChangePage={handleChange} />
+      )}
+    </div>
+  );
+}
+
+------------------------------------------------------------
+book-readディレクトリ
+book-read
+
+import {
+  getBookContentPage,
+  getBookDetailsById,
+  getBookTableOfContents,
+} from '@/lib/data';
+import { useSuspenseQueries } from '@tanstack/react-query';
+import { BookmarkIcon } from 'lucide-react';
+
+type Props = {
+  bookId: string;
+  chapterNumber: number;
+  pageNumber: number;
+};
+
+export default function BookRead({ bookId, chapterNumber, pageNumber }: Props) {
+  const [{ data: book }, { data: bookTableOfContents }, { data: bookContentPage }] =
+    useSuspenseQueries({
+      queries: [
+        {
+          queryKey: ['getBookDetailsById', bookId],
+          queryFn: () => getBookDetailsById(bookId),
+        },
+        {
+          queryKey: ['getBookTableOfContents', bookId],
+          queryFn: () => getBookTableOfContents(bookId),
+        },
+        {
+          queryKey: ['getBookContentPage', bookId, chapterNumber, pageNumber],
+          queryFn: () => getBookContentPage(bookId, chapterNumber, pageNumber),
+        },
+      ],
+    });
+
+  const pageTitle = `（${pageNumber}/${bookTableOfContents.chapters.find((chapter) => chapter.chapterNumber === chapterNumber)?.pageNumbers.length}）`;
+
+  return (
+    <>
+      <div className="fixed left-0 top-0 -z-10 flex h-screen w-full justify-center">
+        <img
+          className="w-full max-w-7xl object-cover opacity-5"
+          src={book.imageUrl}
+          alt="bg-image"
+        />
+      </div>
+      <div className="flex flex-col gap-y-12 px-4 py-12 sm:px-20">
+        <div className="flex items-center gap-x-2">
+          <p className="text-xl font-bold sm:text-2xl">
+            {bookContentPage.chapterTitle}
+            <span className="text-sm text-muted-foreground sm:text-base">
+              {pageTitle}
+            </span>
+          </p>
+          <BookmarkIcon className="size-4" />
+        </div>
+        <p className="whitespace-pre-wrap">{bookContentPage.content}</p>
+      </div>
+    </>
+  );
+}
+
+------------------------------------------------------------
+book-table-of-contents
+
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useUser } from '@/hooks/use-user';
-import { checkMyReviewExists, getReviewPage } from '@/lib/data';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { getBookDetailsById, getBookTableOfContents } from '@/lib/data';
+import { useSuspenseQueries } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 
 type Props = {
   bookId: string;
 };
 
-export default function ReviewList({ bookId }: Props) {
-  const [page, setPage] = useState(1);
-  const [isOpen, setIsOpen] = useState(false);
-  const { user } = useUser();
-
-  const queryKey = ['ReviewList', 'checkMyReviewExists', bookId, page, user?.id];
-  const {
-    data: [paginatedReview, reviewExists],
-  } = useSuspenseQuery({
-    queryKey,
-    queryFn: () =>
-      Promise.all([
-        getReviewPage(bookId, page - 1),
-        checkMyReviewExists(bookId, user?.id),
-      ]),
+export default function BookTableOfContents({ bookId }: Props) {
+  const [{ data: book }, { data: bookTableOfContents }] = useSuspenseQueries({
+    queries: [
+      {
+        queryKey: ['getBookDetailsById', bookId],
+        queryFn: () => getBookDetailsById(bookId),
+      },
+      {
+        queryKey: ['getBookTableOfContents', bookId],
+        queryFn: () => getBookTableOfContents(bookId),
+      },
+    ],
   });
 
+  console.log(bookTableOfContents);
   return (
-    <div className="mx-auto w-full lg:w-3/4">
-      <div className="flex flex-col-reverse items-center justify-end gap-y-4 sm:flex-row sm:gap-x-4 sm:px-6">
-        <p>レビュー {paginatedReview.totalItems} 件</p>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              className="w-44 rounded-full bg-transparent"
-              variant="outline"
-              disabled={reviewExists}
-              onClick={() => user && setIsOpen(true)}
-            >
-              {reviewExists ? 'レビュー済み' : 'レビューする'}
-            </Button>
-          </TooltipTrigger>
-          {!user && (
-            <TooltipContent>
-              ログインしてこの本の「レビュー」を書きましょう
-            </TooltipContent>
-          )}
-        </Tooltip>
-        <ReviewCreateDialog
-          bookId={bookId}
-          queryKey={queryKey}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
+    <>
+      <div className="fixed left-0 top-0 -z-10 flex h-screen w-full justify-center">
+        <img
+          className="w-full max-w-7xl object-cover opacity-5"
+          src={book.imageUrl}
+          alt="bg-image"
         />
       </div>
+      <div className="flex flex-col gap-y-12 px-4 py-12 sm:px-20">
+        <div className="flex w-full flex-col items-center gap-y-4 sm:items-start">
+          <p className="text-3xl font-bold sm:text-5xl">{book.title}</p>
+          <Button className="w-44 rounded-full bg-transparent" variant="outline" asChild>
+            <Link to={`/read/${bookId}/table-of-contents`}>最初から読む</Link>
+          </Button>
+        </div>
+        <ul className="flex w-full flex-col items-center gap-y-8 text-base sm:items-start sm:text-xl">
+          {bookTableOfContents.chapters.map((chapter, index) => (
+            <li key={chapter.chapterNumber}>
+              <p className="text-center text-xs text-muted-foreground/50 sm:text-left sm:text-sm">{`chapter ${index + 1}`}</p>
+              <Link
+                className="hover:text-primary"
+                to={`/read/${bookId}/chapter/${chapter.chapterNumber}/page/1`}
+              >
+                {chapter.chapterTitle}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+}
 
-      <ul className="flex flex-col p-3 sm:p-6">
-        {paginatedReview.reviews.map((review) => (
-          <li key={review.userId}>
-            <Separator className="bg-foreground/10" />
-            <ReviewItem review={review} bookId={bookId} queryKey={queryKey} />
-          </li>
-        ))}
-      </ul>
+------------------------------------------------------------
+count-iconディレクトリ
+average-rating-icon
 
-      <div className="mb-4 flex justify-center">
-        {paginatedReview.totalPages > 1 && (
-          <Pagination
-            total={paginatedReview.totalPages}
-            page={page}
-            onChangePage={setPage}
-          />
+import { cn } from '@/lib/util';
+import { StarIcon } from 'lucide-react';
+
+const BUTTON_SIZE = { sm: 'size-6', md: 'size-8' };
+const ICON_SIZE = { sm: 'size-3', md: 'size-4' };
+const TEXT_SIZE = { sm: 'text-xs', md: 'text-sm' };
+
+type Props = {
+  averageRating: number;
+  size?: 'sm' | 'md';
+};
+
+export default function AverageRatingIcon({ averageRating, size = 'md' }: Props) {
+  return (
+    <div className="flex items-center">
+      <div
+        className={cn(
+          'rounded-full text-muted-foreground flex justify-center items-center',
+          BUTTON_SIZE[size]
         )}
+      >
+        <StarIcon className={ICON_SIZE[size]} />
+      </div>
+
+      <p
+        className={cn(
+          'flex min-w-4 text-muted-foreground justify-center',
+          TEXT_SIZE[size]
+        )}
+      >
+        {averageRating.toFixed(1)}
+      </p>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+count-icon-skeleton
+
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/util';
+
+const BUTTON_SIZE = { sm: 'size-6', md: 'size-8' };
+const ICON_SIZE = { sm: 'size-3', md: 'size-4' };
+
+type Props = {
+  size?: 'sm' | 'md';
+};
+
+export default function CountIconSkeleton({ size = 'md' }: Props) {
+  return (
+    <div className="flex items-center">
+      <div
+        className={cn(
+          'rounded-full text-muted-foreground flex justify-center items-center',
+          BUTTON_SIZE[size]
+        )}
+      >
+        <Skeleton className={cn('rounded-full bg-muted-foreground/5', ICON_SIZE[size])} />
+      </div>
+
+      <div className="flex min-w-4 justify-center text-muted-foreground">
+        <Skeleton className={cn('rounded-full bg-muted-foreground/5', ICON_SIZE[size])} />
       </div>
     </div>
   );
 }
 
 ------------------------------------------------------------
-review-update-dialog
+favorite-count-icon
 
-import Rating from '@/components/rating';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { updateReview } from '@/lib/action';
-import { Review, ReviewRequest } from '@/types';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import React, { useEffect, useRef, useState } from 'react';
-
-type Props = {
-  bookId: string;
-  review: Review;
-  queryKey: unknown[];
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-};
-
-export default function ReviewUpdateDialog({
-  bookId,
-  review,
-  queryKey,
-  isOpen,
-  setIsOpen,
-}: Props) {
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
-
-  const ref = useRef<HTMLTextAreaElement | null>(null);
-
-  const { toast } = useToast();
-
-  const queryClient = useQueryClient();
-  const { mutate } = useMutation({
-    mutationFn: (reqestBody: ReviewRequest) => updateReview(bookId, reqestBody),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: ['getReviewSummary', bookId] });
-    },
-  });
-
-  useEffect(() => {
-    if (isOpen) {
-      setRating(review.rating);
-      setComment(review.comment);
-    }
-  }, [isOpen, review.comment, review.rating]);
-
-  const handleAnimationStart = (e: React.AnimationEvent) => {
-    if (e.animationName === 'enter') {
-      ref.current?.focus();
-    }
-  };
-
-  const handlePost = async () => {
-    const requestBody: ReviewRequest = { comment, rating };
-    mutate(requestBody, {
-      onSuccess: () => {
-        toast({ description: 'レビューを投稿しました' });
-        setIsOpen(false);
-      },
-      onError: () => {
-        toast({
-          title: 'レビュー投稿に失敗しました',
-          description: '管理者へ連絡してください',
-          variant: 'destructive',
-          duration: 5000,
-        });
-        setIsOpen(false);
-      },
-    });
-  };
-
-  const handleCloseDialog = async () => {
-    setIsOpen(false);
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent
-        className="w-3/4 min-w-[360px] max-w-[600px] p-4 sm:p-6"
-        onEscapeKeyDown={handleCloseDialog}
-        onPointerDownOutside={handleCloseDialog}
-        onAnimationStart={handleAnimationStart}
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="font-semibold leading-10">レビュー</p>
-            <p className="text-xs text-muted-foreground sm:text-sm">
-              素敵な感想を伝えましょう！
-            </p>
-          </div>
-          <div>
-            <Rating rating={rating} onChange={setRating} />
-            <p className="text-center text-xs text-muted-foreground sm:text-sm">
-              星をクリックして決定
-            </p>
-          </div>
-        </div>
-
-        <Textarea
-          ref={ref}
-          spellCheck={false}
-          value={comment}
-          onChange={(e) => setComment(e.currentTarget.value)}
-        />
-
-        <DialogFooter>
-          <Button className="rounded-full" variant="ghost" onClick={handleCloseDialog}>
-            閉じる
-          </Button>
-          <Button
-            className="rounded-full"
-            disabled={comment === '' ? true : false}
-            onClick={handlePost}
-          >
-            投稿する
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-------------------------------------------------------------
-favorite-button
-
-import CountUpNumber from '@/components/count-up-number';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUser } from '@/hooks/use-user';
@@ -785,14 +408,9 @@ const TEXT_SIZE = { sm: 'text-xs', md: 'text-sm' };
 type Props = {
   bookId: string;
   size?: 'sm' | 'md';
-  countUpAnimation?: boolean;
 };
 
-export default function FavoriteButton({
-  bookId,
-  size = 'md',
-  countUpAnimation = false,
-}: Props) {
+export default function FavoriteCountIcon({ bookId, size = 'md' }: Props) {
   const { user } = useUser();
   const queryClient = useQueryClient();
 
@@ -878,23 +496,17 @@ export default function FavoriteButton({
           TEXT_SIZE[size]
         )}
       >
-        {countUpAnimation ? (
-          <CountUpNumber end={optimisticData?.favoriteCount || 0} />
-        ) : (
-          optimisticData?.favoriteCount
-        )}
+        {optimisticData?.favoriteCount}
       </p>
     </div>
   );
 }
 
-------------------------------------------------------------
-review-comment-count
 
-import CountUpNumber from '@/components/count-up-number';
-import { getReviewSummary } from '@/lib/data';
+------------------------------------------------------------
+review-count-icon
+
 import { cn } from '@/lib/util';
-import { useQuery } from '@tanstack/react-query';
 import { MessageSquareIcon } from 'lucide-react';
 
 const BUTTON_SIZE = { sm: 'size-6', md: 'size-8' };
@@ -902,22 +514,11 @@ const ICON_SIZE = { sm: 'size-3', md: 'size-4' };
 const TEXT_SIZE = { sm: 'text-xs', md: 'text-sm' };
 
 type Props = {
-  bookId: string;
+  reviewCount: number;
   size?: 'sm' | 'md';
-  countUpAnimation?: boolean;
 };
 
-export default function ReviewCommentCount({
-  bookId,
-  size = 'md',
-  countUpAnimation = false,
-}: Props) {
-  const queryKey = ['getReviewSummary', bookId];
-  const { data: reviewRatingInfo } = useQuery({
-    queryKey,
-    queryFn: () => getReviewSummary(bookId),
-  });
-
+export default function ReviewCountIcon({ reviewCount, size = 'md' }: Props) {
   return (
     <div className="flex items-center">
       <div
@@ -935,197 +536,714 @@ export default function ReviewCommentCount({
           TEXT_SIZE[size]
         )}
       >
-        {countUpAnimation ? (
-          <CountUpNumber end={reviewRatingInfo?.reviewCount || 0} />
-        ) : (
-          reviewRatingInfo?.reviewCount
-        )}
+        {reviewCount}
       </p>
     </div>
   );
 }
 
 ------------------------------------------------------------
-bookmark
+genre-listディレクトリ
+genre-list-selector
 
-import { fetchActionWithAuth } from '@/lib/auth';
-import { BookmarkRequest } from '@/types';
+import { Button } from '@/components/ui/button';
+import { getGenres } from '@/lib/data';
+import { cn } from '@/lib/util';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { CheckIcon } from 'lucide-react';
 
-export const createBookmark = async (reqestBody: BookmarkRequest) => {
-  try {
-    const url = `/me/bookmarks`;
-    const options: RequestInit = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(reqestBody),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
+type Props = {
+  activeIds: number[];
+  onClick: (genreId: number) => void;
 };
 
-export const updateBookmark = async (reqestBody: BookmarkRequest) => {
-  try {
-    const url = `/me/bookmarks`;
-    const options: RequestInit = {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(reqestBody),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
+export default function GenreListSelector({ activeIds, onClick }: Props) {
+  const { data: genres } = useSuspenseQuery({
+    queryKey: ['getGenres'],
+    queryFn: () => getGenres(),
+  });
 
-export const deleteBookmark = async (bookId: string) => {
-  try {
-    const url = `/me/bookmarks/${bookId}`;
-    const options: RequestInit = { method: 'DELETE' };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
+  return (
+    <ul className="flex flex-wrap">
+      {genres.map((genre) => {
+        const isActive = activeIds.includes(genre.id);
+        return (
+          <li key={genre.id}>
+            <Button
+              className={cn(
+                'rounded-full m-1 text-muted-foreground text-xs sm:text-sm',
+                isActive && 'text-foreground'
+              )}
+              variant={isActive ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => onClick(genre.id)}
+            >
+              {isActive && <CheckIcon className="mr-1 size-4" strokeWidth={4} />}
+              {genre.name}
+            </Button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 ------------------------------------------------------------
-favorite
+genre-list-top-page
 
-import { fetchActionWithAuth } from '@/lib/auth';
-import { FavoriteRequest } from '@/types';
+import GenreList from '@/components/genre-list/genre-list';
+import { getGenres } from '@/lib/data';
+import { useSuspenseQuery } from '@tanstack/react-query';
 
-export const createFavorite = async (reqestBody: FavoriteRequest) => {
-  try {
-    const url = `/me/favorites`;
-    const options: RequestInit = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(reqestBody),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-export const deleteFavorite = async (bookId: string) => {
-  try {
-    const url = `/me/favorites/${bookId}`;
-    const options: RequestInit = { method: 'DELETE' };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
+export default function GenreListTopPage() {
+  const { data: genres } = useSuspenseQuery({
+    queryKey: ['getGenres'],
+    queryFn: () => getGenres(),
+  });
+  return (
+    <>
+      <GenreList genres={genres} variant="ghost" />
+    </>
+  );
+}
 
 ------------------------------------------------------------
-review
+genre-list
 
-import { fetchActionWithAuth } from '@/lib/auth';
-import { ReviewRequest } from '@/types';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/util';
+import { Genre } from '@/types';
+import { Link } from 'react-router-dom';
 
-export const createReview = async (bookId: string, reqestBody: ReviewRequest) => {
-  try {
-    const url = `/books/${bookId}/reviews`;
-    const options: RequestInit = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(reqestBody),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
+type Props = {
+  genres: Genre[];
+  className?: string;
+  filterList?: number[];
+  variant?: 'default' | 'outline' | 'secondary' | 'ghost';
 };
 
-export const updateReview = async (bookId: string, reqestBody: ReviewRequest) => {
-  try {
-    const url = `/books/${bookId}/reviews`;
-    const options: RequestInit = {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(reqestBody),
-    };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-export const deleteReview = async (bookId: string) => {
-  try {
-    const url = `/books/${bookId}/reviews`;
-    const options: RequestInit = { method: 'DELETE' };
-    await fetchActionWithAuth(url, options);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
+export default function GenreList({ genres, className, variant = 'default' }: Props) {
+  return (
+    <ul className={cn('flex flex-wrap', className)}>
+      {genres.map((genre) => (
+        <li key={genre.id}>
+          <Button
+            className={cn('rounded-full', variant === 'outline' && 'bg-transparent')}
+            variant={variant}
+            size="sm"
+            asChild
+          >
+            <Link to={`/discover?genreId=${genre.id}`}>{genre.name}</Link>
+          </Button>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 ------------------------------------------------------------
-book-chapter
+genre-selector
 
-import { fetchJsonWithAuth } from '@/lib/auth';
-import { BookTableOfContents } from '@/types';
+import GenreListSelector from '@/components/genre-list/genre-list-selector';
+import GenreListSkeleton from '@/components/genre-list/genre-list-skeleton';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
+import ErrorElement from '@/routes/error-element';
+import { Suspense, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-export const getBookTableOfContents = async (bookId: string) => {
-  try {
-    const url = `/book/${bookId}/table-of-contents`;
-    const bookTableOfContents = await fetchJsonWithAuth<BookTableOfContents>(url);
-    return bookTableOfContents;
-  } catch {
-    throw new Error('書籍の目次の読み込みが失敗しました。');
-  }
+type ConditionType = {
+  value: string;
+  splitCode: string;
 };
 
+const CONDITIONS: ConditionType[] = [
+  { value: 'OR', splitCode: '|' },
+  { value: 'AND', splitCode: ',' },
+];
+
+export default function GenreSelector() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const params = new URLSearchParams(location.search);
+  const genreIdQuery = params.get('genreId') ?? '';
+
+  const initCondition =
+    CONDITIONS.find((conditon) => genreIdQuery.includes(conditon.splitCode)) ||
+    CONDITIONS[0];
+
+  const splitCodes = CONDITIONS.map((conditon) => conditon.splitCode).join();
+  const regex = new RegExp(`[${splitCodes}]`);
+  const initGenreIds = genreIdQuery.split(regex).map((genreId) => Number(genreId));
+
+  const [selectedCondition, setSelectedCondition] = useState(initCondition);
+  const [selectedGenreIds, setSelectedGenreIds] = useState(initGenreIds);
+
+  const handleClickGenre = (genreId: number) => {
+    let newGenreIds = selectedGenreIds.includes(genreId)
+      ? selectedGenreIds.filter((id) => id !== genreId)
+      : [...selectedGenreIds, genreId].sort((a, b) => a - b);
+
+    if (newGenreIds.length === 0) {
+      newGenreIds = [genreId];
+    }
+
+    setSelectedGenreIds(newGenreIds);
+    updateDiscoverUrl(newGenreIds.join(selectedCondition.splitCode));
+  };
+
+  const handleChangeCondition = (value: string) => {
+    const newCondition =
+      CONDITIONS.find((condition) => condition.value === value) ?? CONDITIONS[0];
+
+    setSelectedCondition(newCondition);
+    updateDiscoverUrl(selectedGenreIds.join(newCondition.splitCode));
+  };
+
+  const updateDiscoverUrl = (genreIdQuery: string) => {
+    const params = new URLSearchParams();
+    params.set('genreId', genreIdQuery);
+    params.set('page', '1');
+    navigate(`/discover?${params.toString()}`, { replace: true });
+  };
+
+  return (
+    <>
+      <div className="my-4 flex items-center justify-between">
+        <p className="my-2">ジャンル</p>
+        <RadioGroup
+          className="flex gap-x-4"
+          value={selectedCondition.value}
+          onValueChange={handleChangeCondition}
+        >
+          {CONDITIONS.map((condition) => (
+            <div className="flex items-center" key={condition.value}>
+              <RadioGroupItem value={condition.value} id={condition.value} />
+              <Label className="cursor-pointer select-none p-2" htmlFor={condition.value}>
+                {condition.value}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+      </div>
+
+      <Separator className="my-4 bg-foreground/10" />
+
+      <ErrorBoundary fallback={<ErrorElement />}>
+        <Suspense fallback={<GenreListSkeleton />}>
+          <GenreListSelector activeIds={selectedGenreIds} onClick={handleClickGenre} />
+        </Suspense>
+      </ErrorBoundary>
+
+      <Separator className="my-4 bg-foreground/10" />
+    </>
+  );
+}
+
 ------------------------------------------------------------
-book-content-page
+header
 
-import { fetchJsonWithAuth } from '@/lib/auth';
-import { BookContentPage } from '@/types';
+import LoginButton from '@/components/layout/login-button';
+import NavList from '@/components/layout/nav-list';
+import SearchInput from '@/components/layout/search-input';
+import ThemeToggleButton from '@/components/layout/theme-toggle-button';
+import { cn } from '@/lib/util';
 
-export const getBookContentPage = async (
-  bookId: string,
-  chapterNumber: number,
-  pageNumber: number
-) => {
-  try {
-    const url = `/books/${bookId}/chapters/${chapterNumber}/pages/${pageNumber}`;
-    const bookContentPage = await fetchJsonWithAuth<BookContentPage>(url);
-    return bookContentPage;
-  } catch {
-    throw new Error('書籍のページ情報の読み込みが失敗しました。');
-  }
+type Props = {
+  className?: string;
 };
 
+export default function Header({ className }: Props) {
+  return (
+    <header
+      className={cn('w-screen max-w-full bg-background/30 backdrop-blur-lg', className)}
+    >
+      <div className="mx-auto max-w-7xl px-3 sm:px-6">
+        <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-top-10 fill-mode-both">
+          <div className="flex h-16 w-full items-center sm:gap-x-2">
+            <NavList />
+            <span className="flex-1"></span>
+            <SearchInput />
+            <LoginButton />
+            <ThemeToggleButton />
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
 ------------------------------------------------------------
+hero
+
+import imgUrl from '@/assets/main-visual.png';
+import SearchInput from '@/components/layout/search-input';
+
+export default function Hero() {
+  const TITLE = (
+    <>
+      Let’s search for <span className="text-primary">Books</span> to discover new
+      knowledge.
+    </>
+  );
+
+  const MESSAGE =
+    '本の探索サイトへようこそ。多様なコレクションから、新しい知識を発見しましょう。厳選された書籍で、あなたの次の読書を見つけてください。知識の旅に一緒に出かけましょう。';
+
+  return (
+    <div className="relative mb-8 flex h-[460px] w-full items-center gap-3 sm:mb-0 sm:gap-4 lg:h-[500px]">
+      <div className="z-10 flex w-3/4 flex-col justify-between lg:w-3/5">
+        <div>
+          <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
+            <h1 className="w-fit text-5xl font-bold sm:text-6xl xl:text-7xl">{TITLE}</h1>
+          </div>
+          <div className="delay-150 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
+            <p className="my-6 w-full break-words text-sm text-muted-foreground">
+              {MESSAGE}
+            </p>
+          </div>
+        </div>
+        <div className="delay-300 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
+          <div className="flex h-full max-w-96 items-center">
+            <SearchInput />
+          </div>
+        </div>
+      </div>
+      <div className="absolute right-0 top-10 w-[400px] opacity-25 sm:right-5 sm:w-[400px] lg:w-[450px] lg:opacity-100">
+        <div className="delay-500 duration-500 animate-in fade-in-0 slide-in-from-right-10 fill-mode-both">
+          <img src={imgUrl} alt="main-visual-image" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+search-input
+
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
+import { FormEvent, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+export default function SearchInput() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const query = params.get('q') ?? '';
+    setQuery(query);
+  }, [location.search]);
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!query) return;
+
+    const params = new URLSearchParams();
+    params.set('q', query);
+    params.set('page', '1');
+    navigate(`/search?${params.toString()}`, { replace: true });
+  };
+
+  return (
+    <div className="w-44 sm:w-64">
+      <form className="relative h-10 w-full" onSubmit={handleSubmit}>
+        <Input
+          className="rounded-full border-foreground/20 bg-background/20 pl-10 pr-4"
+          type="search"
+          placeholder="検索"
+          name="query"
+          autoComplete="off"
+          spellCheck="false"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <Search className="absolute left-2.5 top-2.5 size-5" />
+      </form>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+settingsディレクトリ
+
+import SwipeArea from '@/components/settings/swipe-area';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/util';
+import { CheckIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
+type AvatarSelectType = {
+  index: number;
+  avatarUrl: string;
+};
+
+type Props = {
+  items: AvatarSelectType[];
+  defaultSelected: number | undefined;
+  onSelected: (index: number) => void;
+  itemWidth?: number;
+  paddingItem?: number;
+  frameWidth?: number;
+};
+
+export default function AvatarCarousel({
+  items,
+  defaultSelected,
+  onSelected,
+  itemWidth = 100,
+  paddingItem = 2,
+  frameWidth = 400,
+}: Props) {
+  const extendedItems = [
+    ...items.slice(-paddingItem),
+    ...items,
+    ...items.slice(0, paddingItem),
+  ];
+
+  const carouselRef = useRef<HTMLUListElement>(null);
+
+  const [isVisible, setIsVisible] = useState(false);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [innerIndex, setInnerIndex] = useState(0);
+  const [defaultIndex, setDefaultIndex] = useState(0);
+
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [marginLeft, setMarginLeft] = useState(0);
+
+  useEffect(() => {
+    if (defaultSelected !== undefined && !isVisible) {
+      setInnerIndex(defaultSelected);
+      setCurrentIndex(defaultSelected);
+      setDefaultIndex(defaultSelected);
+
+      carouselRef.current!.style.transitionProperty = 'none';
+      setTimeout(() => {
+        carouselRef.current!.style.transitionProperty = 'transform';
+        setIsVisible(true);
+      }, 100);
+    }
+  }, [defaultSelected, isVisible]);
+
+  useEffect(() => {
+    setMarginLeft(Math.floor(frameWidth / 2) - Math.floor(itemWidth / 2));
+  }, [frameWidth, itemWidth]);
+
+  const handlePrev = () => {
+    if (isScrolling) return;
+    setIsScrolling(true);
+    setInnerIndex(innerIndex - 1);
+    setCurrentIndex((currentIndex - 1 + items.length) % items.length);
+    onSelected?.((currentIndex - 1 + items.length) % items.length);
+  };
+
+  const handleNext = () => {
+    if (isScrolling) return;
+    setIsScrolling(true);
+    setInnerIndex(innerIndex + 1);
+    setCurrentIndex((currentIndex + 1) % items.length);
+    onSelected?.((currentIndex + 1) % items.length);
+  };
+
+  const handleTransitonEnd = () => {
+    if (innerIndex >= 0 && innerIndex < items.length) {
+      setIsScrolling(false);
+      return;
+    }
+
+    const index = innerIndex > items.length - 1 ? 0 : items.length - 1;
+    setInnerIndex(index);
+
+    carouselRef.current!.style.transitionProperty = 'none';
+    setTimeout(() => {
+      carouselRef.current!.style.transitionProperty = 'transform';
+      setIsScrolling(false);
+    }, 50);
+  };
+
+  return (
+    <div
+      className={cn(
+        'flex items-center transition-all duration-75 opacity-0',
+        isVisible && 'opacity-100'
+      )}
+    >
+      <Button
+        className="rounded-full"
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={handlePrev}
+      >
+        <ChevronLeft className="size-4" />
+      </Button>
+
+      <div
+        className="relative w-full select-none overflow-hidden"
+        style={{ width: `${frameWidth}px` }}
+      >
+        <ul
+          ref={carouselRef}
+          className="flex transition-transform duration-200"
+          style={{
+            transform: `translateX(-${(innerIndex + paddingItem) * itemWidth}px)`,
+            marginLeft: `${marginLeft}px`,
+          }}
+          onTransitionEnd={handleTransitonEnd}
+        >
+          {extendedItems.map((item, index) => (
+            <li
+              key={index}
+              className={`flex shrink-0 items-center justify-center`}
+              style={{ width: `${itemWidth}px` }}
+            >
+              <div className="relative flex h-24 items-center">
+                <Avatar
+                  className={cn(
+                    'transition-all duration-200',
+                    'size-14 opacity-25 scale-100',
+                    currentIndex === item.index &&
+                      'opacity-100 scale-150 outline-1 outline-offset-1 outline outline-primary'
+                  )}
+                >
+                  <AvatarImage
+                    className="bg-primary"
+                    src={item.avatarUrl}
+                    alt="avatar-image"
+                    draggable={false}
+                  />
+                </Avatar>
+                {defaultIndex === item.index && (
+                  <div
+                    className={cn(
+                      'absolute bottom-4 right-0 rounded-full bg-primary text-primary-foreground p-1 transition-all duration-200',
+                      currentIndex === item.index && 'bottom-0 -right-4'
+                    )}
+                  >
+                    <CheckIcon className="size-4" />
+                  </div>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+        <SwipeArea
+          className="absolute left-0 top-0 h-24 w-full"
+          onSwipeLeft={handleNext}
+          onSwipeRight={handlePrev}
+        />
+      </div>
+
+      <Button
+        className="rounded-full"
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={handleNext}
+      >
+        <ChevronRight className="size-4" />
+      </Button>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+password-input
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import React, { useState } from 'react';
+
+const PasswordInput = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
+  ({ className, ...props }, ref) => {
+    const [isShownPassword, setIsShownPassword] = useState(false);
+
+    return (
+      <div className="relative">
+        <Input
+          ref={ref}
+          className={className}
+          type={isShownPassword ? 'text' : 'password'}
+          {...props}
+        />
+        <Button
+          className="absolute right-0 top-0 rounded-full hover:bg-transparent hover:text-foreground"
+          variant="ghost"
+          size="icon"
+          type="button"
+          onClick={() => setIsShownPassword(!isShownPassword)}
+        >
+          {isShownPassword ? (
+            <EyeIcon className="size-4" />
+          ) : (
+            <EyeOffIcon className="size-4" />
+          )}
+        </Button>
+      </div>
+    );
+  }
+);
+
+export default PasswordInput;
+
+------------------------------------------------------------
+profile-counts
+
+import CountUpNumber from '@/components/count-up-number';
+import { getProfileCounts } from '@/lib/data';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+export default function ProfileCounts() {
+  const { data: profileCounts } = useSuspenseQuery({
+    queryKey: ['getProfileCounts'],
+    queryFn: () => getProfileCounts(),
+  });
+
+  return (
+    <div className="flex justify-between pt-8">
+      <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
+        <div className="w-24 text-center">
+          <p className="text-xl font-bold">
+            <CountUpNumber end={profileCounts.favoriteCount} delay={300} />
+          </p>
+          <p className="text-sm">お気に入り</p>
+        </div>
+      </div>
+      <div className="delay-100 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
+        <div className="w-24 text-center">
+          <p className="text-xl font-bold">
+            <CountUpNumber end={profileCounts.bookmarkCount} delay={400} />
+          </p>
+          <p className="text-sm">ブックマーク</p>
+        </div>
+      </div>
+      <div className="delay-200 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
+        <div className="w-24 text-center">
+          <p className="text-xl font-bold">
+            <CountUpNumber end={profileCounts.reviewCount} delay={500} />
+          </p>
+          <p className="text-sm">レビュー</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+swipe-area
+
+import { useState } from 'react';
+
+type Props = {
+  className?: string;
+  onSwipeUp?: () => void;
+  onSwipeDown?: () => void;
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
+};
+
+export default function SwipeArea({
+  className,
+  onSwipeUp,
+  onSwipeDown,
+  onSwipeLeft,
+  onSwipeRight,
+}: Props) {
+  const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    setStartX(touch.clientX);
+    setStartY(touch.clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!startX || !startY) {
+      return;
+    }
+
+    const touch = e.touches[0];
+    const diffX = touch.clientX - startX;
+    const diffY = touch.clientY - startY;
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
+        onSwipeRight?.();
+      } else {
+        onSwipeLeft?.();
+      }
+    } else {
+      if (diffY > 0) {
+        onSwipeDown?.();
+      } else {
+        onSwipeUp?.();
+      }
+    }
+
+    setStartX(0);
+    setStartY(0);
+  };
+
+  return (
+    <div
+      className={className}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+    ></div>
+  );
+}
+
+------------------------------------------------------------
+constants
+
+import { BookmarkIcon, HeartIcon, SettingsIcon } from 'lucide-react';
+
+// ロゴ
+export const LOGO_TITLE = 'My Books';
+
+// メニュー一覧
+export const MENU_LIST = [
+  { href: '/favorites', title: 'お気に入り', icon: HeartIcon },
+  { href: '/bookmarks', title: 'ブックマーク', icon: BookmarkIcon },
+  { href: '/settings/profile', title: '設定', icon: SettingsIcon },
+];
+
+// API Endpoits
+// export const BOOKS_API_ENDPOINT = 'http://vsv-emerald/my-books/api/v1';
+// export const BOOKS_IMAGE_URL = 'http://vsv-emerald/images';
+// export const AVATER_IMAGE_URL = 'https://vsv-emerald/images/avatars';
+
+export const BOOKS_API_ENDPOINT = 'https://localhost/my-books/api/v1';
+export const BOOKS_IMAGE_URL = 'https://localhost/images';
+
+export const AVATER_IMAGE_URL = 'https://localhost/images/avatars';
+export const AVATER_IMAGE_MAX_COIUNT = 41;
+
+export const FETCH_BOOKS_MAX_RESULTS = 20;
+export const FETCH_REVIEWS_MAX_RESULTS = 5;
+
+------------------------------------------------------------
+lib/data
 book
 
 import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
 import { fetchJson } from '@/lib/data';
-import { Book, BookPage } from '@/types';
+import { Book, BookDetails, BookPage } from '@/types';
 
-export const getBookById = async (bookId: string) => {
+export const getBookDetailsById = async (bookId: string) => {
   try {
     const url = `/books/${bookId}`;
-    const book = await fetchJson<Book>(url);
+    const book = await fetchJson<BookDetails>(url);
     return book;
   } catch {
     throw new Error('書籍情報の読み込みが失敗しました。');
@@ -1166,38 +1284,12 @@ export const getNewBooks = async () => {
 };
 
 ------------------------------------------------------------
-bookmark
-
-import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
-import { fetchJsonWithAuth } from '@/lib/auth';
-import { Bookmark, BookmarkPage } from '@/types';
-
-export const getBookmarkPage = async (page: number = 0) => {
-  try {
-    const url = `/me/bookmarks?&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
-    const bookmarkPage = await fetchJsonWithAuth<BookmarkPage>(url);
-    return bookmarkPage;
-  } catch {
-    throw new Error('ブックマーク一覧の読み込みが失敗しました。');
-  }
-};
-
-export const getBookmarkById = async (bookId: string) => {
-  try {
-    const url = `/me/bookmarks/${bookId}`;
-    const bookmark = await fetchJsonWithAuth<Bookmark>(url);
-    return bookmark;
-  } catch {
-    throw new Error('ブックマークの読み込みが失敗しました。');
-  }
-};
-
-------------------------------------------------------------
 favorite
 
 import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
 import { fetchJsonWithAuth } from '@/lib/auth';
 import { fetchJson } from '@/lib/data';
+import { sleep } from '@/lib/util';
 import { Favorite, FavoriteInfo, FavoritePage } from '@/types';
 
 export const getFavoritePage = async (page: number = 0) => {
@@ -1221,6 +1313,7 @@ export const getFavoriteById = async (bookId: string) => {
 };
 
 export const getFavoriteInfo = async (bookId: string, userId: number | undefined) => {
+  await sleep(2000);
   try {
     const query = userId ? `?userId=${userId}` : '';
     const url = `/books/${bookId}/favorites${query}`;
@@ -1232,28 +1325,21 @@ export const getFavoriteInfo = async (bookId: string, userId: number | undefined
 };
 
 ------------------------------------------------------------
-index
+genre
 
-import { BOOKS_API_ENDPOINT } from '@/constants/constants';
+import { fetchJson } from '@/lib/data';
+import { sleep } from '@/lib/util';
+import { Genre } from '@/types';
 
-export * from './book';
-export * from './book-chapter';
-export * from './book-content-page';
-export * from './bookmark';
-export * from './favorite';
-export * from './genre';
-export * from './review';
-export * from './user';
-
-export const fetchJson = async <T>(
-  url: string,
-  options: RequestInit = {}
-): Promise<T> => {
-  const res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
-  if (!res.ok) {
-    throw new Error(`失敗しました。URL: ${url} ステータス: ${res.status}`);
+export const getGenres = async () => {
+  await sleep(2000);
+  try {
+    const url = `/genres`;
+    const genres = await fetchJson<Genre[]>(url);
+    return genres;
+  } catch {
+    throw new Error('ジャンル一覧の読み込みが失敗しました。');
   }
-  return res.json();
 };
 
 ------------------------------------------------------------
@@ -1261,9 +1347,12 @@ review
 
 import { FETCH_REVIEWS_MAX_RESULTS } from '@/constants/constants';
 import { fetchJson } from '@/lib/data';
+import { sleep } from '@/lib/util';
 import { Review, ReviewPage, ReviewSummary } from '@/types';
 
 export const getReviewPage = async (bookId: string, page: number = 0) => {
+  await sleep(2000);
+
   try {
     const url = `/books/${bookId}/reviews?&page=${page}&maxResults=${FETCH_REVIEWS_MAX_RESULTS}`;
     const reviewPage = await fetchJson<ReviewPage>(url);
@@ -1274,6 +1363,8 @@ export const getReviewPage = async (bookId: string, page: number = 0) => {
 };
 
 export const getReviewSummary = async (bookId: string) => {
+  await sleep(2000);
+
   try {
     const url = `/books/${bookId}/reviews/summary`;
     const reviewSummary = await fetchJson<ReviewSummary>(url);
@@ -1296,114 +1387,921 @@ export const checkMyReviewExists = async (bookId: string, userId: number | undef
 };
 
 ------------------------------------------------------------
+discover
 page
 
-import BookReading from '@/components/book-reading/book-reading';
+import BookListByGenreId from '@/components/book-list/book-list-by-genre-id';
+import BookListSkeleton from '@/components/book-list/book-list-skeleton';
+import GenreSelector from '@/components/genre-list/genre-selector';
 import ErrorElement from '@/routes/error-element';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 export default function Page() {
-  const params = useParams();
-  const bookId = params.bookId || '';
-  const chapterNumber = Number(params.chapterNumber) || 0;
-  const pageNumber = Number(params.pageNumber) || 1;
-
-  console.log(bookId, chapterNumber, pageNumber);
+  const [searchParams] = useSearchParams();
+  const genreId = searchParams.get('genreId') || '';
+  const page = Number(searchParams.get('page') || '1');
 
   return (
-    <ErrorBoundary fallback={<ErrorElement />}>
-      <Suspense fallback={<div>Loading...</div>}>
-        <BookReading
-          bookId={bookId}
-          chapterNumber={chapterNumber}
-          pageNumber={pageNumber}
-        />
-      </Suspense>
-    </ErrorBoundary>
+    <>
+      <GenreSelector />
+
+      <ErrorBoundary fallback={<ErrorElement />}>
+        <Suspense fallback={<BookListSkeleton />}>
+          <BookListByGenreId genreId={genreId} page={page} />
+        </Suspense>
+      </ErrorBoundary>
+    </>
   );
 }
 
 ------------------------------------------------------------
-route
+login
+page
 
-import BookContentPagePage from '@/routes/book/[bookId]/chapters/[chapterNumber]/pages/[pageNumber]/page';
-import BookDetailPage from '@/routes/book/[bookId]/page';
-import DiscoverPage from '@/routes/discover/page';
-import FavoritesPage from '@/routes/favorites/page';
-import RootLayout from '@/routes/layout';
-import LoginPage from '@/routes/login/page';
-import RootPage from '@/routes/page';
-import { ProtectedRoute } from '@/routes/protected-route';
-import SearchPage from '@/routes/search/page';
-import ChangeEmailPage from '@/routes/settings/change-email/page';
-import ChangePasswordPage from '@/routes/settings/change-password/page';
-import ChangeUserInfoPage from '@/routes/settings/change-user-info/page';
-import ProfilePage from '@/routes/settings/profile/page';
-import SignupPage from '@/routes/signup/page';
-import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
+import Logo from '@/components/layout/logo';
+import PasswordInput from '@/components/settings/password-input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/hooks/use-user';
+import { login } from '@/lib/auth';
+import { Loader2Icon } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-export const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route>
-      <Route path="/" element={<RootLayout />}>
-        <Route index element={<RootPage />} />
+export default function Page() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-        <Route path="book">
-          <Route path=":bookId" element={<BookDetailPage />} />
-          <Route
-            path=":bookId/chapters/:chapterNumber/pages/:pageNumber"
-            element={<BookContentPagePage />}
-          />
-        </Route>
+  const emailRef = useRef<HTMLInputElement | null>(null);
 
-        <Route path="search">
-          <Route index element={<SearchPage />} />
-        </Route>
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { fetchUser } = useUser();
+  const { toast } = useToast();
 
-        <Route path="discover">
-          <Route index element={<DiscoverPage />} />
-        </Route>
+  useEffect(() => {
+    emailRef.current?.focus();
+  }, []);
 
-        <Route path="login">
-          <Route index element={<LoginPage />} />
-        </Route>
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-        <Route path="signup">
-          <Route index element={<SignupPage />} />
-        </Route>
+    const form = new FormData(e.currentTarget);
+    const email = form.get('email') as string;
+    const password = form.get('password') as string;
 
-        <Route element={<ProtectedRoute />}>
-          <Route path="favorites">
-            <Route index element={<FavoritesPage />} />
-          </Route>
+    setIsSubmitting(true);
+    const isSuccess = await login({ email, password });
+    if (!isSuccess) {
+      setIsSubmitting(false);
+      toast({
+        title: 'ログインできませんでした',
+        description: 'メールアドレスまたはパスワードが違います',
+        variant: 'destructive',
+        duration: 5000,
+      });
+      return;
+    }
 
-          <Route path="settings">
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="change-user-info" element={<ChangeUserInfoPage />} />
-            <Route path="change-email" element={<ChangeEmailPage />} />
-            <Route path="change-password" element={<ChangePasswordPage />} />
-          </Route>
-        </Route>
-      </Route>
-    </Route>
-  )
-);
+    await fetchUser();
+    setIsSubmitting(false);
+
+    const pathname = location.state?.from?.pathname || '/';
+    const query = location.state?.from?.search || '';
+    navigate(pathname + query, { replace: true });
+  };
+
+  return (
+    <div className="my-3 flex flex-col place-items-center gap-y-3 sm:my-16">
+      <Logo size="lg" disableLink />
+      <p className="font-semibold">ログイン</p>
+      <Card className="w-80 rounded-3xl sm:w-96">
+        <CardContent className="p-6 sm:px-10">
+          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
+            <div>
+              <Label className="text-xs" htmlFor="email">
+                メールアドレス
+              </Label>
+              <Input
+                ref={emailRef}
+                className="my-2 rounded-full"
+                id="email"
+                name="email"
+                autoComplete="off"
+                spellCheck="false"
+              />
+            </div>
+
+            <div>
+              <Label className="text-xs" htmlFor="password">
+                パスワード
+              </Label>
+              <PasswordInput
+                className="my-2 rounded-full"
+                id="password"
+                name="password"
+              />
+            </div>
+
+            <Button
+              className="mt-6 w-full rounded-full"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2Icon className="animate-spin" /> : 'ログイン'}
+            </Button>
+          </form>
+
+          <div className="mt-6 flex justify-center gap-x-1 text-xs">
+            <p className="text-muted-foreground">アカウントをお持ちでない方はこちら</p>
+            <Link to={'/signup'}>
+              <p className="text-primary hover:underline">新規登録</p>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 ------------------------------------------------------------
-book-content-page
+settings
+change-email
 
-export interface BookContentPage {
-  bookId: string;
-  chapterNumber: number;
-  chapterTitle: string;
-  pageNumber: number;
-  content: string;
+import Logo from '@/components/layout/logo';
+import PasswordInput from '@/components/settings/password-input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/hooks/use-user';
+import { changeEmail } from '@/lib/action';
+import { cn } from '@/lib/util';
+import { Loader2Icon } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+
+export default function Page() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [emailErrorMessage, setEmailErrorMessage] = useState('');
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+
+  const emailRef = useRef<HTMLInputElement | null>(null);
+
+  const navigate = useNavigate();
+  const { user, logout } = useUser();
+  const { toast } = useToast();
+  const { confirmDialog } = useConfirmDialog();
+
+  useEffect(() => {
+    emailRef.current?.focus();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const form = new FormData(e.currentTarget);
+    const email = form.get('email') as string;
+    const password = form.get('password') as string;
+
+    if (!(email && password)) {
+      if (email === '') setEmailErrorMessage('メールアドレスは必須です。');
+      if (password === '') setPasswordErrorMessage('パスワードは必須です。');
+      return;
+    }
+
+    const { isCancel } = await confirmDialog({
+      icon: '?',
+      title: '本当に変更しますか？',
+      message: 'メールアドレス変更後、一度ログアウトします。',
+    });
+    if (isCancel) return;
+
+    setIsSubmitting(true);
+    const isSuccess = await changeEmail({ email, password });
+    if (!isSuccess) {
+      setIsSubmitting(false);
+      toast({
+        title: 'メールアドレスを変更できませんでした',
+        description: '入力内容を確認してください',
+        variant: 'destructive',
+        duration: 5000,
+      });
+      return;
+    }
+
+    toast({ title: 'メールアドレスを変更し、ログアウトしました', duration: 5000 });
+
+    await logout();
+    setIsSubmitting(false);
+
+    navigate('/login');
+  };
+
+  const handleCheckEmail = () => {
+    setEmailErrorMessage('');
+
+    if (!emailRef.current?.value) return;
+
+    const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(emailRef.current.value)) {
+      setEmailErrorMessage('無効なメールアドレスです。');
+    }
+  };
+
+  return (
+    <div className="my-3 flex flex-col place-items-center gap-y-3 sm:my-16">
+      <Logo size="lg" disableLink />
+      <p className="font-semibold">メールアドレス変更</p>
+      <Card className="w-80 rounded-3xl sm:w-96">
+        <CardContent className="p-6 sm:px-10">
+          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
+            <div>
+              <Label className="text-xs" htmlFor="name">
+                現在のメールアドレス
+              </Label>
+              <p className="my-2 rounded-full border border-transparent px-3 py-2 text-sm">
+                {user?.email}
+              </p>
+            </div>
+
+            <div>
+              <Label className="text-xs" htmlFor="name">
+                新しいメールアドレス
+              </Label>
+              <Input
+                ref={emailRef}
+                className={cn(
+                  'my-2 rounded-full',
+                  emailErrorMessage && 'border-destructive'
+                )}
+                id="email"
+                name="email"
+                autoComplete="off"
+                spellCheck="false"
+                onBlur={handleCheckEmail}
+              />
+              {emailErrorMessage && (
+                <p className="text-xs text-destructive">{emailErrorMessage}</p>
+              )}
+            </div>
+
+            <div>
+              <Label className="text-xs" htmlFor="password">
+                現在のパスワード
+              </Label>
+              <PasswordInput
+                className={cn(
+                  'my-2 rounded-full',
+                  passwordErrorMessage && 'border-destructive'
+                )}
+                id="password"
+                name="password"
+              />
+              {passwordErrorMessage && (
+                <p className="text-xs text-destructive">{passwordErrorMessage}</p>
+              )}
+            </div>
+
+            <Button
+              className="mt-6 w-full rounded-full"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2Icon className="animate-spin" /> : '変更'}
+            </Button>
+            <Button
+              className="w-full rounded-full bg-transparent"
+              type="button"
+              variant="outline"
+              asChild
+            >
+              <Link to="/settings/profile">キャンセル</Link>
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+change-password
+
+import Logo from '@/components/layout/logo';
+import PasswordInput from '@/components/settings/password-input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { changePassword } from '@/lib/action';
+import { Loader2Icon } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+
+export default function Page() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const currentPasswordRef = useRef<HTMLInputElement | null>(null);
+
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    currentPasswordRef.current?.focus();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const form = new FormData(e.currentTarget);
+    const currentPassword = form.get('current-password') as string;
+    const newPassword = form.get('new-password') as string;
+    const confirmNewPassword = form.get('confirm-new-password') as string;
+
+    setIsSubmitting(true);
+    const isSuccess = await changePassword({
+      currentPassword,
+      newPassword,
+      confirmNewPassword,
+    });
+    if (!isSuccess) {
+      setIsSubmitting(false);
+      toast({
+        title: 'パスワードを変更できませんでした',
+        description: '入力内容を確認してください',
+        variant: 'destructive',
+        duration: 5000,
+      });
+      return;
+    }
+
+    toast({ title: 'パスワードを変更しました' });
+    setIsSubmitting(false);
+
+    navigate('/settings/profile');
+  };
+
+  return (
+    <div className="my-3 flex flex-col place-items-center gap-y-3 sm:my-16">
+      <Logo size="lg" disableLink />
+      <p className="font-semibold">パスワード変更</p>
+      <Card className="w-80 rounded-3xl sm:w-96">
+        <CardContent className="p-6 sm:px-10">
+          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
+            <div>
+              <Label className="text-xs" htmlFor="current-password">
+                現在のパスワード
+              </Label>
+              <PasswordInput
+                ref={currentPasswordRef}
+                className="my-2 rounded-full"
+                id="current-password"
+                name="current-password"
+              />
+            </div>
+
+            <div>
+              <Label className="text-xs" htmlFor="new-password">
+                新しいパスワード
+              </Label>
+              <PasswordInput
+                className="my-2 rounded-full"
+                id="new-password"
+                name="new-password"
+              />
+            </div>
+
+            <div>
+              <Label className="text-xs" htmlFor="confirm-new-password">
+                新しいパスワード（確認用）
+              </Label>
+              <PasswordInput
+                className="my-2 rounded-full"
+                id="confirm-new-password"
+                name="confirm-new-password"
+              />
+            </div>
+
+            <Button
+              className="mt-6 w-full rounded-full"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2Icon className="animate-spin" /> : '変更'}
+            </Button>
+            <Button
+              className="w-full rounded-full bg-transparent"
+              type="button"
+              variant="outline"
+              asChild
+            >
+              <Link to="/settings/profile">キャンセル</Link>
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+change-user-info
+
+import Logo from '@/components/layout/logo';
+import AvatarCarousel from '@/components/settings/avatar-carousel';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { AVATER_IMAGE_MAX_COIUNT, AVATER_IMAGE_URL } from '@/constants/constants';
+import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/hooks/use-user';
+import { updateCurrentUser } from '@/lib/action';
+import { checkUsernameExists } from '@/lib/data';
+import { CircleHelpIcon, Loader2Icon } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+
+const AVATARS = Array.from({ length: AVATER_IMAGE_MAX_COIUNT }, (_, index) => ({
+  index,
+  avatarUrl: `${AVATER_IMAGE_URL}/avatar${String(index).padStart(2, '0')}.png`,
+}));
+
+export default function Page() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [nameErrorMessage, setNameErrorMessage] = useState('');
+
+  const [defaultAvatar, setDefaultAvatar] = useState<number | undefined>(undefined);
+  const nameRef = useRef<HTMLInputElement | null>(null);
+  const avatarUrlRef = useRef<HTMLInputElement | null>(null);
+
+  const navigate = useNavigate();
+  const { user, fetchUser } = useUser();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const initUserInfo = async () => {
+      if (nameRef.current && avatarUrlRef.current && user) {
+        nameRef.current.focus();
+        nameRef.current.value = user.name || '';
+        avatarUrlRef.current.value = user.avatarUrl;
+
+        const index =
+          AVATARS.find((avatar) => avatar.avatarUrl === user.avatarUrl)?.index || 0;
+
+        setDefaultAvatar(index);
+      }
+    };
+    initUserInfo();
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const form = new FormData(e.currentTarget);
+    const name = form.get('name') as string;
+    const avatarUrl = form.get('avatar-url') as string;
+
+    if (name === '') {
+      setNameErrorMessage('ユーザー名は必須です。');
+      return;
+    }
+
+    if (user?.name !== name && (await checkUsernameExists(name))) {
+      setNameErrorMessage('そのユーザー名はすでに使われています。');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const isSuccess = await updateCurrentUser({
+      name,
+      avatarUrl,
+    });
+    if (!isSuccess) {
+      setIsSubmitting(false);
+      toast({
+        title: 'ユーザー情報を変更できませんでした',
+        description: '入力内容を確認してください',
+        variant: 'destructive',
+        duration: 5000,
+      });
+      return;
+    }
+
+    toast({ title: 'ユーザー情報を変更しました' });
+
+    await fetchUser();
+    setIsSubmitting(false);
+
+    navigate('/settings/profile');
+  };
+
+  const handleSelectedAvatar = (selectedIndex: number) => {
+    if (avatarUrlRef.current) {
+      avatarUrlRef.current.value = AVATARS[selectedIndex].avatarUrl;
+    }
+  };
+
+  return (
+    <div className="my-3 flex flex-col place-items-center gap-y-3 sm:my-16">
+      <Logo size="lg" disableLink />
+      <p className="font-semibold">ユーザー情報の編集</p>
+      <Card className="w-80 rounded-3xl sm:w-96">
+        <CardContent className="p-6 sm:px-10">
+          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
+            <div>
+              <Label className="text-xs" htmlFor="name">
+                ユーザー名
+              </Label>
+              <Input
+                ref={nameRef}
+                className="my-2 rounded-full"
+                id="name"
+                name="name"
+                autoComplete="off"
+                spellCheck="false"
+              />
+              <p className="h-4 text-xs text-destructive">{nameErrorMessage}</p>
+            </div>
+
+            <div className="mb-4">
+              <div className="flex items-center gap-x-1">
+                <Label className="text-xs" htmlFor="name">
+                  アバター画像
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <CircleHelpIcon className="size-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>チェックマークは現在のアバターです</TooltipContent>
+                </Tooltip>
+              </div>
+              <div className="flex justify-center">
+                <AvatarCarousel
+                  items={AVATARS}
+                  itemWidth={80}
+                  frameWidth={220}
+                  defaultSelected={defaultAvatar}
+                  onSelected={handleSelectedAvatar}
+                />
+              </div>
+              <input
+                ref={avatarUrlRef}
+                className="w-[400px] text-black"
+                type="text"
+                name="avatar-url"
+                hidden
+              />
+            </div>
+
+            <Button className="w-full rounded-full" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2Icon className="animate-spin" /> : '変更'}
+            </Button>
+            <Button
+              className="w-full rounded-full bg-transparent"
+              type="button"
+              variant="outline"
+              asChild
+            >
+              <Link to="/settings/profile">キャンセル</Link>
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+profile
+
+import Logo from '@/components/layout/logo';
+import ProfileCounts from '@/components/settings/profile-counts';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useUser } from '@/hooks/use-user';
+import ErrorElement from '@/routes/error-element';
+import { KeyRoundIcon, MailIcon, UserRoundIcon } from 'lucide-react';
+import { Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { Link } from 'react-router-dom';
+
+export default function Page() {
+  const { user } = useUser();
+
+  if (!user) return null;
+
+  return (
+    <div className="my-3 flex flex-col place-items-center gap-y-3 sm:my-16">
+      <Logo size="lg" disableLink />
+      <p className="font-semibold">プロフィール</p>
+
+      <Card className="w-80 overflow-hidden rounded-3xl sm:w-96">
+        <CardHeader className="h-80 w-full bg-gradient-to-tr from-secondary to-primary">
+          <div className="flex flex-col items-center pt-8">
+            <Avatar className="mb-4 size-24">
+              <AvatarImage
+                className="bg-primary"
+                src={user.avatarUrl}
+                alt="avatar-image"
+              />
+              <AvatarFallback className="bg-primary text-5xl font-semibold">
+                {user.name.slice(0, 1)}
+              </AvatarFallback>
+            </Avatar>
+            <p className="text-xl font-semibold">{user.name}</p>
+            <p className="text-sm">{user.email}</p>
+          </div>
+
+          <ErrorBoundary fallback={<ErrorElement />}>
+            <Suspense fallback={null}>
+              <ProfileCounts />
+            </Suspense>
+          </ErrorBoundary>
+        </CardHeader>
+
+        <CardContent className="relative p-6">
+          <ul>
+            <li className="flex items-center p-2">
+              <UserRoundIcon className="mr-4" />
+              <p>ユーザー情報</p>
+              <div className="flex-1"></div>
+              <Button className="rounded-full bg-transparent" variant="outline" asChild>
+                <Link to="/settings/change-user-info">変更</Link>
+              </Button>
+            </li>
+            <li className="flex items-center p-2">
+              <MailIcon className="mr-4" />
+              <p>メールアドレス</p>
+              <div className="flex-1"></div>
+              <Button className="rounded-full bg-transparent" variant="outline" asChild>
+                <Link to="/settings/change-email">変更</Link>
+              </Button>
+            </li>
+            <li className="flex items-center p-2">
+              <KeyRoundIcon className="mr-4" />
+              <p>パスワード</p>
+              <div className="flex-1"></div>
+              <Button className="rounded-full bg-transparent" variant="outline" asChild>
+                <Link to="/settings/change-password">変更</Link>
+              </Button>
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+signup
+page
+
+import Logo from '@/components/layout/logo';
+import PasswordInput from '@/components/settings/password-input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/hooks/use-user';
+import { signup } from '@/lib/auth';
+import { checkUsernameExists } from '@/lib/data';
+import { cn } from '@/lib/util';
+import { Loader2Icon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+
+export default function Page() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [nameErrorMessage, setNameErrorMessage] = useState('');
+  const [emailErrorMessage, setEmailErrorMessage] = useState('');
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+
+  const nameRef = useRef<HTMLInputElement | null>(null);
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const passwordRef = useRef<HTMLInputElement | null>(null);
+
+  const navigate = useNavigate();
+  const { fetchUser } = useUser();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    nameRef.current?.focus();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const form = new FormData(e.currentTarget);
+    const name = form.get('name') as string;
+    const email = form.get('email') as string;
+    const password = form.get('password') as string;
+
+    if (!(name && email && password)) {
+      if (name === '') setNameErrorMessage('ユーザー名は必須です。');
+      if (email === '') setEmailErrorMessage('メールアドレスは必須です。');
+      if (password === '') setPasswordErrorMessage('パスワードは必須です。');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const isSuccess = await signup({ name, email, password });
+    if (!isSuccess) {
+      setIsSubmitting(false);
+      toast({
+        title: '新規登録できませんでした',
+        description: '入力内容を確認してください',
+        variant: 'destructive',
+        duration: 5000,
+      });
+      return;
+    }
+
+    await fetchUser();
+    setIsSubmitting(false);
+
+    navigate('/');
+  };
+
+  const handleCheckName = async () => {
+    setNameErrorMessage('');
+
+    if (!nameRef.current?.value) return;
+
+    if (await checkUsernameExists(nameRef.current.value)) {
+      setNameErrorMessage('そのユーザー名はすでに使われています。');
+    }
+  };
+
+  const handleCheckEmail = () => {
+    setEmailErrorMessage('');
+
+    if (!emailRef.current?.value) return;
+
+    const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(emailRef.current.value)) {
+      setEmailErrorMessage('無効なメールアドレスです。');
+    }
+  };
+
+  const handleCheckPassword = () => {
+    setPasswordErrorMessage('');
+
+    if (!passwordRef.current?.value) return;
+
+    if (passwordRef.current.value.length < 4) {
+      setPasswordErrorMessage('パスワードは4文字以上で設定してください。');
+    }
+  };
+
+  return (
+    <div className="my-3 flex flex-col place-items-center gap-y-3 sm:my-16">
+      <Logo size="lg" disableLink />
+      <p className="font-semibold">アカウントの作成</p>
+      <Card className="w-80 rounded-3xl sm:w-96">
+        <CardContent className="p-6 sm:px-10">
+          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
+            <div>
+              <Label className="text-xs" htmlFor="name">
+                ユーザー名
+              </Label>
+              <Input
+                ref={nameRef}
+                className={cn(
+                  'my-2 rounded-full',
+                  nameErrorMessage && 'border-destructive'
+                )}
+                id="name"
+                name="name"
+                autoComplete="off"
+                spellCheck="false"
+                onBlur={handleCheckName}
+              />
+              {nameErrorMessage && (
+                <p className="text-xs text-destructive">{nameErrorMessage}</p>
+              )}
+            </div>
+
+            <div>
+              <Label className="text-xs" htmlFor="email">
+                メールアドレス
+              </Label>
+              <Input
+                ref={emailRef}
+                className={cn(
+                  'my-2 rounded-full',
+                  emailErrorMessage && 'border-destructive'
+                )}
+                id="email"
+                name="email"
+                autoComplete="off"
+                spellCheck="false"
+                onBlur={handleCheckEmail}
+              />
+              {emailErrorMessage && (
+                <p className="text-xs text-destructive">{emailErrorMessage}</p>
+              )}
+            </div>
+
+            <div>
+              <Label className="text-xs" htmlFor="password">
+                パスワード
+              </Label>
+              <PasswordInput
+                ref={passwordRef}
+                className={cn(
+                  'my-2 rounded-full',
+                  passwordErrorMessage && 'border-destructive'
+                )}
+                id="password"
+                name="password"
+                onBlur={handleCheckPassword}
+              />
+              {passwordErrorMessage && (
+                <p className="text-xs text-destructive">{passwordErrorMessage}</p>
+              )}
+            </div>
+
+            <Button
+              className="mt-6 w-full rounded-full"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2Icon className="animate-spin" /> : '新規登録'}
+            </Button>
+          </form>
+
+          <div className="mt-6 flex justify-center gap-x-1 text-xs">
+            <p className="text-muted-foreground">アカウントをお持ちですか？</p>
+            <Link to={'/login'}>
+              <p className="text-primary hover:underline">ログイン</p>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+MAIN
+page
+
+import BookListNewReleases from '@/components/book-list/book-list-new-releases';
+import BookListSkeleton from '@/components/book-list/book-list-skeleton';
+import GenreListSkeleton from '@/components/genre-list/genre-list-skeleton';
+import GenreListTopPage from '@/components/genre-list/genre-list-top-page';
+import Hero from '@/components/layout/hero';
+import ErrorElement from '@/routes/error-element';
+import { Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+
+export default function Page() {
+  return (
+    <>
+      <Hero />
+
+      <div className="flex flex-col">
+        <p className="font-bold text-primary">ジャンルから探す</p>
+
+        <div className="my-4">
+          <ErrorBoundary fallback={<ErrorElement />}>
+            <Suspense fallback={<GenreListSkeleton />}>
+              <GenreListTopPage />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+        <p className="mb-4 font-bold text-primary">ニューリリース</p>
+        <ErrorBoundary fallback={<ErrorElement />}>
+          <Suspense fallback={<BookListSkeleton paginationOff />}>
+            <BookListNewReleases />
+          </Suspense>
+        </ErrorBoundary>
+      </div>
+    </>
+  );
 }
 
 ------------------------------------------------------------
 book
+
+import { Genre } from '@/types/genre';
 
 export interface Book {
   id: string;
@@ -1411,12 +2309,10 @@ export interface Book {
   description: string;
   genreIds: number[];
   authors: string[];
-  publisher: string;
   publishedDate: string;
-  price: number;
-  pageCount: number;
-  isbn: string;
   imageUrl: string;
+  reviewCount: number;
+  averageRating: number;
 }
 
 export interface BookPage {
@@ -1426,118 +2322,22 @@ export interface BookPage {
   books: Book[];
 }
 
-------------------------------------------------------------
-bookmark
-
-import { Book } from '@/types/book';
-
-export interface Bookmark {
-  userId: number;
-  bookId: string;
-  chapterNumber: number;
-  pageNumber: number;
-  updatedAt: string;
-  book: Book;
-}
-
-export interface BookmarkPage {
-  page: number;
-  totalPages: number;
-  totalItems: number;
-  bookmarks: Bookmark[];
-}
-
-export interface BookmarkRequest {
-  bookId: string;
-  chapterNumber: number;
-  pageNumber: number;
-}
-
-------------------------------------------------------------
-favorite
-
-import { Book } from '@/types/book';
-
-export interface Favorite {
-  userId: number;
-  bookId: string;
-  updatedAt: string;
-  book: Book;
-}
-
-export interface FavoritePage {
-  page: number;
-  totalPages: number;
-  totalItems: number;
-  favorites: Favorite[];
-}
-
-export interface FavoriteInfo {
-  isFavorite: boolean;
-  favoriteCount: number;
-}
-
-export interface FavoriteRequest {
-  bookId: string;
-}
-
-------------------------------------------------------------
-index
-
-export * from './auth';
-export * from './book';
-export * from './book-chapter';
-export * from './book-content-page';
-export * from './bookmark';
-export * from './favorite';
-export * from './genre';
-export * from './review';
-export * from './user';
-
-------------------------------------------------------------
-review
-
-import { SimpleUserInfo } from '@/types';
-
-export interface Review {
-  userId: number;
-  bookId: string;
-  comment: string;
-  rating: number;
-  createdAt: string;
-  updatedAt: string;
-  user: SimpleUserInfo;
-}
-
-export interface ReviewPage {
-  page: number;
-  totalPages: number;
-  totalItems: number;
-  reviews: Review[];
-}
-
-export interface ReviewSummary {
-  bookId: string;
+export interface BookDetails {
+  id: string;
+  title: string;
+  description: string;
+  genres: Genre[];
+  authors: string[];
+  publisher: string;
+  publishedDate: string;
+  price: number;
+  pageCount: number;
+  isbn: string;
+  imageUrl: string;
   reviewCount: number;
   averageRating: number;
 }
 
-export interface ReviewRequest {
-  comment: string;
-  rating: number;
-}
-
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
