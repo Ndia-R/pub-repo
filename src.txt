@@ -1,7 +1,7 @@
-２１ファイル
+７ファイル
 
 ------------------------------------------------------------
-init
+init.sql
 
 DROP DATABASE IF EXISTS `my-books-db`;
 CREATE DATABASE `my-books-db`;
@@ -237,38 +237,38 @@ INSERT INTO `favorites` (`user_id`, `book_id`) VALUES
 INSERT INTO `bookmarks` (`user_id`, `book_id`, `chapter_number`, `page_number`) VALUES
 (1, 'afcIMuetDuzj', 1, 1),
 (3, 'afcIMuetDuzj', 3, 3),
-(4, 'afcIMuetDuzj', 5, 4);
+(4, 'afcIMuetDuzj', 6, 4);
 
 INSERT INTO `book_chapters` (`book_id`, `chapter_number`, `title`) VALUES
-('afcIMuetDuzj', 0, 'プロローグ'),
-('afcIMuetDuzj', 1, '第一章：湖畔の招待状'),
-('afcIMuetDuzj', 2, '第二章：運命の出会い'),
-('afcIMuetDuzj', 3, '第三章：舞踏会の奇跡'),
-('afcIMuetDuzj', 4, '第四章：消えゆく光'),
-('afcIMuetDuzj', 5, '第五章：新たな誓い');
+('afcIMuetDuzj', 1, 'プロローグ'),
+('afcIMuetDuzj', 2, '第一章：湖畔の招待状'),
+('afcIMuetDuzj', 3, '第二章：運命の出会い'),
+('afcIMuetDuzj', 4, '第三章：舞踏会の奇跡'),
+('afcIMuetDuzj', 5, '第四章：消えゆく光'),
+('afcIMuetDuzj', 6, '第五章：新たな誓い');
 
 INSERT INTO `book_content_pages` (`book_id`, `chapter_number`, `page_number`, `content`) VALUES
-('afcIMuetDuzj', 0, 1, '月が湖面に銀の道を描く夜、静寂の森の奥深くで、ワニたちの秘密の舞踏会が開かれる。年に一度、満月の夜にだけ現れるこの神秘の宴は、選ばれた者だけが参加を許される。'),
+('afcIMuetDuzj', 1, 1, '月が湖面に銀の道を描く夜、静寂の森の奥深くで、ワニたちの秘密の舞踏会が開かれる。年に一度、満月の夜にだけ現れるこの神秘の宴は、選ばれた者だけが参加を許される。'),
 
-('afcIMuetDuzj', 1, 1, '若きワニのルカは、幼いころからこの舞踏会の伝説を聞かされて育った。しかし、実際にその場に足を踏み入れた者は少なく、語られる話のほとんどは夢物語のようだった。月の舞踏会とは、一体どのようなものなのか。その幻想的な響きに、ルカは幼いころから憧れを抱いていた。\n\nある日、湖の畔を散歩していると、微かに光るものが目に入った。近づいてみると、青い蓮の葉の上に、一枚の紙が置かれていた。それは銀色の文字で「月の舞踏会へようこそ」と記された招待状だった。光を帯びた紙は、まるで月の欠片のように輝いている。\n\nルカは驚きと共にそれを手に取った。招待状は、信じられないほど滑らかな手触りで、触れると心が温かくなるような気がした。なぜ自分が選ばれたのか、考えても答えは出なかったが、胸の奥に湧き上がる興奮を抑えることはできなかった。\n\nその夜、ルカは星空の下で静かに湖を見つめた。湖面には月が映り、ゆらゆらと揺れていた。その光景が、まるでこれから訪れる運命を象徴しているかのように感じられた。月は優しく光を投げかけ、まるでルカを舞踏会へ誘うように湖面を照らしていた。'),
-('afcIMuetDuzj', 1, 2, '翌日、ルカは森の長老のもとを訪れ、舞踏会について尋ねた。長老はゆっくりと目を閉じ、深い呼吸をしたあと、静かに語り始めた。「月の舞踏会は、心を持つ者のみが招かれる。お前が選ばれたということは、運命がお前に試練を与えたのかもしれん」\n\n「試練……？」ルカは長老の言葉を反芻した。\n\n「そうじゃ。舞踏会に足を踏み入れた者は、ただ踊るだけではない。そこでは、心の奥底に眠る想いが試されるのじゃ」\n\n長老は遠い目をしながら続けた。「かつて、舞踏会に参加した者の中には、愛を見つけた者もおれば、悲しみを抱えた者もいた。だが、いずれもこの宴が人生にとって大切な瞬間になったことは確かじゃ」\n\nルカはその言葉の意味を考えながら、招待状を大切に胸に抱いた。そして、舞踏会の夜が訪れるのを、今か今かと待ちわびた。'),
+('afcIMuetDuzj', 2, 1, '若きワニのルカは、幼いころからこの舞踏会の伝説を聞かされて育った。しかし、実際にその場に足を踏み入れた者は少なく、語られる話のほとんどは夢物語のようだった。月の舞踏会とは、一体どのようなものなのか。その幻想的な響きに、ルカは幼いころから憧れを抱いていた。\n\nある日、湖の畔を散歩していると、微かに光るものが目に入った。近づいてみると、青い蓮の葉の上に、一枚の紙が置かれていた。それは銀色の文字で「月の舞踏会へようこそ」と記された招待状だった。光を帯びた紙は、まるで月の欠片のように輝いている。\n\nルカは驚きと共にそれを手に取った。招待状は、信じられないほど滑らかな手触りで、触れると心が温かくなるような気がした。なぜ自分が選ばれたのか、考えても答えは出なかったが、胸の奥に湧き上がる興奮を抑えることはできなかった。\n\nその夜、ルカは星空の下で静かに湖を見つめた。湖面には月が映り、ゆらゆらと揺れていた。その光景が、まるでこれから訪れる運命を象徴しているかのように感じられた。月は優しく光を投げかけ、まるでルカを舞踏会へ誘うように湖面を照らしていた。'),
+('afcIMuetDuzj', 2, 2, '翌日、ルカは森の長老のもとを訪れ、舞踏会について尋ねた。長老はゆっくりと目を閉じ、深い呼吸をしたあと、静かに語り始めた。「月の舞踏会は、心を持つ者のみが招かれる。お前が選ばれたということは、運命がお前に試練を与えたのかもしれん」\n\n「試練……？」ルカは長老の言葉を反芻した。\n\n「そうじゃ。舞踏会に足を踏み入れた者は、ただ踊るだけではない。そこでは、心の奥底に眠る想いが試されるのじゃ」\n\n長老は遠い目をしながら続けた。「かつて、舞踏会に参加した者の中には、愛を見つけた者もおれば、悲しみを抱えた者もいた。だが、いずれもこの宴が人生にとって大切な瞬間になったことは確かじゃ」\n\nルカはその言葉の意味を考えながら、招待状を大切に胸に抱いた。そして、舞踏会の夜が訪れるのを、今か今かと待ちわびた。'),
 
-('afcIMuetDuzj', 2, 1, '舞踏会の夜、ルカは湖のほとりへと向かった。湖は鏡のように月の光を映し、その周囲には神秘的な青白い霧が漂っていた。湖畔にはすでに多くのワニたちが集まっていた。彼らの鱗は月光を浴びて淡く輝き、まるでこの世のものとは思えないほど幻想的な光景が広がっていた。\n\nルカは緊張しながらその輪の中へと足を踏み入れた。すると、遠くの方でひときわ美しく輝くワニの姿が目に入った。彼女の名はセレナ。透き通るような銀色の鱗を持ち、瞳は夜空の星を映したように輝いていた。その姿は、まるで月の化身のようだった。\n\n「今夜は特別な夜よ」\n\nセレナは微笑みながらルカに手を差し出した。その瞬間、ルカの胸の奥にかすかな震えが走った。彼の鼓動は高鳴り、時間が止まったかのように感じられた。迷うことなくルカは彼女の手を取り、二人はゆっくりと舞踏の輪の中へと入っていった。\n\n最初はぎこちない動きだったが、セレナが優しくリードしてくれた。彼女の手は驚くほど柔らかく温かかった。ルカの緊張は徐々に解け、二人のステップはしだいに調和を生み出し始めた。湖の水面には、月の光と二人の姿が映り込み、ゆらめく波紋とともに美しい模様を描いていた。'),
-('afcIMuetDuzj', 2, 2, '他のワニたちもそれぞれのパートナーと踊り、湖全体がまるで幻想の世界へと変わっていく。水のさざめきと夜風の旋律が、音楽のように響き渡る。ルカはこの夜が永遠に続けばいいと心から願った。\n\n「ここでは、過去も未来も関係ない。私たちは今、この瞬間だけを生きているの」\n\nセレナはルカの耳元で囁いた。その声は心の奥深くに響き、ルカの胸を熱くした。彼はセレナの手を強く握りしめ、踊り続けた。言葉を交わさずとも、彼らの間には確かな絆が生まれつつあった。\n\n夜が更けるにつれ、湖面の霧はますます濃くなり、まるで夢の世界へと足を踏み入れたかのようだった。ワニたちは次第に踊りに没頭し、時間の流れを忘れていった。ルカはふと、セレナの瞳を覗き込んだ。その深い輝きの中には、何か秘密が隠されているように感じられた。\n\n「セレナ……君は、なぜこの舞踏会に？」\n\nルカが尋ねると、セレナは少し寂しそうに微笑んだ。「私は、月に仕える一族のワニなの。だから、満月の夜にだけこの場所へ来ることができるの」\n\n「満月の夜だけ……？」ルカは思わず息を呑んだ。'),
-('afcIMuetDuzj', 2, 3, 'セレナは静かに頷いた。「この舞踏会は、月の光によって開かれる。でも、その光が消えれば、私は再び湖の奥深くへ戻らなければならないの」\n\nルカは彼女の言葉を飲み込みながら、胸が締めつけられるような感覚を覚えた。この夜が終われば、彼女とは離れ離れになってしまうのだろうか。\n\nしかし、ルカはその思いを押し殺し、今はただこの瞬間を大切にしようと決めた。彼はセレナの手をそっと引き寄せ、静かに言った。「今は……この夜を楽しもう」\n\nセレナの瞳が驚いたように揺れ、そして優しく微笑んだ。「ええ、そうね」\n\n二人は再び踊り始めた。湖の水面はまるで鏡のように彼らを映し出し、月の光が二人の周りを優しく包み込んでいた。ルカは、今この瞬間だけは、彼女とずっと一緒にいられるのだと信じたかった。\n\nその夜、彼らの心は一つになり、運命が新たな軌跡を描き始めたのだった。'),
+('afcIMuetDuzj', 3, 1, '舞踏会の夜、ルカは湖のほとりへと向かった。湖は鏡のように月の光を映し、その周囲には神秘的な青白い霧が漂っていた。湖畔にはすでに多くのワニたちが集まっていた。彼らの鱗は月光を浴びて淡く輝き、まるでこの世のものとは思えないほど幻想的な光景が広がっていた。\n\nルカは緊張しながらその輪の中へと足を踏み入れた。すると、遠くの方でひときわ美しく輝くワニの姿が目に入った。彼女の名はセレナ。透き通るような銀色の鱗を持ち、瞳は夜空の星を映したように輝いていた。その姿は、まるで月の化身のようだった。\n\n「今夜は特別な夜よ」\n\nセレナは微笑みながらルカに手を差し出した。その瞬間、ルカの胸の奥にかすかな震えが走った。彼の鼓動は高鳴り、時間が止まったかのように感じられた。迷うことなくルカは彼女の手を取り、二人はゆっくりと舞踏の輪の中へと入っていった。\n\n最初はぎこちない動きだったが、セレナが優しくリードしてくれた。彼女の手は驚くほど柔らかく温かかった。ルカの緊張は徐々に解け、二人のステップはしだいに調和を生み出し始めた。湖の水面には、月の光と二人の姿が映り込み、ゆらめく波紋とともに美しい模様を描いていた。'),
+('afcIMuetDuzj', 3, 2, '他のワニたちもそれぞれのパートナーと踊り、湖全体がまるで幻想の世界へと変わっていく。水のさざめきと夜風の旋律が、音楽のように響き渡る。ルカはこの夜が永遠に続けばいいと心から願った。\n\n「ここでは、過去も未来も関係ない。私たちは今、この瞬間だけを生きているの」\n\nセレナはルカの耳元で囁いた。その声は心の奥深くに響き、ルカの胸を熱くした。彼はセレナの手を強く握りしめ、踊り続けた。言葉を交わさずとも、彼らの間には確かな絆が生まれつつあった。\n\n夜が更けるにつれ、湖面の霧はますます濃くなり、まるで夢の世界へと足を踏み入れたかのようだった。ワニたちは次第に踊りに没頭し、時間の流れを忘れていった。ルカはふと、セレナの瞳を覗き込んだ。その深い輝きの中には、何か秘密が隠されているように感じられた。\n\n「セレナ……君は、なぜこの舞踏会に？」\n\nルカが尋ねると、セレナは少し寂しそうに微笑んだ。「私は、月に仕える一族のワニなの。だから、満月の夜にだけこの場所へ来ることができるの」\n\n「満月の夜だけ……？」ルカは思わず息を呑んだ。'),
+('afcIMuetDuzj', 3, 3, 'セレナは静かに頷いた。「この舞踏会は、月の光によって開かれる。でも、その光が消えれば、私は再び湖の奥深くへ戻らなければならないの」\n\nルカは彼女の言葉を飲み込みながら、胸が締めつけられるような感覚を覚えた。この夜が終われば、彼女とは離れ離れになってしまうのだろうか。\n\nしかし、ルカはその思いを押し殺し、今はただこの瞬間を大切にしようと決めた。彼はセレナの手をそっと引き寄せ、静かに言った。「今は……この夜を楽しもう」\n\nセレナの瞳が驚いたように揺れ、そして優しく微笑んだ。「ええ、そうね」\n\n二人は再び踊り始めた。湖の水面はまるで鏡のように彼らを映し出し、月の光が二人の周りを優しく包み込んでいた。ルカは、今この瞬間だけは、彼女とずっと一緒にいられるのだと信じたかった。\n\nその夜、彼らの心は一つになり、運命が新たな軌跡を描き始めたのだった。'),
 
-('afcIMuetDuzj', 3, 1, 'ワニたちのダンスは、水面を揺らす優雅な波紋となり、月の光がそれに呼応するかのように輝きを増した。音もなく進むダンスの中で、ルカはセレナに心を奪われていく。\n\n「ここでは、時間が止まるの」\n\nセレナの言葉どおり、この夜の間だけ、ワニたちは自由に心を通わせることができる。しかし、夜明けとともに舞踏会は終わり、それぞれの生活へと戻らなければならなかった。\n\nルカはその言葉の意味を考えながら、彼女の手をぎゅっと握った。セレナの温もりが、彼の胸の中に深く刻まれていく。彼女の微笑みが、この場所の魔法そのものであるかのように感じられた。'),
-('afcIMuetDuzj', 3, 2, 'しかし、彼の心には小さな不安が芽生え始めていた。この夜が終わったら、彼はまた孤独に戻るのだろうか？セレナと過ごした時間は夢のように消えてしまうのか？\n\n「セレナ……この夜が終わっても、君に会う方法はないの？」\n\nルカが問いかけると、セレナは一瞬言葉を飲み込んだ。しかし、彼の真剣なまなざしを見つめると、静かに微笑んだ。\n\n「ルカ、私は月の光によってここに来ることができるの。だから……あなたが月を信じてくれるなら、私はまたここに戻ってこられるわ」\n\n彼女の言葉には確かな優しさと切なさが込められていた。ルカはその意味を深く理解した。彼女は、自らの運命に縛られているのだ。それでも、彼女はこの夜を楽しもうとしている。\n\n「だったら……僕は月を信じる。君を信じるよ、セレナ」\n\n彼は力強く言い、彼女の手を握る。その瞬間、月の光が二人を包み込み、まるで二人だけの世界が広がったかのようだった。'),
-('afcIMuetDuzj', 3, 3, '舞踏会はますます盛り上がり、ワニたちは次々と踊りに身を委ねていく。湖の水面には、光の粒が浮かび、まるで星々が降り注いでいるかのようだった。ルカとセレナは、その美しさに酔いしれながら、静かに踊り続けた。\n\n「ルカ……ありがとう」\n\nセレナがそっと囁く。彼女の声には、感謝と切なさが混じっていた。\n\n「セレナ、僕は……」\n\nルカが何かを言おうとした瞬間、遠くの空に一筋の流れ星が走った。その光が湖に反射し、まるで二人の未来を示すように揺らめいた。ルカはその輝きを見上げながら、心に誓った。\n\nこの夜がどれだけ儚くても、この出会いは永遠のものにしよう。\n\n彼らは夜明けまで踊り続けた。時が止まったように、ただひたすらに。\n\nルカは願った。この時間が永遠に続くようにと。'),
+('afcIMuetDuzj', 4, 1, 'ワニたちのダンスは、水面を揺らす優雅な波紋となり、月の光がそれに呼応するかのように輝きを増した。音もなく進むダンスの中で、ルカはセレナに心を奪われていく。\n\n「ここでは、時間が止まるの」\n\nセレナの言葉どおり、この夜の間だけ、ワニたちは自由に心を通わせることができる。しかし、夜明けとともに舞踏会は終わり、それぞれの生活へと戻らなければならなかった。\n\nルカはその言葉の意味を考えながら、彼女の手をぎゅっと握った。セレナの温もりが、彼の胸の中に深く刻まれていく。彼女の微笑みが、この場所の魔法そのものであるかのように感じられた。'),
+('afcIMuetDuzj', 4, 2, 'しかし、彼の心には小さな不安が芽生え始めていた。この夜が終わったら、彼はまた孤独に戻るのだろうか？セレナと過ごした時間は夢のように消えてしまうのか？\n\n「セレナ……この夜が終わっても、君に会う方法はないの？」\n\nルカが問いかけると、セレナは一瞬言葉を飲み込んだ。しかし、彼の真剣なまなざしを見つめると、静かに微笑んだ。\n\n「ルカ、私は月の光によってここに来ることができるの。だから……あなたが月を信じてくれるなら、私はまたここに戻ってこられるわ」\n\n彼女の言葉には確かな優しさと切なさが込められていた。ルカはその意味を深く理解した。彼女は、自らの運命に縛られているのだ。それでも、彼女はこの夜を楽しもうとしている。\n\n「だったら……僕は月を信じる。君を信じるよ、セレナ」\n\n彼は力強く言い、彼女の手を握る。その瞬間、月の光が二人を包み込み、まるで二人だけの世界が広がったかのようだった。'),
+('afcIMuetDuzj', 4, 3, '舞踏会はますます盛り上がり、ワニたちは次々と踊りに身を委ねていく。湖の水面には、光の粒が浮かび、まるで星々が降り注いでいるかのようだった。ルカとセレナは、その美しさに酔いしれながら、静かに踊り続けた。\n\n「ルカ……ありがとう」\n\nセレナがそっと囁く。彼女の声には、感謝と切なさが混じっていた。\n\n「セレナ、僕は……」\n\nルカが何かを言おうとした瞬間、遠くの空に一筋の流れ星が走った。その光が湖に反射し、まるで二人の未来を示すように揺らめいた。ルカはその輝きを見上げながら、心に誓った。\n\nこの夜がどれだけ儚くても、この出会いは永遠のものにしよう。\n\n彼らは夜明けまで踊り続けた。時が止まったように、ただひたすらに。\n\nルカは願った。この時間が永遠に続くようにと。'),
 
-('afcIMuetDuzj', 4, 1, '夜が更けるにつれ、月はゆっくりと傾き始めた。そして、舞踏会が終わる時が近づいてくる。湖の水面に映る月の光が揺らめき、ワニたちは一匹また一匹と静かに去っていった。しかし、ルカはその場を動けなかった。セレナの手を握りしめたまま、彼は心の奥からこみ上げる感情を抑えきれずにいた。\n\n「朝が来ても、僕たちはまた会えるの？」\n\nルカの問いかけに、セレナはわずかに微笑んだ。しかし、その笑顔の奥には悲しみが滲んでいた。\n\n「この夜を信じて……」\n\nそう囁くと、彼女の体はゆっくりと透明になり始めた。ルカは目を見開いた。彼女の手の感触が消えていく。彼の目の前で、セレナは淡い月光とともに霧のように消えていったのだ。\n\n「セレナ！！」\n\nルカは叫んだ。彼女の名を何度も呼び、手を伸ばした。しかし、彼が触れることができたのは冷たい湖の風だけだった。湖面には静かな波紋が広がり、すべてが夢であったかのように静寂に包まれた。'),
-('afcIMuetDuzj', 4, 2, '彼女はどこへ行ってしまったのか？ なぜ突然消えてしまったのか？\n\nそのとき、ルカの後ろから低い声が響いた。\n\n「お前も気づいたか……？」\n\nルカが振り返ると、そこには長老のワニ、エルダーが立っていた。彼は湖の舞踏会を何十年も見守ってきた賢者だった。\n\n「彼女は……どこへ？」\n\n震える声でルカが尋ねると、エルダーは深いため息をついた。\n\n「セレナは……もともとこの世界の住人ではないのだよ」\n\nルカの心臓が跳ねた。\n\n「それは、どういうことですか？」\n\nエルダーは湖面を見つめながら語り始めた。\n\n「昔、この湖には月の使者がいた。彼らは満月の夜にだけ現れ、地上の者と交流を持つことが許されていた。しかし、それは決して永遠には続かない掟だった。舞踏会が終わるとともに、彼らは月へと帰らなければならないのだ」\n\nルカの心臓が強く打った。'),
-('afcIMuetDuzj', 4, 3, '「セレナが……月の使者？」\n\n「そうだ。彼女は湖に住むワニではなく、月の民の一人だった。お前と出会ったのも偶然ではない。彼女は、この湖で自分を待ってくれる者を探していたのかもしれない」\n\nルカは震えた。彼の心の中に生まれた愛は、彼女の運命によって引き裂かれてしまうのか。彼は拳を握りしめた。\n\n「でも……彼女は僕に言ったんです。また会えるって」\n\nエルダーは静かに頷いた。\n\n「確かに、満月の夜になれば彼女は再びここへ来ることができる。しかし、それはお前の想いの強さにかかっているのだ」\n\n「僕の……想い？」\n\n「そうだ。月の使者が地上に留まるためには、強い絆が必要だ。もし、お前が彼女を心から信じ続けるなら、彼女は再びこの湖に降り立つことができるかもしれない」\n\nルカは湖を見つめた。月の光が優しく揺らめき、まるでセレナの面影を映しているようだった。彼の胸に強い決意が生まれた。\n\n「僕は、彼女を信じます。何があっても、満月の夜を待ちます」\n\nエルダーは静かに微笑んだ。\n\n「ならば、お前に試練が与えられるだろう。次の満月までに、心を揺らがせぬよう強く持ち続けるのだ。そうすれば、月はお前の願いを聞き入れてくれるかもしれない」\n\nルカは深く息を吸った。湖の冷たい風が、彼の心に決意を刻み込んだ。\n\n「セレナ……僕は君を待つよ。何があっても……」\n\nそう誓った夜、湖の奥からかすかな光が浮かび上がった。月の使者が残した、わずかな奇跡のように。彼はその場を離れることができず、ただ彼女の影を探し続けた。'),
+('afcIMuetDuzj', 5, 1, '夜が更けるにつれ、月はゆっくりと傾き始めた。そして、舞踏会が終わる時が近づいてくる。湖の水面に映る月の光が揺らめき、ワニたちは一匹また一匹と静かに去っていった。しかし、ルカはその場を動けなかった。セレナの手を握りしめたまま、彼は心の奥からこみ上げる感情を抑えきれずにいた。\n\n「朝が来ても、僕たちはまた会えるの？」\n\nルカの問いかけに、セレナはわずかに微笑んだ。しかし、その笑顔の奥には悲しみが滲んでいた。\n\n「この夜を信じて……」\n\nそう囁くと、彼女の体はゆっくりと透明になり始めた。ルカは目を見開いた。彼女の手の感触が消えていく。彼の目の前で、セレナは淡い月光とともに霧のように消えていったのだ。\n\n「セレナ！！」\n\nルカは叫んだ。彼女の名を何度も呼び、手を伸ばした。しかし、彼が触れることができたのは冷たい湖の風だけだった。湖面には静かな波紋が広がり、すべてが夢であったかのように静寂に包まれた。'),
+('afcIMuetDuzj', 5, 2, '彼女はどこへ行ってしまったのか？ なぜ突然消えてしまったのか？\n\nそのとき、ルカの後ろから低い声が響いた。\n\n「お前も気づいたか……？」\n\nルカが振り返ると、そこには長老のワニ、エルダーが立っていた。彼は湖の舞踏会を何十年も見守ってきた賢者だった。\n\n「彼女は……どこへ？」\n\n震える声でルカが尋ねると、エルダーは深いため息をついた。\n\n「セレナは……もともとこの世界の住人ではないのだよ」\n\nルカの心臓が跳ねた。\n\n「それは、どういうことですか？」\n\nエルダーは湖面を見つめながら語り始めた。\n\n「昔、この湖には月の使者がいた。彼らは満月の夜にだけ現れ、地上の者と交流を持つことが許されていた。しかし、それは決して永遠には続かない掟だった。舞踏会が終わるとともに、彼らは月へと帰らなければならないのだ」\n\nルカの心臓が強く打った。'),
+('afcIMuetDuzj', 5, 3, '「セレナが……月の使者？」\n\n「そうだ。彼女は湖に住むワニではなく、月の民の一人だった。お前と出会ったのも偶然ではない。彼女は、この湖で自分を待ってくれる者を探していたのかもしれない」\n\nルカは震えた。彼の心の中に生まれた愛は、彼女の運命によって引き裂かれてしまうのか。彼は拳を握りしめた。\n\n「でも……彼女は僕に言ったんです。また会えるって」\n\nエルダーは静かに頷いた。\n\n「確かに、満月の夜になれば彼女は再びここへ来ることができる。しかし、それはお前の想いの強さにかかっているのだ」\n\n「僕の……想い？」\n\n「そうだ。月の使者が地上に留まるためには、強い絆が必要だ。もし、お前が彼女を心から信じ続けるなら、彼女は再びこの湖に降り立つことができるかもしれない」\n\nルカは湖を見つめた。月の光が優しく揺らめき、まるでセレナの面影を映しているようだった。彼の胸に強い決意が生まれた。\n\n「僕は、彼女を信じます。何があっても、満月の夜を待ちます」\n\nエルダーは静かに微笑んだ。\n\n「ならば、お前に試練が与えられるだろう。次の満月までに、心を揺らがせぬよう強く持ち続けるのだ。そうすれば、月はお前の願いを聞き入れてくれるかもしれない」\n\nルカは深く息を吸った。湖の冷たい風が、彼の心に決意を刻み込んだ。\n\n「セレナ……僕は君を待つよ。何があっても……」\n\nそう誓った夜、湖の奥からかすかな光が浮かび上がった。月の使者が残した、わずかな奇跡のように。彼はその場を離れることができず、ただ彼女の影を探し続けた。'),
 
-('afcIMuetDuzj', 5, 1, 'ルカは満月の夜を待ち続けた。日が昇り、日が沈むたびに、彼の心はセレナへの想いを募らせていった。彼女が本当に戻ってくるのか、それともこれは儚い夢だったのか。不安と希望が入り混じりながらも、彼は誓いを守り続けた。\n\nそして、運命の夜が訪れた。\n\n湖のほとりに立つルカの前で、水面が光を帯び始めた。その光は月と呼応するように輝き、やがて湖の中心からセレナの姿が浮かび上がった。\n\n「ルカ……」\n\n彼女の声は、夜風に溶けるように優しく響いた。ルカは目を見開き、彼女へと駆け寄った。\n\n「セレナ！ 本当に戻ってきたんだね！」\n\n彼は彼女の手を取った。その温もりが、確かにここにいることを証明していた。\n\n「私はあなたの想いに導かれて戻ってきたの。でも……私は決めなければならないの」\n\n「決める？」\n\n「私は月へ戻るか、ここに残るかの選択を迫られているの」\n\n湖の光が強くなり、セレナの姿を包み込むように揺らめいた。'),
-('afcIMuetDuzj', 5, 2, '「ルカ、私は……」\n\n彼女の目が揺れ動いていた。戸惑い、恐れ、そして希望。すべての感情が交錯していた。\n\n「私は、あなたと共に生きたい。でも、もし私がこの世界に残るなら、二度と月の光に触れることはできないの」\n\nルカの心臓が強く打った。\n\n「それは……どういうこと？」\n\nセレナは静かに湖を見つめた。月の光が彼女の足元に淡く差し込み、その身体を透かしていた。\n\n「私は月の使者。私の存在は月と結びついている。でも、もし私がこの湖に残るなら、私は……」\n\n彼女は言葉を飲み込んだ。\n\n「私は、ただのワニになる」\n\nルカは息をのんだ。\n\n「それって……どういうこと？」\n\n「私は、今までの記憶を失い、この湖の住人として生きることになるの」\n\n静寂が広がった。\n\n「君のことも、全部忘れるってこと？」\n\nセレナは小さく頷いた。\n\n「でも、私はあなたと生きたい。あなたが私を愛してくれるなら……たとえ記憶がなくなっても、私はあなたのそばにいたいの」\n\nルカは拳を握りしめた。セレナのそばにいられるなら、それだけでいいと思うべきなのか。でも、彼女が自分のことを忘れてしまうのなら、それは本当に幸せと言えるのか。'),
-('afcIMuetDuzj', 5, 3, '「……セレナ、本当にそれでいいの？」\n\n「怖い。でも、あなたのそばにいたい。だから……選ぶのはあなた」\n\nルカは震える手で彼女の頬に触れた。\n\n「僕は……」\n\nそのとき、湖の奥から新たな光が差し込んだ。エルダーが静かに現れた。\n\n「決断の時だ。ルカ、お前が彼女を心から愛し、彼女のすべてを受け入れるなら……月の掟を超える方法がある」\n\n「方法が？」\n\nエルダーは湖に手をかざし、湖面が波打った。\n\n「お前が彼女を愛し続け、どんな時もその想いを忘れなければ……セレナは月の使者としてではなく、一個の存在として生きることができる。記憶を失わずに」\n\n「本当か？」\n\n「ただし、それにはお前の魂も試される。お前が彼女を信じ続け、どんな困難にも負けない覚悟が必要だ」\n\nルカはセレナを見つめた。\n\n「セレナ、僕は君と共に生きたい。君の記憶が消えるなんて、そんなの耐えられない。でも、もし僕の想いが君をつなぎとめるなら……」\n\nセレナは微笑んだ。'),
-('afcIMuetDuzj', 5, 4, '「なら……試してみる？」\n\nルカは深く頷いた。\n\n「どんな試練でも、僕は乗り越える。君と一緒にいるためなら」\n\nその瞬間、湖の光が大きく揺らぎ、二人を包み込んだ。世界が眩しい光に満たされ、すべてが溶け合うような感覚に襲われた。\n\n気が付くと、ルカは湖のほとりに倒れていた。\n\n「ルカ？」\n\n優しい声が聞こえた。顔を上げると、そこには変わらぬ姿のセレナがいた。\n\n「セレナ……？」\n\n「私、まだ覚えてる……！」\n\nルカの胸に喜びが広がった。彼はセレナを抱きしめた。\n\n「やった……！」\n\n湖の水面には、二匹のワニが寄り添う影が映っていた。月は穏やかに輝き、二人の未来を祝福するように照らしていた。\n\n彼らの愛は、月の掟すら超えたのだ。\n\n──ワニと月の舞踏会は、終わりを迎えた。\n\nしかし、それは二人の新たな物語の始まりでもあった。');
+('afcIMuetDuzj', 6, 1, 'ルカは満月の夜を待ち続けた。日が昇り、日が沈むたびに、彼の心はセレナへの想いを募らせていった。彼女が本当に戻ってくるのか、それともこれは儚い夢だったのか。不安と希望が入り混じりながらも、彼は誓いを守り続けた。\n\nそして、運命の夜が訪れた。\n\n湖のほとりに立つルカの前で、水面が光を帯び始めた。その光は月と呼応するように輝き、やがて湖の中心からセレナの姿が浮かび上がった。\n\n「ルカ……」\n\n彼女の声は、夜風に溶けるように優しく響いた。ルカは目を見開き、彼女へと駆け寄った。\n\n「セレナ！ 本当に戻ってきたんだね！」\n\n彼は彼女の手を取った。その温もりが、確かにここにいることを証明していた。\n\n「私はあなたの想いに導かれて戻ってきたの。でも……私は決めなければならないの」\n\n「決める？」\n\n「私は月へ戻るか、ここに残るかの選択を迫られているの」\n\n湖の光が強くなり、セレナの姿を包み込むように揺らめいた。'),
+('afcIMuetDuzj', 6, 2, '「ルカ、私は……」\n\n彼女の目が揺れ動いていた。戸惑い、恐れ、そして希望。すべての感情が交錯していた。\n\n「私は、あなたと共に生きたい。でも、もし私がこの世界に残るなら、二度と月の光に触れることはできないの」\n\nルカの心臓が強く打った。\n\n「それは……どういうこと？」\n\nセレナは静かに湖を見つめた。月の光が彼女の足元に淡く差し込み、その身体を透かしていた。\n\n「私は月の使者。私の存在は月と結びついている。でも、もし私がこの湖に残るなら、私は……」\n\n彼女は言葉を飲み込んだ。\n\n「私は、ただのワニになる」\n\nルカは息をのんだ。\n\n「それって……どういうこと？」\n\n「私は、今までの記憶を失い、この湖の住人として生きることになるの」\n\n静寂が広がった。\n\n「君のことも、全部忘れるってこと？」\n\nセレナは小さく頷いた。\n\n「でも、私はあなたと生きたい。あなたが私を愛してくれるなら……たとえ記憶がなくなっても、私はあなたのそばにいたいの」\n\nルカは拳を握りしめた。セレナのそばにいられるなら、それだけでいいと思うべきなのか。でも、彼女が自分のことを忘れてしまうのなら、それは本当に幸せと言えるのか。'),
+('afcIMuetDuzj', 6, 3, '「……セレナ、本当にそれでいいの？」\n\n「怖い。でも、あなたのそばにいたい。だから……選ぶのはあなた」\n\nルカは震える手で彼女の頬に触れた。\n\n「僕は……」\n\nそのとき、湖の奥から新たな光が差し込んだ。エルダーが静かに現れた。\n\n「決断の時だ。ルカ、お前が彼女を心から愛し、彼女のすべてを受け入れるなら……月の掟を超える方法がある」\n\n「方法が？」\n\nエルダーは湖に手をかざし、湖面が波打った。\n\n「お前が彼女を愛し続け、どんな時もその想いを忘れなければ……セレナは月の使者としてではなく、一個の存在として生きることができる。記憶を失わずに」\n\n「本当か？」\n\n「ただし、それにはお前の魂も試される。お前が彼女を信じ続け、どんな困難にも負けない覚悟が必要だ」\n\nルカはセレナを見つめた。\n\n「セレナ、僕は君と共に生きたい。君の記憶が消えるなんて、そんなの耐えられない。でも、もし僕の想いが君をつなぎとめるなら……」\n\nセレナは微笑んだ。'),
+('afcIMuetDuzj', 6, 4, '「なら……試してみる？」\n\nルカは深く頷いた。\n\n「どんな試練でも、僕は乗り越える。君と一緒にいるためなら」\n\nその瞬間、湖の光が大きく揺らぎ、二人を包み込んだ。世界が眩しい光に満たされ、すべてが溶け合うような感覚に襲われた。\n\n気が付くと、ルカは湖のほとりに倒れていた。\n\n「ルカ？」\n\n優しい声が聞こえた。顔を上げると、そこには変わらぬ姿のセレナがいた。\n\n「セレナ……？」\n\n「私、まだ覚えてる……！」\n\nルカの胸に喜びが広がった。彼はセレナを抱きしめた。\n\n「やった……！」\n\n湖の水面には、二匹のワニが寄り添う影が映っていた。月は穏やかに輝き、二人の未来を祝福するように照らしていた。\n\n彼らの愛は、月の掟すら超えたのだ。\n\n──ワニと月の舞踏会は、終わりを迎えた。\n\nしかし、それは二人の新たな物語の始まりでもあった。');
 
 ------------------------------------------------------------
 BookController
@@ -283,6 +283,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.my_books_backend.dto.book.BookResponse;
+import com.example.my_books_backend.dto.book.BookDetailsResponse;
 import com.example.my_books_backend.dto.book.BookPageResponse;
 import com.example.my_books_backend.service.BookService;
 import lombok.RequiredArgsConstructor;
@@ -294,9 +295,9 @@ public class BookController {
     private final BookService bookService;
 
     @GetMapping("/books/{bookId}")
-    public ResponseEntity<BookResponse> getBookById(@PathVariable String bookId) {
-        BookResponse bookResponse = bookService.getBookById(bookId);
-        return ResponseEntity.ok(bookResponse);
+    public ResponseEntity<BookDetailsResponse> getBookDetailsById(@PathVariable String bookId) {
+        BookDetailsResponse bookDetailsResponse = bookService.getBookDetailsById(bookId);
+        return ResponseEntity.ok(bookDetailsResponse);
     }
 
     @GetMapping("/books/new-books")
@@ -324,474 +325,125 @@ public class BookController {
 }
 
 ------------------------------------------------------------
-BookmarkController
+BookDetailsResponse
 
-package com.example.my_books_backend.controller;
+package com.example.my_books_backend.dto.book;
 
-import java.net.URI;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.bookmark.BookmarkRequest;
-import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
-import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
-import com.example.my_books_backend.service.BookmarkService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.sql.Date;
+import java.util.List;
+import com.example.my_books_backend.dto.genre.GenreResponse;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@RestController
-@RequestMapping("/api/v1")
-@RequiredArgsConstructor
-public class BookmarkController {
-    private final BookmarkService bookmarkService;
-
-    @GetMapping("/me/bookmarks")
-    public ResponseEntity<BookmarkPageResponse> getBookmarkPage(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookmarkPageResponse bookmarkPageResponse = bookmarkService.getBookmarkPage(page, maxResults);
-        return ResponseEntity.ok(bookmarkPageResponse);
-    }
-
-    @GetMapping("/me/bookmarks/{bookId}")
-    public ResponseEntity<BookmarkResponse> getBookmarkById(@PathVariable String bookId) {
-        BookmarkResponse bookmarkResponse = bookmarkService.getBookmarkById(bookId);
-        return ResponseEntity.ok(bookmarkResponse);
-    }
-
-    @PostMapping("/me/bookmarks")
-    public ResponseEntity<BookmarkResponse> createBookmark(
-            @Valid @RequestBody BookmarkRequest request) {
-        BookmarkResponse bookmarkResponse = bookmarkService.createBookmark(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{bookId}")
-                .buildAndExpand(bookmarkResponse.getBookId()).toUri();
-        return ResponseEntity.created(location).body(bookmarkResponse);
-    }
-
-    @PutMapping("/me/bookmarks")
-    public ResponseEntity<BookmarkResponse> updateBookmark(
-            @Valid @RequestBody BookmarkRequest request) {
-        BookmarkResponse bookmarkResponse = bookmarkService.updateBookmark(request);
-        return ResponseEntity.ok(bookmarkResponse);
-    }
-
-    @DeleteMapping("/me/bookmarks/{bookId}")
-    public ResponseEntity<Void> deleteBookmark(@PathVariable String bookId) {
-        bookmarkService.deleteBookmark(bookId);
-        return ResponseEntity.noContent().build();
-    }
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class BookDetailsResponse {
+    private String id;
+    private String title;
+    private String description;
+    private List<GenreResponse> genres;
+    private List<String> authors;
+    private String publisher;
+    private Date publishedDate;
+    private Integer price;
+    private Integer pageCount;
+    private String isbn;
+    private String imageUrl;
+    private Integer reviewCount;
+    private Double averageRating;
 }
 
 ------------------------------------------------------------
-FavoriteController
+BookResponse
 
-package com.example.my_books_backend.controller;
+package com.example.my_books_backend.dto.book;
 
-import java.net.URI;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.favorite.FavoriteRequest;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteInfoResponse;
-import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
-import com.example.my_books_backend.service.FavoriteService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.sql.Date;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@RestController
-@RequestMapping("/api/v1")
-@RequiredArgsConstructor
-public class FavoriteController {
-    private final FavoriteService favoriteService;
-
-    @GetMapping("/me/favorites")
-    public ResponseEntity<FavoritePageResponse> getFavoritePage(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        FavoritePageResponse favoritePageResponse = favoriteService.getFavoritePage(page, maxResults);
-        return ResponseEntity.ok(favoritePageResponse);
-    }
-
-    @GetMapping("/me/favorites/{bookId}")
-    public ResponseEntity<FavoriteResponse> getFavoriteById(@PathVariable String bookId) {
-        FavoriteResponse favoriteResponse = favoriteService.getFavoriteById(bookId);
-        return ResponseEntity.ok(favoriteResponse);
-    }
-
-    @GetMapping("/books/{bookId}/favorites")
-    public ResponseEntity<FavoriteInfoResponse> getFavoriteInfo(@PathVariable String bookId,
-            @RequestParam(required = false) Long userId) {
-        FavoriteInfoResponse favoriteInfoResponse = favoriteService.getFavoriteInfo(bookId, userId);
-        return ResponseEntity.ok(favoriteInfoResponse);
-    }
-
-    @PostMapping("/me/favorites")
-    public ResponseEntity<FavoriteResponse> createFavorite(
-            @Valid @RequestBody FavoriteRequest request) {
-        FavoriteResponse favoriteResponse = favoriteService.createFavorite(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{bookId}")
-                .buildAndExpand(favoriteResponse.getBookId()).toUri();
-        return ResponseEntity.created(location).body(favoriteResponse);
-    }
-
-    @DeleteMapping("/me/favorites/{bookId}")
-    public ResponseEntity<Void> deleteFavorite(@PathVariable String bookId) {
-        favoriteService.deleteFavorite(bookId);
-        return ResponseEntity.noContent().build();
-    }
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class BookResponse {
+    private String id;
+    private String title;
+    private String description;
+    private List<Long> genreIds;
+    private List<String> authors;
+    private Date publishedDate;
+    private String imageUrl;
+    private Integer reviewCount;
+    private Double averageRating;
 }
 
 ------------------------------------------------------------
-ReviewController
+BookMapper
 
-package com.example.my_books_backend.controller;
+package com.example.my_books_backend.mapper;
 
-import java.net.URI;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.review.ReviewPageResponse;
+import java.util.Arrays;
+import java.util.List;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
+import com.example.my_books_backend.dto.book.BookResponse;
 import com.example.my_books_backend.dto.review.ReviewSummaryResponse;
-import com.example.my_books_backend.dto.review.ReviewRequest;
-import com.example.my_books_backend.dto.review.ReviewResponse;
+import com.example.my_books_backend.dto.book.BookDetailsResponse;
+import com.example.my_books_backend.dto.book.BookPageResponse;
+import com.example.my_books_backend.entity.Book;
 import com.example.my_books_backend.service.ReviewService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-@RestController
-@RequestMapping("/api/v1")
+@Component
 @RequiredArgsConstructor
-public class ReviewController {
+public class BookMapper {
+    private final ModelMapper modelMapper;
     private final ReviewService reviewService;
 
-    @GetMapping("/books/{bookId}/reviews")
-    public ResponseEntity<ReviewPageResponse> getReviewPage(@PathVariable String bookId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        ReviewPageResponse reviewPageResponse = reviewService.getReviewPage(bookId, page, maxResults);
-        return ResponseEntity.ok(reviewPageResponse);
+    public BookResponse toBookResponse(Book book) {
+        BookResponse bookResponse = modelMapper.map(book, BookResponse.class);
+
+        List<Long> genres = book.getGenres().stream().map(genre -> genre.getId()).toList();
+        bookResponse.setGenreIds(genres);
+
+        List<String> authors = Arrays.asList(book.getAuthors().split(","));
+        bookResponse.setAuthors(authors);
+
+        ReviewSummaryResponse reviewSummaryResponse = reviewService.getReviewSummary(book.getId());
+        bookResponse.setReviewCount(reviewSummaryResponse.getReviewCount());
+        bookResponse.setAverageRating(reviewSummaryResponse.getAverageRating());
+
+        return bookResponse;
     }
 
-    @GetMapping("/books/{bookId}/reviews/{userId}")
-    public ResponseEntity<ReviewResponse> getReviewById(@PathVariable String bookId,
-            @PathVariable Long userId) {
-        ReviewResponse reviewResponse = reviewService.getReviewById(bookId, userId);
-        return ResponseEntity.ok(reviewResponse);
+    public List<BookResponse> toBookResponseList(List<Book> books) {
+        return books.stream().map(book -> toBookResponse(book)).toList();
     }
 
-    @GetMapping("/books/{bookId}/reviews/summary")
-    public ResponseEntity<ReviewSummaryResponse> getReviewSummary(@PathVariable String bookId) {
-        ReviewSummaryResponse reviewSummaryResponse = reviewService.getReviewSummary(bookId);
-        return ResponseEntity.ok(reviewSummaryResponse);
+    public BookPageResponse toBookPageResponse(Page<Book> bookPage) {
+        Integer page = bookPage.getNumber();
+        Integer totalPages = bookPage.getTotalPages();
+        Integer totalItems = (int) bookPage.getTotalElements();
+        List<BookResponse> bookResponses = toBookResponseList(bookPage.getContent());
+        return new BookPageResponse(page, totalPages, totalItems, bookResponses);
     }
 
-    @PostMapping("/books/{bookId}/reviews")
-    public ResponseEntity<ReviewResponse> createReview(@PathVariable String bookId,
-            @Valid @RequestBody ReviewRequest request) {
-        ReviewResponse reviewResponse = reviewService.createReview(bookId, request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{userId}")
-                .buildAndExpand(reviewResponse.getUserId()).toUri();
-        return ResponseEntity.created(location).body(reviewResponse);
-    }
+    public BookDetailsResponse toBookDetailsResponse(Book book) {
+        BookDetailsResponse bookDetailsResponse = modelMapper.map(book, BookDetailsResponse.class);
 
-    @PutMapping("/books/{bookId}/reviews")
-    public ResponseEntity<ReviewResponse> updateReview(@PathVariable String bookId,
-            @Valid @RequestBody ReviewRequest request) {
-        ReviewResponse reviewResponse = reviewService.updateReview(bookId, request);
-        return ResponseEntity.ok(reviewResponse);
-    }
+        List<String> authors = Arrays.asList(book.getAuthors().split(","));
+        bookDetailsResponse.setAuthors(authors);
 
-    @DeleteMapping("/books/{bookId}/reviews")
-    public ResponseEntity<Void> deleteReview(@PathVariable String bookId) {
-        reviewService.deleteReview(bookId);
-        return ResponseEntity.noContent().build();
-    }
-}
+        ReviewSummaryResponse reviewSummaryResponse = reviewService.getReviewSummary(book.getId());
+        bookDetailsResponse.setReviewCount(reviewSummaryResponse.getReviewCount());
+        bookDetailsResponse.setAverageRating(reviewSummaryResponse.getAverageRating());
 
-------------------------------------------------------------
-BookmarkRequest
-
-package com.example.my_books_backend.dto.bookmark;
-
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class BookmarkRequest {
-    @NotNull
-    private String bookId;
-
-    @NotNull
-    private Integer chapterNumber;
-
-    @NotNull
-    private Integer pageNumber;
-}
-
-------------------------------------------------------------
-BookmarkResponse
-
-package com.example.my_books_backend.dto.bookmark;
-
-import java.time.LocalDateTime;
-import com.example.my_books_backend.dto.book.BookResponse;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class BookmarkResponse {
-    private Long userId;
-    private String bookId;
-    private Integer chapterNumber;
-    private Integer pageNumber;
-    private LocalDateTime updatedAt;
-    private BookResponse book;
-}
-
-------------------------------------------------------------
-FavoriteInfoResponse
-
-package com.example.my_books_backend.dto.favorite;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class FavoriteInfoResponse {
-    private Boolean isFavorite;
-    private Integer favoriteCount;
-}
-
-------------------------------------------------------------
-Bookmark
-
-package com.example.my_books_backend.entity;
-
-import com.example.my_books_backend.entity.shared.EntityBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@Entity
-@Table(name = "bookmarks")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Bookmark extends EntityBase {
-    @EmbeddedId
-    private BookmarkId id;
-
-    @Column(name = "chapter_number", nullable = false)
-    private Integer chapterNumber;
-
-    @Column(name = "page_number", nullable = false)
-    private Integer pageNumber;
-
-    @ManyToOne
-    @MapsId("userId")
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @ManyToOne
-    @MapsId("bookId")
-    @JoinColumn(name = "book_id", nullable = false)
-    private Book book;
-}
-
-------------------------------------------------------------
-FavoriteRepository
-
-package com.example.my_books_backend.repository;
-
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.Favorite;
-import com.example.my_books_backend.entity.FavoriteId;
-
-@Repository
-public interface FavoriteRepository extends JpaRepository<Favorite, FavoriteId> {
-    List<Favorite> findByBookId(String bookId);
-
-    Page<Favorite> findByUserId(Long userId, Pageable pageable);
-
-    Integer countByUserId(Long userId);
-}
-
-------------------------------------------------------------
-ReviewRepository
-
-package com.example.my_books_backend.repository;
-
-import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.Review;
-import com.example.my_books_backend.entity.ReviewId;
-
-@Repository
-public interface ReviewRepository extends JpaRepository<Review, ReviewId> {
-    List<Review> findByBookId(String bookId);
-
-    Page<Review> findByBookId(String bookId, Pageable pageable);
-
-    Integer countByUserId(Long userId);
-}
-
-------------------------------------------------------------
-BookmarkServiceImpl
-
-package com.example.my_books_backend.service.impl;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.bookmark.BookmarkRequest;
-import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
-import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.Bookmark;
-import com.example.my_books_backend.entity.BookmarkId;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.BookmarkMapper;
-import com.example.my_books_backend.repository.BookRepository;
-import com.example.my_books_backend.repository.BookmarkRepository;
-import com.example.my_books_backend.service.BookmarkService;
-import com.example.my_books_backend.util.PaginationUtil;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class BookmarkServiceImpl implements BookmarkService {
-    private final BookmarkRepository bookmarkRepository;
-    private final BookmarkMapper bookmarkMapper;
-
-    private final BookRepository bookRepository;
-    private final PaginationUtil paginationUtil;
-
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "updatedAt");
-
-    @Override
-    public BookmarkResponse getBookmarkById(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        BookmarkId bookmarkId = new BookmarkId(user.getId(), bookId);
-        Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
-                .orElseThrow(() -> new NotFoundException("Bookmark not found"));
-        return bookmarkMapper.toBookmarkResponse(bookmark);
-    }
-
-    @Override
-    public BookmarkPageResponse getBookmarkPage(Integer page, Integer maxResults) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
-        Page<Bookmark> bookmarkPage = bookmarkRepository.findByUserId(user.getId(), pageable);
-        return bookmarkMapper.toBookmarkPageResponse(bookmarkPage);
-    }
-
-    @Override
-    @Transactional
-    public BookmarkResponse createBookmark(BookmarkRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-        BookmarkId bookmarkId = new BookmarkId(user.getId(), request.getBookId());
-        Bookmark bookmark = new Bookmark();
-        bookmark.setId(bookmarkId);
-        bookmark.setUser(user);
-        bookmark.setBook(book);
-        bookmark.setChapterNumber(request.getChapterNumber());
-        bookmark.setPageNumber(request.getPageNumber());
-        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
-        return bookmarkMapper.toBookmarkResponse(savedBookmark);
-    }
-
-    @Override
-    @Transactional
-    public BookmarkResponse updateBookmark(BookmarkRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        BookmarkId bookmarkId = new BookmarkId(user.getId(), request.getBookId());
-        Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
-                .orElseThrow(() -> new NotFoundException("Bookmark not found"));
-
-        Integer chapterNumber = request.getChapterNumber();
-        Integer pageNumber = request.getPageNumber();
-
-        if (chapterNumber != null) {
-            bookmark.setChapterNumber(chapterNumber);
-        }
-
-        if (pageNumber != null) {
-            bookmark.setPageNumber(pageNumber);
-        }
-
-        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
-        return bookmarkMapper.toBookmarkResponse(savedBookmark);
-    }
-
-    @Override
-    @Transactional
-    public void deleteBookmark(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        BookmarkId bookmarkId = new BookmarkId(user.getId(), bookId);
-        bookmarkRepository.deleteById(bookmarkId);
+        return bookDetailsResponse;
     }
 }
 
@@ -808,12 +460,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import com.example.my_books_backend.dto.book.BookResponse;
+import com.example.my_books_backend.dto.genre.GenreResponse;
+import com.example.my_books_backend.dto.book.BookDetailsResponse;
 import com.example.my_books_backend.dto.book.BookPageResponse;
 import com.example.my_books_backend.entity.Book;
+import com.example.my_books_backend.entity.Genre;
 import com.example.my_books_backend.exception.NotFoundException;
 import com.example.my_books_backend.mapper.BookMapper;
 import com.example.my_books_backend.repository.BookRepository;
 import com.example.my_books_backend.service.BookService;
+import com.example.my_books_backend.service.GenreService;
 import com.example.my_books_backend.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 
@@ -824,14 +480,29 @@ public class BookServiceImpl implements BookService {
     private final BookMapper bookMapper;
 
     private final PaginationUtil paginationUtil;
+    private final GenreService genreService;
 
     private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "publishedDate");
 
     @Override
-    public BookResponse getBookById(String id) {
+    public BookDetailsResponse getBookDetailsById(String id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Book not found"));
-        return bookMapper.toBookResponse(book);
+
+        List<GenreResponse> genreResponses = genreService.getAllGenres();
+
+        List<Long> bookGenreIds =
+                book.getGenres().stream().map(Genre::getId).collect(Collectors.toList());
+
+        List<GenreResponse> filteredGenres = genreResponses.stream()
+                .filter(genreResponse -> bookGenreIds.contains(genreResponse.getId()))
+                .collect(Collectors.toList());
+
+        BookDetailsResponse bookDetailsResponse = bookMapper.toBookDetailsResponse(book);
+
+        bookDetailsResponse.setGenres(filteredGenres);
+
+        return bookDetailsResponse;
     }
 
     @Override
@@ -868,258 +539,17 @@ public class BookServiceImpl implements BookService {
 }
 
 ------------------------------------------------------------
-FavoriteServiceImpl
-
-package com.example.my_books_backend.service.impl;
-
-import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.favorite.FavoriteRequest;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteInfoResponse;
-import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.Favorite;
-import com.example.my_books_backend.entity.FavoriteId;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.FavoriteMapper;
-import com.example.my_books_backend.repository.BookRepository;
-import com.example.my_books_backend.repository.FavoriteRepository;
-import com.example.my_books_backend.service.FavoriteService;
-import com.example.my_books_backend.util.PaginationUtil;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class FavoriteServiceImpl implements FavoriteService {
-    private final FavoriteRepository favoriteRepository;
-    private final FavoriteMapper favoriteMapper;
-
-    private final BookRepository bookRepository;
-    private final PaginationUtil paginationUtil;
-
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "updatedAt");
-
-    @Override
-    public FavoriteResponse getFavoriteById(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        FavoriteId favoriteId = new FavoriteId(user.getId(), bookId);
-        Favorite favorite = favoriteRepository.findById(favoriteId)
-                .orElseThrow(() -> new NotFoundException("Favorite not found"));
-        return favoriteMapper.toFavoriteResponse(favorite);
-    }
-
-    @Override
-    public FavoritePageResponse getFavoritePage(Integer page, Integer maxResults) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
-        Page<Favorite> favoritePage = favoriteRepository.findByUserId(user.getId(), pageable);
-        return favoriteMapper.toFavoritePageResponse(favoritePage);
-    }
-
-    @Override
-    public FavoriteInfoResponse getFavoriteInfo(String bookId, Long userId) {
-        List<Favorite> favorites = favoriteRepository.findByBookId(bookId);
-
-        boolean isFavorite = favorites.stream()
-                .anyMatch(favorite -> favorite.getId().getUserId().equals(userId));
-
-        FavoriteInfoResponse favoriteInfoResponse = new FavoriteInfoResponse();
-        favoriteInfoResponse.setIsFavorite(isFavorite);
-        favoriteInfoResponse.setFavoriteCount(favorites.size());
-
-        return favoriteInfoResponse;
-    }
-
-    @Override
-    @Transactional
-    public FavoriteResponse createFavorite(FavoriteRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-        FavoriteId favoriteId = new FavoriteId(user.getId(), request.getBookId());
-        Favorite favorite = new Favorite();
-        favorite.setId(favoriteId);
-        favorite.setUser(user);
-        favorite.setBook(book);
-        Favorite savedFavorite = favoriteRepository.save(favorite);
-        return favoriteMapper.toFavoriteResponse(savedFavorite);
-    }
-
-    @Override
-    @Transactional
-    public void deleteFavorite(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        FavoriteId favoriteId = new FavoriteId(user.getId(), bookId);
-        favoriteRepository.deleteById(favoriteId);
-    }
-}
-
-------------------------------------------------------------
-ReviewServiceImpl
-
-package com.example.my_books_backend.service.impl;
-
-import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.review.ReviewPageResponse;
-import com.example.my_books_backend.dto.review.ReviewSummaryResponse;
-import com.example.my_books_backend.dto.review.ReviewRequest;
-import com.example.my_books_backend.dto.review.ReviewResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.Review;
-import com.example.my_books_backend.entity.ReviewId;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.ReviewMapper;
-import com.example.my_books_backend.repository.BookRepository;
-import com.example.my_books_backend.repository.ReviewRepository;
-import com.example.my_books_backend.service.ReviewService;
-import com.example.my_books_backend.util.PaginationUtil;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class ReviewServiceImpl implements ReviewService {
-    private final ReviewRepository reviewRepository;
-    private final ReviewMapper reviewMapper;
-
-    private final BookRepository bookRepository;
-    private final PaginationUtil paginationUtil;
-
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "createdAt");
-
-    @Override
-    public ReviewResponse getReviewById(String bookId, Long userId) {
-        ReviewId reviewId = new ReviewId(userId, bookId);
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NotFoundException("Review not found"));
-        return reviewMapper.toReviewResponse(review);
-    }
-
-    @Override
-    public ReviewPageResponse getReviewPage(String bookId, Integer page, Integer maxResults) {
-        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
-        Page<Review> reviewPage = reviewRepository.findByBookId(bookId, pageable);
-        return reviewMapper.toReviewPageResponse(reviewPage);
-    }
-
-    @Override
-    public ReviewSummaryResponse getReviewSummary(String bookId) {
-        List<Review> reviews = reviewRepository.findByBookId(bookId);
-        Double averageRating =
-                reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
-
-        ReviewSummaryResponse reviewSummaryResponse = new ReviewSummaryResponse();
-        reviewSummaryResponse.setBookId(bookId);
-        reviewSummaryResponse.setReviewCount(reviews.size());
-        reviewSummaryResponse.setAverageRating(averageRating);
-
-        return reviewSummaryResponse;
-    }
-
-    @Override
-    @Transactional
-    public ReviewResponse createReview(String bookId, ReviewRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-        ReviewId reviewId = new ReviewId(user.getId(), book.getId());
-        Review review = new Review();
-        review.setId(reviewId);
-        review.setUser(user);
-        review.setBook(book);
-        review.setRating(request.getRating());
-        review.setComment(request.getComment());
-        Review savedReview = reviewRepository.save(review);
-        return reviewMapper.toReviewResponse(savedReview);
-    }
-
-    @Override
-    @Transactional
-    public ReviewResponse updateReview(String bookId, ReviewRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        ReviewId reviewId = new ReviewId(user.getId(), bookId);
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NotFoundException("Review not found"));
-
-        String comment = request.getComment();
-        Double rating = request.getRating();
-
-        if (comment != null) {
-            review.setComment(comment);
-        }
-
-        if (rating != null) {
-            review.setRating(rating);
-        }
-        Review savedReview = reviewRepository.save(review);
-        return reviewMapper.toReviewResponse(savedReview);
-    }
-
-    @Override
-    @Transactional
-    public void deleteReview(String bookId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        ReviewId reviewId = new ReviewId(user.getId(), bookId);
-        reviewRepository.deleteById(reviewId);
-    }
-}
-
-------------------------------------------------------------
-BookmarkService
-
-package com.example.my_books_backend.service;
-
-import com.example.my_books_backend.dto.bookmark.BookmarkRequest;
-import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
-import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
-
-public interface BookmarkService {
-    BookmarkResponse getBookmarkById(String bookId);
-
-    BookmarkPageResponse getBookmarkPage(Integer page, Integer maxResults);
-
-    BookmarkResponse createBookmark(BookmarkRequest request);
-
-    BookmarkResponse updateBookmark(BookmarkRequest request);
-
-    void deleteBookmark(String bookId);
-}
-
-------------------------------------------------------------
 BookService
 
 package com.example.my_books_backend.service;
 
 import java.util.List;
 import com.example.my_books_backend.dto.book.BookResponse;
+import com.example.my_books_backend.dto.book.BookDetailsResponse;
 import com.example.my_books_backend.dto.book.BookPageResponse;
 
 public interface BookService {
-    BookResponse getBookById(String id);
+    BookDetailsResponse getBookDetailsById(String id);
 
     List<BookResponse> getNewBooks();
 
@@ -1129,85 +559,5 @@ public interface BookService {
 }
 
 ------------------------------------------------------------
-FavoriteService
 
-package com.example.my_books_backend.service;
 
-import com.example.my_books_backend.dto.favorite.FavoriteRequest;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteInfoResponse;
-import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
-
-public interface FavoriteService {
-    FavoriteResponse getFavoriteById(String bookId);
-
-    FavoritePageResponse getFavoritePage(Integer page, Integer maxResults);
-
-    FavoriteInfoResponse getFavoriteInfo(String bookId, Long userId);
-
-    FavoriteResponse createFavorite(FavoriteRequest request);
-
-    void deleteFavorite(String bookId);
-}
-
-------------------------------------------------------------
-ReviewService
-
-package com.example.my_books_backend.service;
-
-import com.example.my_books_backend.dto.review.ReviewPageResponse;
-import com.example.my_books_backend.dto.review.ReviewSummaryResponse;
-import com.example.my_books_backend.dto.review.ReviewRequest;
-import com.example.my_books_backend.dto.review.ReviewResponse;
-
-public interface ReviewService {
-    ReviewResponse getReviewById(String bookId, Long userId);
-
-    ReviewPageResponse getReviewPage(String bookId, Integer page, Integer maxResults);
-
-    ReviewSummaryResponse getReviewSummary(String bookId);
-
-    ReviewResponse createReview(String bookId, ReviewRequest request);
-
-    ReviewResponse updateReview(String bookId, ReviewRequest request);
-
-    void deleteReview(String bookId);
-}
-
-------------------------------------------------------------
-PaginationUtil
-
-package com.example.my_books_backend.util;
-
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
-
-@Component
-public class PaginationUtil {
-    private static final Integer DEFAULT_START_PAGE = 0;
-    private static final Integer DEFAULT_MAX_RESULTS = 20;
-
-    public Pageable createPageable(Integer page, Integer maxResults, Sort sort) {
-        int pageNumber = (page != null) ? page : DEFAULT_START_PAGE;
-        int pageSize = (maxResults != null) ? maxResults : DEFAULT_MAX_RESULTS;
-        return PageRequest.of(pageNumber, pageSize, sort);
-    }
-}
-
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
