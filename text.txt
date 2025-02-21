@@ -1,4 +1,4 @@
-４３ファイル
+３９ファイル
 
 ------------------------------------------------------------
 book-detail
@@ -9,9 +9,9 @@ import ReviewCountIcon from '@/components/count-icon/review-count-icon';
 import GenreList from '@/components/genre-list/genre-list';
 import Rating from '@/components/rating';
 import { Button } from '@/components/ui/button';
-import { getBookDetailsById, getReviewSummary } from '@/lib/data';
+import { useApiBook } from '@/hooks/api/use-api-book';
 import { formatDateJP, formatIsbn, formatPrice } from '@/lib/util';
-import { useSuspenseQueries } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Suspense } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -20,17 +20,11 @@ type Props = {
 };
 
 export default function BookDetail({ bookId }: Props) {
-  const [{ data: book }, { data: reviewRatingInfo }] = useSuspenseQueries({
-    queries: [
-      {
-        queryKey: ['getBookDetailsById', bookId],
-        queryFn: () => getBookDetailsById(bookId),
-      },
-      {
-        queryKey: ['getReviewSummary', bookId],
-        queryFn: () => getReviewSummary(bookId),
-      },
-    ],
+  const { getBookDetailsById } = useApiBook();
+
+  const { data: book } = useSuspenseQuery({
+    queryKey: ['getBookDetailsById', bookId],
+    queryFn: () => getBookDetailsById(bookId),
   });
 
   return (
@@ -50,7 +44,7 @@ export default function BookDetail({ bookId }: Props) {
             </Suspense>
             <ReviewCountIcon reviewCount={book.reviewCount} />
           </div>
-          <Rating rating={reviewRatingInfo.averageRating} readOnly />
+          <Rating rating={book.averageRating} readOnly />
         </div>
         <div className="my-4 flex items-center">
           <Button className="w-44 rounded-full bg-transparent" variant="outline" asChild>
@@ -104,58 +98,120 @@ export default function BookDetail({ bookId }: Props) {
 }
 
 ------------------------------------------------------------
-book-card
+book-list-by-genre-id
 
-import AverageRatingIcon from '@/components/count-icon/average-rating-icon';
-import FavoriteCountIcon from '@/components/count-icon/favorite-count-icon';
-import ReviewCountIcon from '@/components/count-icon/review-count-icon';
-import { Card, CardContent } from '@/components/ui/card';
-import { formatDateJP } from '@/lib/util';
-import { Book } from '@/types';
-import { Link } from 'react-router-dom';
+import BookList from '@/components/book-list/book-list';
+import BookPagination from '@/components/book-list/book-pagination';
+import { useApiBook } from '@/hooks/api/use-api-book';
+import { useSuspenseQuery } from '@tanstack/react-query';
 
 type Props = {
-  book: Book;
+  genreId: string;
+  page: number;
 };
 
-export default function BookCard({ book }: Props) {
+export default function BookListByGenreId({ genreId, page }: Props) {
+  const { getBookPageByGenreId } = useApiBook();
+
+  const { data: paginatedBook } = useSuspenseQuery({
+    queryKey: ['getBookPageByGenreId', genreId, page],
+    queryFn: () => getBookPageByGenreId(genreId, page - 1),
+  });
+
   return (
-    <>
-      <Card className="border-card-foreground/5 bg-card/70">
-        <CardContent className="relative flex w-40 flex-col items-center px-3 pb-2 pt-4 sm:w-48 sm:px-4">
-          <Link className="flex justify-center" to={`/book/${book.id}`}>
-            <img
-              className="h-44 rounded object-cover sm:h-52"
-              src={book.imageUrl}
-              alt={book.title}
-            />
-          </Link>
-          <Link
-            className="mt-1 flex h-8 w-full items-center justify-center text-xs hover:text-primary sm:h-10 sm:text-sm"
-            to={`/book/${book.id}`}
-          >
-            <p className="line-clamp-2 text-center">{book.title}</p>
-          </Link>
-          <div className="mt-1 flex w-full flex-col items-center gap-y-1">
-            <p className="text-xs tracking-wide text-muted-foreground">
-              {formatDateJP(book.publishedDate)}
-            </p>
-            <div className="flex justify-around gap-x-4">
-              <FavoriteCountIcon size="sm" bookId={book.id} />
-              <ReviewCountIcon size="sm" reviewCount={book.reviewCount} />
-              <AverageRatingIcon size="sm" averageRating={book.averageRating} />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </>
+    <div className="flex flex-col gap-y-4 pb-4">
+      <BookPagination totalPages={paginatedBook.totalPages} />
+      <BookList books={paginatedBook.books} />
+      <BookPagination totalPages={paginatedBook.totalPages} />
+    </div>
+  );
+}
+
+------------------------------------------------------------
+book-list-by-query
+
+import BookList from '@/components/book-list/book-list';
+import BookPagination from '@/components/book-list/book-pagination';
+import { useApiBook } from '@/hooks/api/use-api-book';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+type Props = {
+  query: string;
+  page: number;
+};
+
+export default function BookListByQuery({ query, page }: Props) {
+  const { getBookPageByQuery } = useApiBook();
+
+  const { data: paginatedBook } = useSuspenseQuery({
+    queryKey: ['getBookPageByQuery', query, page],
+    queryFn: () => getBookPageByQuery(query, page - 1),
+  });
+
+  return (
+    <div className="flex flex-col gap-y-4 pb-4">
+      <BookPagination totalPages={paginatedBook.totalPages} />
+      <BookList books={paginatedBook.books} />
+      <BookPagination totalPages={paginatedBook.totalPages} />
+    </div>
+  );
+}
+
+------------------------------------------------------------
+book-list-favorites
+
+import BookList from '@/components/book-list/book-list';
+import BookPagination from '@/components/book-list/book-pagination';
+import { useApiFavorite } from '@/hooks/api/use-api-favorite';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+type Props = {
+  page: number;
+};
+
+export default function BookListFavorites({ page }: Props) {
+  const { getFavoritePage } = useApiFavorite();
+
+  const { data: bookPage } = useSuspenseQuery({
+    queryKey: ['getFavoritePage', page],
+    queryFn: () => getFavoritePage(page - 1),
+  });
+
+  return (
+    <div className="flex flex-col gap-y-4 pb-4">
+      <BookPagination totalPages={bookPage.totalPages} />
+      <BookList books={bookPage.favorites.map((favorite) => favorite.book)} />
+      <BookPagination totalPages={bookPage.totalPages} />
+    </div>
+  );
+}
+
+------------------------------------------------------------
+book-list-new-releases
+
+import BookList from '@/components/book-list/book-list';
+import { useApiBook } from '@/hooks/api/use-api-book';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+export default function BookListNewReleases() {
+  const { getNewBooks } = useApiBook();
+
+  const { data: books } = useSuspenseQuery({
+    queryKey: ['getNewBooks'],
+    queryFn: () => getNewBooks(),
+  });
+
+  return (
+    <div className="pb-4">
+      <BookList books={books} />
+    </div>
   );
 }
 
 ------------------------------------------------------------
 book-pagination
 
-import { Pagination } from '@/components/pagination';
+import Pagination from '@/components/pagination';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -192,14 +248,9 @@ export default function BookPagination({ totalPages }: Props) {
 }
 
 ------------------------------------------------------------
-book-readディレクトリ
 book-read
 
-import {
-  getBookContentPage,
-  getBookDetailsById,
-  getBookTableOfContents,
-} from '@/lib/data';
+import { useApiBook } from '@/hooks/api/use-api-book';
 import { useSuspenseQueries } from '@tanstack/react-query';
 import { BookmarkIcon } from 'lucide-react';
 
@@ -210,6 +261,8 @@ type Props = {
 };
 
 export default function BookRead({ bookId, chapterNumber, pageNumber }: Props) {
+  const { getBookDetailsById, getBookTableOfContents, getBookContentPage } = useApiBook();
+
   const [{ data: book }, { data: bookTableOfContents }, { data: bookContentPage }] =
     useSuspenseQueries({
       queries: [
@@ -228,7 +281,10 @@ export default function BookRead({ bookId, chapterNumber, pageNumber }: Props) {
       ],
     });
 
-  const pageTitle = `（${pageNumber}/${bookTableOfContents.chapters.find((chapter) => chapter.chapterNumber === chapterNumber)?.pageNumbers.length}）`;
+  const totalPage = bookTableOfContents.chapters.find(
+    (chapter) => chapter.chapterNumber === chapterNumber
+  )?.pageNumbers.length;
+  const pageTitle = `（${pageNumber}/${totalPage}）`;
 
   return (
     <>
@@ -246,8 +302,8 @@ export default function BookRead({ bookId, chapterNumber, pageNumber }: Props) {
             <span className="text-sm text-muted-foreground sm:text-base">
               {pageTitle}
             </span>
+            <BookmarkIcon className="inline size-4" />
           </p>
-          <BookmarkIcon className="size-4" />
         </div>
         <p className="whitespace-pre-wrap">{bookContentPage.content}</p>
       </div>
@@ -259,7 +315,7 @@ export default function BookRead({ bookId, chapterNumber, pageNumber }: Props) {
 book-table-of-contents
 
 import { Button } from '@/components/ui/button';
-import { getBookDetailsById, getBookTableOfContents } from '@/lib/data';
+import { useApiBook } from '@/hooks/api/use-api-book';
 import { useSuspenseQueries } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
@@ -268,6 +324,8 @@ type Props = {
 };
 
 export default function BookTableOfContents({ bookId }: Props) {
+  const { getBookDetailsById, getBookTableOfContents } = useApiBook();
+
   const [{ data: book }, { data: bookTableOfContents }] = useSuspenseQueries({
     queries: [
       {
@@ -317,85 +375,13 @@ export default function BookTableOfContents({ bookId }: Props) {
 }
 
 ------------------------------------------------------------
-count-iconディレクトリ
-average-rating-icon
-
-import { cn } from '@/lib/util';
-import { StarIcon } from 'lucide-react';
-
-const BUTTON_SIZE = { sm: 'size-6', md: 'size-8' };
-const ICON_SIZE = { sm: 'size-3', md: 'size-4' };
-const TEXT_SIZE = { sm: 'text-xs', md: 'text-sm' };
-
-type Props = {
-  averageRating: number;
-  size?: 'sm' | 'md';
-};
-
-export default function AverageRatingIcon({ averageRating, size = 'md' }: Props) {
-  return (
-    <div className="flex items-center">
-      <div
-        className={cn(
-          'rounded-full text-muted-foreground flex justify-center items-center',
-          BUTTON_SIZE[size]
-        )}
-      >
-        <StarIcon className={ICON_SIZE[size]} />
-      </div>
-
-      <p
-        className={cn(
-          'flex min-w-4 text-muted-foreground justify-center',
-          TEXT_SIZE[size]
-        )}
-      >
-        {averageRating.toFixed(1)}
-      </p>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-count-icon-skeleton
-
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/util';
-
-const BUTTON_SIZE = { sm: 'size-6', md: 'size-8' };
-const ICON_SIZE = { sm: 'size-3', md: 'size-4' };
-
-type Props = {
-  size?: 'sm' | 'md';
-};
-
-export default function CountIconSkeleton({ size = 'md' }: Props) {
-  return (
-    <div className="flex items-center">
-      <div
-        className={cn(
-          'rounded-full text-muted-foreground flex justify-center items-center',
-          BUTTON_SIZE[size]
-        )}
-      >
-        <Skeleton className={cn('rounded-full bg-muted-foreground/5', ICON_SIZE[size])} />
-      </div>
-
-      <div className="flex min-w-4 justify-center text-muted-foreground">
-        <Skeleton className={cn('rounded-full bg-muted-foreground/5', ICON_SIZE[size])} />
-      </div>
-    </div>
-  );
-}
-
-------------------------------------------------------------
 favorite-count-icon
 
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useUser } from '@/hooks/use-user';
+import { useApiFavorite } from '@/hooks/api/use-api-favorite';
+import { useAuth } from '@/hooks/context/use-auth';
 import { createFavorite, deleteFavorite } from '@/lib/action';
-import { getFavoriteInfo } from '@/lib/data';
 import { cn } from '@/lib/util';
 import { FavoriteInfo, FavoriteRequest } from '@/types';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
@@ -411,7 +397,9 @@ type Props = {
 };
 
 export default function FavoriteCountIcon({ bookId, size = 'md' }: Props) {
-  const { user } = useUser();
+  const { user } = useAuth();
+  const { getFavoriteInfo } = useApiFavorite();
+
   const queryClient = useQueryClient();
 
   const queryKey = ['getFavoriteInfo', bookId, user?.id];
@@ -502,52 +490,11 @@ export default function FavoriteCountIcon({ bookId, size = 'md' }: Props) {
   );
 }
 
-
 ------------------------------------------------------------
-review-count-icon
-
-import { cn } from '@/lib/util';
-import { MessageSquareIcon } from 'lucide-react';
-
-const BUTTON_SIZE = { sm: 'size-6', md: 'size-8' };
-const ICON_SIZE = { sm: 'size-3', md: 'size-4' };
-const TEXT_SIZE = { sm: 'text-xs', md: 'text-sm' };
-
-type Props = {
-  reviewCount: number;
-  size?: 'sm' | 'md';
-};
-
-export default function ReviewCountIcon({ reviewCount, size = 'md' }: Props) {
-  return (
-    <div className="flex items-center">
-      <div
-        className={cn(
-          'rounded-full text-muted-foreground flex justify-center items-center',
-          BUTTON_SIZE[size]
-        )}
-      >
-        <MessageSquareIcon className={ICON_SIZE[size]} />
-      </div>
-
-      <p
-        className={cn(
-          'flex min-w-4 text-muted-foreground justify-center',
-          TEXT_SIZE[size]
-        )}
-      >
-        {reviewCount}
-      </p>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-genre-listディレクトリ
 genre-list-selector
 
 import { Button } from '@/components/ui/button';
-import { getGenres } from '@/lib/data';
+import { useApiGenre } from '@/hooks/api/use-api-genre';
 import { cn } from '@/lib/util';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { CheckIcon } from 'lucide-react';
@@ -558,6 +505,8 @@ type Props = {
 };
 
 export default function GenreListSelector({ activeIds, onClick }: Props) {
+  const { getGenres } = useApiGenre();
+
   const { data: genres } = useSuspenseQuery({
     queryKey: ['getGenres'],
     queryFn: () => getGenres(),
@@ -592,10 +541,12 @@ export default function GenreListSelector({ activeIds, onClick }: Props) {
 genre-list-top-page
 
 import GenreList from '@/components/genre-list/genre-list';
-import { getGenres } from '@/lib/data';
+import { useApiGenre } from '@/hooks/api/use-api-genre';
 import { useSuspenseQuery } from '@tanstack/react-query';
 
 export default function GenreListTopPage() {
+  const { getGenres } = useApiGenre();
+
   const { data: genres } = useSuspenseQuery({
     queryKey: ['getGenres'],
     queryFn: () => getGenres(),
@@ -608,501 +559,325 @@ export default function GenreListTopPage() {
 }
 
 ------------------------------------------------------------
-genre-list
+login-button
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/util';
-import { Genre } from '@/types';
-import { Link } from 'react-router-dom';
-
-type Props = {
-  genres: Genre[];
-  className?: string;
-  filterList?: number[];
-  variant?: 'default' | 'outline' | 'secondary' | 'ghost';
-};
-
-export default function GenreList({ genres, className, variant = 'default' }: Props) {
-  return (
-    <ul className={cn('flex flex-wrap', className)}>
-      {genres.map((genre) => (
-        <li key={genre.id}>
-          <Button
-            className={cn('rounded-full', variant === 'outline' && 'bg-transparent')}
-            variant={variant}
-            size="sm"
-            asChild
-          >
-            <Link to={`/discover?genreId=${genre.id}`}>{genre.name}</Link>
-          </Button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-------------------------------------------------------------
-genre-selector
-
-import GenreListSelector from '@/components/genre-list/genre-list-selector';
-import GenreListSkeleton from '@/components/genre-list/genre-list-skeleton';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Separator } from '@/components/ui/separator';
-import ErrorElement from '@/routes/error-element';
-import { Suspense, useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MENU_LIST } from '@/constants/constants';
+import { useAuth } from '@/hooks/context/use-auth';
+import { LogOutIcon } from 'lucide-react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-type ConditionType = {
-  value: string;
-  splitCode: string;
-};
-
-const CONDITIONS: ConditionType[] = [
-  { value: 'OR', splitCode: '|' },
-  { value: 'AND', splitCode: ',' },
-];
-
-export default function GenreSelector() {
-  const location = useLocation();
+export default function LoginButton() {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const params = new URLSearchParams(location.search);
-  const genreIdQuery = params.get('genreId') ?? '';
+  const [isOpen, setIsOpen] = useState(false);
 
-  const initCondition =
-    CONDITIONS.find((conditon) => genreIdQuery.includes(conditon.splitCode)) ||
-    CONDITIONS[0];
-
-  const splitCodes = CONDITIONS.map((conditon) => conditon.splitCode).join();
-  const regex = new RegExp(`[${splitCodes}]`);
-  const initGenreIds = genreIdQuery.split(regex).map((genreId) => Number(genreId));
-
-  const [selectedCondition, setSelectedCondition] = useState(initCondition);
-  const [selectedGenreIds, setSelectedGenreIds] = useState(initGenreIds);
-
-  const handleClickGenre = (genreId: number) => {
-    let newGenreIds = selectedGenreIds.includes(genreId)
-      ? selectedGenreIds.filter((id) => id !== genreId)
-      : [...selectedGenreIds, genreId].sort((a, b) => a - b);
-
-    if (newGenreIds.length === 0) {
-      newGenreIds = [genreId];
+  const handleClickLogin = () => {
+    if (!user) {
+      navigate('/login', { state: { from: location } });
     }
-
-    setSelectedGenreIds(newGenreIds);
-    updateDiscoverUrl(newGenreIds.join(selectedCondition.splitCode));
   };
 
-  const handleChangeCondition = (value: string) => {
-    const newCondition =
-      CONDITIONS.find((condition) => condition.value === value) ?? CONDITIONS[0];
-
-    setSelectedCondition(newCondition);
-    updateDiscoverUrl(selectedGenreIds.join(newCondition.splitCode));
+  const handleClickLogout = async () => {
+    await logout();
+    setIsOpen(false);
+    navigate('/');
   };
 
-  const updateDiscoverUrl = (genreIdQuery: string) => {
-    const params = new URLSearchParams();
-    params.set('genreId', genreIdQuery);
-    params.set('page', '1');
-    navigate(`/discover?${params.toString()}`, { replace: true });
+  const handleClickItem = (href: string) => {
+    navigate(href);
+    setIsOpen(false);
   };
 
   return (
     <>
-      <div className="my-4 flex items-center justify-between">
-        <p className="my-2">ジャンル</p>
-        <RadioGroup
-          className="flex gap-x-4"
-          value={selectedCondition.value}
-          onValueChange={handleChangeCondition}
-        >
-          {CONDITIONS.map((condition) => (
-            <div className="flex items-center" key={condition.value}>
-              <RadioGroupItem value={condition.value} id={condition.value} />
-              <Label className="cursor-pointer select-none p-2" htmlFor={condition.value}>
-                {condition.value}
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
-      </div>
-
-      <Separator className="my-4 bg-foreground/10" />
-
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<GenreListSkeleton />}>
-          <GenreListSelector activeIds={selectedGenreIds} onClick={handleClickGenre} />
-        </Suspense>
-      </ErrorBoundary>
-
-      <Separator className="my-4 bg-foreground/10" />
-    </>
-  );
-}
-
-------------------------------------------------------------
-header
-
-import LoginButton from '@/components/layout/login-button';
-import NavList from '@/components/layout/nav-list';
-import SearchInput from '@/components/layout/search-input';
-import ThemeToggleButton from '@/components/layout/theme-toggle-button';
-import { cn } from '@/lib/util';
-
-type Props = {
-  className?: string;
-};
-
-export default function Header({ className }: Props) {
-  return (
-    <header
-      className={cn('w-screen max-w-full bg-background/30 backdrop-blur-lg', className)}
-    >
-      <div className="mx-auto max-w-7xl px-3 sm:px-6">
-        <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-top-10 fill-mode-both">
-          <div className="flex h-16 w-full items-center sm:gap-x-2">
-            <NavList />
-            <span className="flex-1"></span>
-            <SearchInput />
-            <LoginButton />
-            <ThemeToggleButton />
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-------------------------------------------------------------
-hero
-
-import imgUrl from '@/assets/main-visual.png';
-import SearchInput from '@/components/layout/search-input';
-
-export default function Hero() {
-  const TITLE = (
-    <>
-      Let’s search for <span className="text-primary">Books</span> to discover new
-      knowledge.
-    </>
-  );
-
-  const MESSAGE =
-    '本の探索サイトへようこそ。多様なコレクションから、新しい知識を発見しましょう。厳選された書籍で、あなたの次の読書を見つけてください。知識の旅に一緒に出かけましょう。';
-
-  return (
-    <div className="relative mb-8 flex h-[460px] w-full items-center gap-3 sm:mb-0 sm:gap-4 lg:h-[500px]">
-      <div className="z-10 flex w-3/4 flex-col justify-between lg:w-3/5">
-        <div>
-          <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
-            <h1 className="w-fit text-5xl font-bold sm:text-6xl xl:text-7xl">{TITLE}</h1>
-          </div>
-          <div className="delay-150 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
-            <p className="my-6 w-full break-words text-sm text-muted-foreground">
-              {MESSAGE}
-            </p>
-          </div>
-        </div>
-        <div className="delay-300 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
-          <div className="flex h-full max-w-96 items-center">
-            <SearchInput />
-          </div>
-        </div>
-      </div>
-      <div className="absolute right-0 top-10 w-[400px] opacity-25 sm:right-5 sm:w-[400px] lg:w-[450px] lg:opacity-100">
-        <div className="delay-500 duration-500 animate-in fade-in-0 slide-in-from-right-10 fill-mode-both">
-          <img src={imgUrl} alt="main-visual-image" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-search-input
-
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-import { FormEvent, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-
-export default function SearchInput() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [query, setQuery] = useState('');
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const query = params.get('q') ?? '';
-    setQuery(query);
-  }, [location.search]);
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!query) return;
-
-    const params = new URLSearchParams();
-    params.set('q', query);
-    params.set('page', '1');
-    navigate(`/search?${params.toString()}`, { replace: true });
-  };
-
-  return (
-    <div className="w-44 sm:w-64">
-      <form className="relative h-10 w-full" onSubmit={handleSubmit}>
-        <Input
-          className="rounded-full border-foreground/20 bg-background/20 pl-10 pr-4"
-          type="search"
-          placeholder="検索"
-          name="query"
-          autoComplete="off"
-          spellCheck="false"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <Search className="absolute left-2.5 top-2.5 size-5" />
-      </form>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-settingsディレクトリ
-
-import SwipeArea from '@/components/settings/swipe-area';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/util';
-import { CheckIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-
-type AvatarSelectType = {
-  index: number;
-  avatarUrl: string;
-};
-
-type Props = {
-  items: AvatarSelectType[];
-  defaultSelected: number | undefined;
-  onSelected: (index: number) => void;
-  itemWidth?: number;
-  paddingItem?: number;
-  frameWidth?: number;
-};
-
-export default function AvatarCarousel({
-  items,
-  defaultSelected,
-  onSelected,
-  itemWidth = 100,
-  paddingItem = 2,
-  frameWidth = 400,
-}: Props) {
-  const extendedItems = [
-    ...items.slice(-paddingItem),
-    ...items,
-    ...items.slice(0, paddingItem),
-  ];
-
-  const carouselRef = useRef<HTMLUListElement>(null);
-
-  const [isVisible, setIsVisible] = useState(false);
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [innerIndex, setInnerIndex] = useState(0);
-  const [defaultIndex, setDefaultIndex] = useState(0);
-
-  const [isScrolling, setIsScrolling] = useState(false);
-  const [marginLeft, setMarginLeft] = useState(0);
-
-  useEffect(() => {
-    if (defaultSelected !== undefined && !isVisible) {
-      setInnerIndex(defaultSelected);
-      setCurrentIndex(defaultSelected);
-      setDefaultIndex(defaultSelected);
-
-      carouselRef.current!.style.transitionProperty = 'none';
-      setTimeout(() => {
-        carouselRef.current!.style.transitionProperty = 'transform';
-        setIsVisible(true);
-      }, 100);
-    }
-  }, [defaultSelected, isVisible]);
-
-  useEffect(() => {
-    setMarginLeft(Math.floor(frameWidth / 2) - Math.floor(itemWidth / 2));
-  }, [frameWidth, itemWidth]);
-
-  const handlePrev = () => {
-    if (isScrolling) return;
-    setIsScrolling(true);
-    setInnerIndex(innerIndex - 1);
-    setCurrentIndex((currentIndex - 1 + items.length) % items.length);
-    onSelected?.((currentIndex - 1 + items.length) % items.length);
-  };
-
-  const handleNext = () => {
-    if (isScrolling) return;
-    setIsScrolling(true);
-    setInnerIndex(innerIndex + 1);
-    setCurrentIndex((currentIndex + 1) % items.length);
-    onSelected?.((currentIndex + 1) % items.length);
-  };
-
-  const handleTransitonEnd = () => {
-    if (innerIndex >= 0 && innerIndex < items.length) {
-      setIsScrolling(false);
-      return;
-    }
-
-    const index = innerIndex > items.length - 1 ? 0 : items.length - 1;
-    setInnerIndex(index);
-
-    carouselRef.current!.style.transitionProperty = 'none';
-    setTimeout(() => {
-      carouselRef.current!.style.transitionProperty = 'transform';
-      setIsScrolling(false);
-    }, 50);
-  };
-
-  return (
-    <div
-      className={cn(
-        'flex items-center transition-all duration-75 opacity-0',
-        isVisible && 'opacity-100'
-      )}
-    >
-      <Button
-        className="rounded-full"
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={handlePrev}
-      >
-        <ChevronLeft className="size-4" />
-      </Button>
-
-      <div
-        className="relative w-full select-none overflow-hidden"
-        style={{ width: `${frameWidth}px` }}
-      >
-        <ul
-          ref={carouselRef}
-          className="flex transition-transform duration-200"
-          style={{
-            transform: `translateX(-${(innerIndex + paddingItem) * itemWidth}px)`,
-            marginLeft: `${marginLeft}px`,
-          }}
-          onTransitionEnd={handleTransitonEnd}
-        >
-          {extendedItems.map((item, index) => (
-            <li
-              key={index}
-              className={`flex shrink-0 items-center justify-center`}
-              style={{ width: `${itemWidth}px` }}
-            >
-              <div className="relative flex h-24 items-center">
-                <Avatar
-                  className={cn(
-                    'transition-all duration-200',
-                    'size-14 opacity-25 scale-100',
-                    currentIndex === item.index &&
-                      'opacity-100 scale-150 outline-1 outline-offset-1 outline outline-primary'
-                  )}
-                >
+      {user ? (
+        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+          <DropdownMenuTrigger className="ml-2 flex items-center justify-center" asChild>
+            <Button className="rounded-full" variant="ghost" size="icon">
+              <Avatar>
+                <AvatarImage
+                  className="bg-primary/50"
+                  src={user.avatarUrl}
+                  alt="avatar-image"
+                />
+                <AvatarFallback className="text-lg font-semibold">
+                  {user.name.slice(0, 1)}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-48 p-2" side="bottom" align="end">
+            <DropdownMenuLabel>
+              <div className="flex items-center gap-x-2">
+                <Avatar className="size-8">
                   <AvatarImage
-                    className="bg-primary"
-                    src={item.avatarUrl}
+                    className="bg-primary/50"
+                    src={user.avatarUrl}
                     alt="avatar-image"
-                    draggable={false}
                   />
+                  <AvatarFallback className="font-semibold">
+                    {user.name.slice(0, 1)}
+                  </AvatarFallback>
                 </Avatar>
-                {defaultIndex === item.index && (
-                  <div
-                    className={cn(
-                      'absolute bottom-4 right-0 rounded-full bg-primary text-primary-foreground p-1 transition-all duration-200',
-                      currentIndex === item.index && 'bottom-0 -right-4'
-                    )}
-                  >
-                    <CheckIcon className="size-4" />
-                  </div>
+                <div className="flex-1 overflow-hidden">
+                  <p className="truncate">{user.name}</p>
+                  <p className="truncate text-xs font-normal text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {MENU_LIST.map((item) => (
+              <DropdownMenuItem
+                onClick={() => handleClickItem(item.href)}
+                key={item.href}
+              >
+                <item.icon className="mr-1" />
+                {item.title}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleClickLogout}>
+              <LogOutIcon className="mr-1" />
+              ログアウト
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <Button className="rounded-full" variant="ghost" onClick={handleClickLogin}>
+          ログイン
+        </Button>
+      )}
+    </>
+  );
+}
+
+------------------------------------------------------------
+review-item
+
+import Rating from '@/components/rating';
+import ReviewUpdateDialog from '@/components/review-list/review-update-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/context/use-auth';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { deleteReview } from '@/lib/action';
+import { formatDateJP, formatTime } from '@/lib/util';
+import { Review } from '@/types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { SquarePenIcon, Trash2Icon } from 'lucide-react';
+import { useState } from 'react';
+
+type Props = {
+  review: Review;
+  bookId: string;
+  queryKey: unknown[];
+};
+
+export default function ReviewItem({ review, bookId, queryKey }: Props) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { confirmDialog } = useConfirmDialog();
+
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: (id: number) => deleteReview(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ['getBookDetailsById', bookId] });
+    },
+  });
+
+  const handleClickDelete = async () => {
+    const { isCancel } = await confirmDialog({
+      icon: '!',
+      title: '削除しますか？',
+      message: '削除すると元に戻りません。',
+      actionLabel: '削除する',
+    });
+    if (isCancel) return;
+
+    mutate(review.id, {
+      onSuccess: () => {
+        toast({ description: 'レビューを削除しました' });
+      },
+    });
+  };
+
+  return (
+    <div className="p-4">
+      <div className="flex flex-col items-center justify-between sm:flex-row">
+        <div className="flex w-full items-center gap-x-4">
+          <Avatar className="size-16">
+            <AvatarImage
+              className="bg-primary/50"
+              src={review.avatarUrl}
+              alt="avatar-image"
+            />
+            <AvatarFallback className="font-semibold">
+              {review.name.slice(0, 1)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="-mb-1 text-lg font-semibold">{review.name}</p>
+            <div className="flex items-center">
+              <p className="whitespace-nowrap text-sm leading-8 tracking-wide text-muted-foreground">
+                {formatDateJP(review.updatedAt)} {formatTime(review.updatedAt)}
+              </p>
+              <div className="ml-2 flex w-16">
+                {user?.id === review.userId && (
+                  <>
+                    <Button
+                      className="size-8 rounded-full text-muted-foreground"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => user && setIsOpen(true)}
+                    >
+                      <SquarePenIcon className="size-4" />
+                    </Button>
+                    <ReviewUpdateDialog
+                      bookId={bookId}
+                      review={review}
+                      queryKey={queryKey}
+                      isOpen={isOpen}
+                      setIsOpen={setIsOpen}
+                    />
+                    <Button
+                      className="size-8 rounded-full text-muted-foreground"
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleClickDelete}
+                    >
+                      <Trash2Icon className="size-4" />
+                    </Button>
+                  </>
                 )}
               </div>
-            </li>
-          ))}
-        </ul>
-        <SwipeArea
-          className="absolute left-0 top-0 h-24 w-full"
-          onSwipeLeft={handleNext}
-          onSwipeRight={handlePrev}
-        />
+            </div>
+          </div>
+        </div>
+        <Rating rating={review.rating} readOnly />
       </div>
-
-      <Button
-        className="rounded-full"
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={handleNext}
-      >
-        <ChevronRight className="size-4" />
-      </Button>
+      <p className="mt-2 text-muted-foreground sm:pl-20">{review.comment}</p>
     </div>
   );
 }
 
 ------------------------------------------------------------
-password-input
+review-list
 
+import Pagination from '@/components/pagination';
+import ReviewCreateDialog from '@/components/review-list/review-create-dialog';
+import ReviewItem from '@/components/review-list/review-item';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { EyeIcon, EyeOffIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useApiRevew } from '@/hooks/api/use-api-review';
+import { useAuth } from '@/hooks/context/use-auth';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 
-const PasswordInput = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
-  ({ className, ...props }, ref) => {
-    const [isShownPassword, setIsShownPassword] = useState(false);
+type Props = {
+  bookId: string;
+};
 
-    return (
-      <div className="relative">
-        <Input
-          ref={ref}
-          className={className}
-          type={isShownPassword ? 'text' : 'password'}
-          {...props}
-        />
-        <Button
-          className="absolute right-0 top-0 rounded-full hover:bg-transparent hover:text-foreground"
-          variant="ghost"
-          size="icon"
-          type="button"
-          onClick={() => setIsShownPassword(!isShownPassword)}
-        >
-          {isShownPassword ? (
-            <EyeIcon className="size-4" />
-          ) : (
-            <EyeOffIcon className="size-4" />
+export default function ReviewList({ bookId }: Props) {
+  const [page, setPage] = useState(1);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { user } = useAuth();
+  const { getReviewPage, checkMyReviewExists } = useApiRevew();
+
+  const queryKey = ['ReviewList', 'checkMyReviewExists', bookId, page];
+  const {
+    data: [paginatedReview, reviewExists],
+  } = useSuspenseQuery({
+    queryKey,
+    queryFn: () =>
+      Promise.all([
+        getReviewPage(bookId, page - 1),
+        user ? checkMyReviewExists(bookId) : false,
+      ]),
+  });
+
+  return (
+    <div className="mx-auto w-full lg:w-3/4">
+      <div className="flex flex-col-reverse items-center justify-end gap-y-4 sm:flex-row sm:gap-x-4 sm:px-6">
+        <p>レビュー {paginatedReview.totalItems} 件</p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              className="w-44 rounded-full bg-transparent"
+              variant="outline"
+              disabled={reviewExists}
+              onClick={() => user && setIsOpen(true)}
+            >
+              {reviewExists ? 'レビュー済み' : 'レビューする'}
+            </Button>
+          </TooltipTrigger>
+          {!user && (
+            <TooltipContent>
+              ログインしてこの本の「レビュー」を書きましょう
+            </TooltipContent>
           )}
-        </Button>
+        </Tooltip>
+        <ReviewCreateDialog
+          bookId={bookId}
+          queryKey={queryKey}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+        />
       </div>
-    );
-  }
-);
 
-export default PasswordInput;
+      <ul className="flex flex-col p-3 sm:p-6">
+        {paginatedReview.reviews.map((review) => (
+          <li key={review.userId}>
+            <Separator className="bg-foreground/10" />
+            <ReviewItem review={review} bookId={bookId} queryKey={queryKey} />
+          </li>
+        ))}
+      </ul>
+
+      <div className="mb-4 flex justify-center">
+        {paginatedReview.totalPages > 1 && (
+          <Pagination
+            total={paginatedReview.totalPages}
+            page={page}
+            onChangePage={setPage}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 ------------------------------------------------------------
 profile-counts
 
 import CountUpNumber from '@/components/count-up-number';
-import { getProfileCounts } from '@/lib/data';
+import { useApiUser } from '@/hooks/api/use-api-user';
 import { useSuspenseQuery } from '@tanstack/react-query';
 
 export default function ProfileCounts() {
+  const { getProfileCounts } = useApiUser();
+
   const { data: profileCounts } = useSuspenseQuery({
     queryKey: ['getProfileCounts'],
     queryFn: () => getProfileCounts(),
@@ -1139,286 +914,890 @@ export default function ProfileCounts() {
 }
 
 ------------------------------------------------------------
-swipe-area
+pagination
 
-import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/util';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { HTMLAttributes } from 'react';
 
-type Props = {
-  className?: string;
-  onSwipeUp?: () => void;
-  onSwipeDown?: () => void;
-  onSwipeLeft?: () => void;
-  onSwipeRight?: () => void;
+const createPageNumbers = (page: number, total: number) => {
+  const pages = [];
+  const maxPages = 7;
+
+  if (page <= 4) {
+    for (let i = 1; i <= Math.min(5, total); i++) {
+      pages.push(i);
+    }
+    if (total > 5) {
+      pages.push(0, total);
+    }
+  } else if (page >= total - 3) {
+    pages.push(1, 0);
+    for (let i = total - 4; i <= total; i++) {
+      pages.push(i);
+    }
+  } else {
+    pages.push(1, 0);
+    for (let i = page - 1; i <= page + 1; i++) {
+      pages.push(i);
+    }
+    pages.push(0, total);
+  }
+
+  return pages.slice(0, maxPages);
 };
 
-export default function SwipeArea({
+interface Props extends HTMLAttributes<HTMLDivElement> {
+  total: number;
+  page: number;
+  onChangePage: (page: number) => void;
+}
+
+export default function Pagination({
+  total,
+  page,
+  onChangePage,
   className,
-  onSwipeUp,
-  onSwipeDown,
-  onSwipeLeft,
-  onSwipeRight,
+  ...props
 }: Props) {
-  const [startX, setStartX] = useState(0);
-  const [startY, setStartY] = useState(0);
-
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    setStartX(touch.clientX);
-    setStartY(touch.clientY);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!startX || !startY) {
-      return;
-    }
-
-    const touch = e.touches[0];
-    const diffX = touch.clientX - startX;
-    const diffY = touch.clientY - startY;
-
-    if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 0) {
-        onSwipeRight?.();
-      } else {
-        onSwipeLeft?.();
-      }
-    } else {
-      if (diffY > 0) {
-        onSwipeDown?.();
-      } else {
-        onSwipeUp?.();
-      }
-    }
-
-    setStartX(0);
-    setStartY(0);
-  };
+  const pageNumbers = createPageNumbers(page, total);
 
   return (
-    <div
-      className={className}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-    ></div>
+    <div className={cn('flex', className)} {...props}>
+      <Button
+        className="size-8 rounded-full"
+        variant="ghost"
+        size="icon"
+        disabled={page <= 1}
+        onClick={() => onChangePage(page - 1)}
+      >
+        <ChevronLeft className="size-5" />
+      </Button>
+
+      <ul className="flex">
+        {pageNumbers.map((pageNumber, index) => (
+          <li key={`${pageNumber}-${index}`}>
+            {pageNumber === 0 ? (
+              <div className="size-8 text-center">...</div>
+            ) : (
+              <Button
+                className="size-8 rounded-full"
+                variant={page === pageNumber ? 'secondary' : 'ghost'}
+                size="icon"
+                onClick={() => {
+                  if (page !== pageNumber) {
+                    onChangePage(pageNumber);
+                  }
+                }}
+              >
+                {pageNumber}
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      <Button
+        className="size-8 rounded-full"
+        variant="ghost"
+        size="icon"
+        disabled={page >= total}
+        onClick={() => onChangePage(page + 1)}
+      >
+        <ChevronRight className="size-5" />
+      </Button>
+    </div>
   );
 }
 
 ------------------------------------------------------------
-constants
+hooks/api
 
-import { BookmarkIcon, HeartIcon, SettingsIcon } from 'lucide-react';
-
-// ロゴ
-export const LOGO_TITLE = 'My Books';
-
-// メニュー一覧
-export const MENU_LIST = [
-  { href: '/favorites', title: 'お気に入り', icon: HeartIcon },
-  { href: '/bookmarks', title: 'ブックマーク', icon: BookmarkIcon },
-  { href: '/settings/profile', title: '設定', icon: SettingsIcon },
-];
-
-// API Endpoits
-// export const BOOKS_API_ENDPOINT = 'http://vsv-emerald/my-books/api/v1';
-// export const BOOKS_IMAGE_URL = 'http://vsv-emerald/images';
-// export const AVATER_IMAGE_URL = 'https://vsv-emerald/images/avatars';
-
-export const BOOKS_API_ENDPOINT = 'https://localhost/my-books/api/v1';
-export const BOOKS_IMAGE_URL = 'https://localhost/images';
-
-export const AVATER_IMAGE_URL = 'https://localhost/images/avatars';
-export const AVATER_IMAGE_MAX_COIUNT = 41;
-
-export const FETCH_BOOKS_MAX_RESULTS = 20;
-export const FETCH_REVIEWS_MAX_RESULTS = 5;
-
-------------------------------------------------------------
-lib/data
-book
+use-api-book
 
 import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
-import { fetchJson } from '@/lib/data';
-import { Book, BookDetails, BookPage } from '@/types';
+import { useApi } from '@/hooks/api/use-api';
+import {
+  Book,
+  BookContentPage,
+  BookDetails,
+  BookPage,
+  BookTableOfContents,
+} from '@/types';
 
-export const getBookDetailsById = async (bookId: string) => {
-  try {
-    const url = `/books/${bookId}`;
-    const book = await fetchJson<BookDetails>(url);
-    return book;
-  } catch {
-    throw new Error('書籍情報の読み込みが失敗しました。');
-  }
-};
+export const useApiBook = () => {
+  const { fetcher, fetcherWithAuth } = useApi();
 
-export const getBookPageByQuery = async (q: string, page: number = 0) => {
-  try {
-    const url = `/books/search?q=${q}&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
-    const bookPage = await fetchJson<BookPage>(url);
-    return bookPage;
-  } catch {
-    throw new Error('書籍検索が失敗しました。');
-  }
-};
+  const getBookDetailsById = async (bookId: string) => {
+    try {
+      const url = `/books/${bookId}`;
+      const book = await fetcher<BookDetails>(url);
+      return book;
+    } catch {
+      throw new Error('書籍情報の読み込みが失敗しました。');
+    }
+  };
 
-export const getBookPageByGenreId = async (genreIdsQuery: string, page: number = 0) => {
-  try {
-    // 「|」はそのまま渡すとエラーになるので、URLエンコードする
-    const encodedParams = genreIdsQuery.replace(/\|/g, encodeURIComponent('|'));
+  const getBookPageByQuery = async (q: string, page: number = 0) => {
+    try {
+      const url = `/books/search?q=${q}&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
+      const bookPage = await fetcher<BookPage>(url);
+      return bookPage;
+    } catch {
+      throw new Error('書籍検索が失敗しました。');
+    }
+  };
 
-    const url = `/books/discover?genreId=${encodedParams}&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
-    const bookPage = await fetchJson<BookPage>(url);
-    return bookPage;
-  } catch {
-    throw new Error('ジャンル検索が失敗しました。');
-  }
-};
+  const getBookPageByGenreId = async (genreIdsQuery: string, page: number = 0) => {
+    try {
+      // 「|」はそのまま渡すとエラーになるので、URLエンコードする
+      const encodedParams = genreIdsQuery.replace(/\|/g, encodeURIComponent('|'));
 
-export const getNewBooks = async () => {
-  try {
-    const url = `/books/new-books`;
-    const books = await fetchJson<Book[]>(url);
-    return books;
-  } catch {
-    throw new Error('ニューリリース一覧の読み込みが失敗しました。');
-  }
+      const url = `/books/discover?genreId=${encodedParams}&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
+      const bookPage = await fetcher<BookPage>(url);
+      return bookPage;
+    } catch {
+      throw new Error('ジャンル検索が失敗しました。');
+    }
+  };
+
+  const getNewBooks = async () => {
+    try {
+      const url = `/books/new-books`;
+      const books = await fetcher<Book[]>(url);
+      return books;
+    } catch {
+      throw new Error('ニューリリース一覧の読み込みが失敗しました。');
+    }
+  };
+
+  const getBookTableOfContents = async (bookId: string) => {
+    try {
+      const url = `/books/${bookId}/table-of-contents`;
+      const bookTableOfContents = await fetcher<BookTableOfContents>(url);
+      return bookTableOfContents;
+    } catch {
+      throw new Error('書籍の目次の読み込みが失敗しました。');
+    }
+  };
+
+  const getBookContentPage = async (
+    bookId: string,
+    chapterNumber: number,
+    pageNumber: number
+  ) => {
+    try {
+      const url = `/books/${bookId}/chapters/${chapterNumber}/pages/${pageNumber}`;
+      const bookContentPage = await fetcherWithAuth<BookContentPage>(url);
+      return bookContentPage;
+    } catch (err) {
+      throw new Error('書籍のページ情報の読み込みが失敗しました。' + err);
+    }
+  };
+
+  return {
+    getBookDetailsById,
+    getBookPageByQuery,
+    getBookPageByGenreId,
+    getNewBooks,
+    getBookTableOfContents,
+    getBookContentPage,
+  };
 };
 
 ------------------------------------------------------------
-favorite
+use-api-bookmark
 
 import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
-import { fetchJsonWithAuth } from '@/lib/auth';
-import { fetchJson } from '@/lib/data';
+import { useApi } from '@/hooks/api/use-api';
+import { Bookmark, BookmarkPage, BookmarkRequest } from '@/types';
+
+export const useApiBookmark = () => {
+  const { fetcherWithAuth, mutationWithAuth } = useApi();
+
+  const getBookmarkByBookId = async (bookId: string) => {
+    try {
+      const url = `/bookmarks/${bookId}`;
+      const bookmarks = await fetcherWithAuth<Bookmark[]>(url);
+      return bookmarks;
+    } catch {
+      throw new Error('ブックマークの読み込みが失敗しました。');
+    }
+  };
+
+  const getBookmarkPage = async (page: number = 0) => {
+    try {
+      const url = `/bookmarks?&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
+      const bookmarkPage = await fetcherWithAuth<BookmarkPage>(url);
+      return bookmarkPage;
+    } catch {
+      throw new Error('ブックマーク一覧の読み込みが失敗しました。');
+    }
+  };
+
+  const createBookmark = async (reqestBody: BookmarkRequest) => {
+    try {
+      const url = `/bookmarks`;
+      const options: RequestInit = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqestBody),
+      };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const updateBookmark = async (id: number, reqestBody: BookmarkRequest) => {
+    try {
+      const url = `/bookmarks/${id}`;
+      const options: RequestInit = {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqestBody),
+      };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const deleteBookmark = async (id: number) => {
+    try {
+      const url = `/bookmarks/${id}`;
+      const options: RequestInit = { method: 'DELETE' };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  return {
+    getBookmarkByBookId,
+    getBookmarkPage,
+    createBookmark,
+    updateBookmark,
+    deleteBookmark,
+  };
+};
+
+------------------------------------------------------------
+use-api-favorite
+
+import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
+import { useApi } from '@/hooks/api/use-api';
 import { sleep } from '@/lib/util';
-import { Favorite, FavoriteInfo, FavoritePage } from '@/types';
+import { Favorite, FavoriteInfo, FavoritePage, FavoriteRequest } from '@/types';
 
-export const getFavoritePage = async (page: number = 0) => {
-  try {
-    const url = `/me/favorites?&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
-    const favoritePage = await fetchJsonWithAuth<FavoritePage>(url);
-    return favoritePage;
-  } catch {
-    throw new Error('お気に入り一覧の読み込みが失敗しました。');
-  }
-};
+export const useApiFavorite = () => {
+  const { fetcher, fetcherWithAuth, mutationWithAuth } = useApi();
 
-export const getFavoriteById = async (bookId: string) => {
-  try {
-    const url = `/me/favorites/${bookId}`;
-    const favorite = await fetchJsonWithAuth<Favorite>(url);
-    return favorite;
-  } catch {
-    throw new Error('お気に入りの読み込みが失敗しました。');
-  }
-};
+  const getFavoriteByBookId = async (bookId: string) => {
+    try {
+      const url = `/favorites/${bookId}`;
+      const favorite = await fetcherWithAuth<Favorite>(url);
+      return favorite;
+    } catch {
+      throw new Error('お気に入りの読み込みが失敗しました。');
+    }
+  };
 
-export const getFavoriteInfo = async (bookId: string, userId: number | undefined) => {
-  await sleep(2000);
-  try {
-    const query = userId ? `?userId=${userId}` : '';
-    const url = `/books/${bookId}/favorites${query}`;
-    const favoriteInfo = await fetchJson<FavoriteInfo>(url);
-    return favoriteInfo;
-  } catch {
-    throw new Error('お気に入り情報の読み込みが失敗しました。');
-  }
+  const getFavoritePage = async (page: number = 0) => {
+    try {
+      const url = `/favorites?&page=${page}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
+      const favoritePage = await fetcherWithAuth<FavoritePage>(url);
+      return favoritePage;
+    } catch {
+      throw new Error('お気に入り一覧の読み込みが失敗しました。');
+    }
+  };
+
+  const getFavoriteInfo = async (bookId: string, userId: number | undefined) => {
+    await sleep(2000);
+    try {
+      const query = userId ? `?userId=${userId}` : '';
+      const url = `/books/${bookId}/favorites/info${query}`;
+      const favoriteInfo = await fetcher<FavoriteInfo>(url);
+      return favoriteInfo;
+    } catch {
+      throw new Error('お気に入り情報の読み込みが失敗しました。');
+    }
+  };
+
+  const createFavorite = async (reqestBody: FavoriteRequest) => {
+    try {
+      const url = `/favorites`;
+      const options: RequestInit = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqestBody),
+      };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const deleteFavorite = async (bookId: string) => {
+    try {
+      const url = `/favorites/${bookId}`;
+      const options: RequestInit = { method: 'DELETE' };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  return {
+    getFavoriteByBookId,
+    getFavoritePage,
+    getFavoriteInfo,
+    createFavorite,
+    deleteFavorite,
+  };
 };
 
 ------------------------------------------------------------
-genre
+use-api-genre
 
-import { fetchJson } from '@/lib/data';
+import { useApi } from '@/hooks/api/use-api';
 import { sleep } from '@/lib/util';
 import { Genre } from '@/types';
 
-export const getGenres = async () => {
-  await sleep(2000);
-  try {
-    const url = `/genres`;
-    const genres = await fetchJson<Genre[]>(url);
-    return genres;
-  } catch {
-    throw new Error('ジャンル一覧の読み込みが失敗しました。');
-  }
+export const useApiGenre = () => {
+  const { fetcher } = useApi();
+
+  const getGenres = async () => {
+    await sleep(2000);
+    try {
+      const url = `/genres`;
+      const genres = await fetcher<Genre[]>(url);
+      return genres;
+    } catch {
+      throw new Error('ジャンル一覧の読み込みが失敗しました。');
+    }
+  };
+
+  return { getGenres };
 };
 
 ------------------------------------------------------------
-review
+use-api-review
 
 import { FETCH_REVIEWS_MAX_RESULTS } from '@/constants/constants';
-import { fetchJson } from '@/lib/data';
+import { useApi } from '@/hooks/api/use-api';
 import { sleep } from '@/lib/util';
-import { Review, ReviewPage, ReviewSummary } from '@/types';
+import { Review, ReviewPage, ReviewRequest, ReviewSummary } from '@/types';
 
-export const getReviewPage = async (bookId: string, page: number = 0) => {
-  await sleep(2000);
+export const useApiRevew = () => {
+  const { fetcher, fetcherWithAuth, mutationWithAuth } = useApi();
 
+  const getReviewPage = async (bookId: string, page: number = 0) => {
+    await sleep(2000);
+
+    try {
+      const url = `/books/${bookId}/reviews?&page=${page}&maxResults=${FETCH_REVIEWS_MAX_RESULTS}`;
+      const reviewPage = await fetcher<ReviewPage>(url);
+      return reviewPage;
+    } catch {
+      throw new Error('レビュー一覧の読み込みが失敗しました。');
+    }
+  };
+
+  const getReviewSummary = async (bookId: string) => {
+    await sleep(2000);
+
+    try {
+      const url = `/books/${bookId}/reviews/summary`;
+      const reviewSummary = await fetcher<ReviewSummary>(url);
+      return reviewSummary;
+    } catch {
+      throw new Error('レビュー情報の読み込みが失敗しました。');
+    }
+  };
+
+  const checkMyReviewExists = async (bookId: string) => {
+    try {
+      const url = `/reviews/${bookId}`;
+      await fetcherWithAuth<Review>(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const createReview = async (reqestBody: ReviewRequest) => {
+    try {
+      const url = `/reviews`;
+      const options: RequestInit = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqestBody),
+      };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const updateReview = async (id: number, reqestBody: ReviewRequest) => {
+    try {
+      const url = `/reviews/${id}`;
+      const options: RequestInit = {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqestBody),
+      };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const deleteReview = async (id: number) => {
+    try {
+      const url = `/reviews/${id}`;
+      const options: RequestInit = {
+        method: 'DELETE',
+      };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  return {
+    getReviewPage,
+    getReviewSummary,
+    checkMyReviewExists,
+    createReview,
+    updateReview,
+    deleteReview,
+  };
+};
+
+------------------------------------------------------------
+use-api-token
+
+import { useApi } from '@/hooks/api/use-api';
+
+export const useApiToken = () => {
+  const { mutationWithAuth } = useApi();
+
+  const validateToken = async () => {
+    try {
+      const url = `/validate-token`;
+      const options: RequestInit = {
+        method: 'POST',
+      };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  return { validateToken };
+};
+
+------------------------------------------------------------
+use-api-user
+
+import { useApi } from '@/hooks/api/use-api';
+import {
+  ChangeEmail,
+  ChangePassword,
+  CheckUsernameExists,
+  ProfileCounts,
+  UpdateCurrentUser,
+  User,
+} from '@/types';
+
+export const useApiUser = () => {
+  const { fetcher, fetcherWithAuth, mutationWithAuth } = useApi();
+
+  const getCurrentUser = async () => {
+    try {
+      const url = `/me`;
+      const user = await fetcherWithAuth<User>(url);
+      return user;
+    } catch {
+      return null;
+    }
+  };
+
+  const getProfileCounts = async () => {
+    try {
+      const url = `/me/profile-counts`;
+      const profieleCounts = await fetcherWithAuth<ProfileCounts>(url);
+      return profieleCounts;
+    } catch (err) {
+      throw new Error('ユーザーのプロフィール情報の読み込みが失敗しました。' + err);
+    }
+  };
+
+  const checkUsernameExists = async (name: string) => {
+    try {
+      const url = `/users/exists?name=${name}`;
+      const data = await fetcher<CheckUsernameExists>(url);
+      if (!data) return false;
+      return data.exists;
+    } catch {
+      return false; // エラーの場合「存在しない」とするのはどうかと思うけどいったんfalse
+    }
+  };
+
+  const updateCurrentUser = async (requestBody: UpdateCurrentUser) => {
+    try {
+      const url = `/me`;
+      const options: RequestInit = {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const changePassword = async (requestBody: ChangePassword) => {
+    try {
+      const url = `/me/password`;
+      const options: RequestInit = {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const changeEmail = async (requestBody: ChangeEmail) => {
+    try {
+      const url = `/me/email`;
+      const options: RequestInit = {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      };
+      await mutationWithAuth(url, options);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  return {
+    getCurrentUser,
+    getProfileCounts,
+    checkUsernameExists,
+    updateCurrentUser,
+    changePassword,
+    changeEmail,
+  };
+};
+
+------------------------------------------------------------
+use-api
+
+import { BOOKS_API_ENDPOINT } from '@/constants/constants';
+import { useAuth } from '@/hooks/context/use-auth';
+
+export const useApi = () => {
+  const { accessToken, refreshAccessToken } = useAuth();
+
+  const fetcher = async <T>(url: string, options: RequestInit = {}) => {
+    const response = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
+    if (!response.ok) {
+      throw new Error(`失敗しました。URL: ${url} ステータス: ${response.status}`);
+    }
+
+    return response.json() as Promise<T>;
+  };
+
+  const fetcherWithAuth = async <T>(url: string, options: RequestInit = {}) => {
+    let response = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (response.status === 401) {
+      await refreshAccessToken();
+      response = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
+        ...options,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    }
+    if (!response.ok) {
+      throw new Error(`失敗しました。URL: ${url} ステータス: ${response.status}`);
+    }
+
+    return response.json() as Promise<T>;
+  };
+
+  const mutation = async (url: string, options: RequestInit = {}) => {
+    const response = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
+    if (!response.ok) {
+      throw new Error(`失敗しました。URL: ${url} ステータス: ${response.status}`);
+    }
+  };
+
+  const mutationWithAuth = async (url: string, options: RequestInit = {}) => {
+    let response = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (response.status === 401) {
+      await refreshAccessToken();
+      response = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
+        ...options,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    }
+    if (!response.ok) {
+      throw new Error(`失敗しました。URL: ${url} ステータス: ${response.status}`);
+    }
+  };
+
+  return { fetcher, fetcherWithAuth, mutation, mutationWithAuth };
+};
+
+------------------------------------------------------------
+hooks/context
+
+use-auth
+
+import { AuthContext } from '@/stores/auth-provider';
+import { useContext } from 'react';
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  return context;
+};
+
+------------------------------------------------------------
+lib/data/auth
+
+auth
+
+import { BOOKS_API_ENDPOINT } from '@/constants/constants';
+import {
+  AccessToken,
+  CustomError,
+  LoginRequest,
+  LoginResponse,
+  SignupRequest,
+} from '@/types';
+
+const ACCESS_TOKEN_KEY = 'accessToken';
+const getAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
+const setAccessToken = (token: string) => localStorage.setItem(ACCESS_TOKEN_KEY, token);
+const clearAccessToken = () => localStorage.removeItem(ACCESS_TOKEN_KEY);
+
+export const login = async ({ email, password }: LoginRequest) => {
+  const url = '/login';
+  const options: RequestInit = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+    credentials: 'include',
+  };
+
+  const res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
+  if (!res.ok) {
+    const data = await res.json();
+    console.error(`status:${data.status} message:${data.messages.join()}`);
+    return false;
+  }
+
+  const loginResponse = (await res.json()) as LoginResponse;
+  setAccessToken(loginResponse.accessToken);
+  return true;
+};
+
+export const signup = async ({ name, email, password }: SignupRequest) => {
+  const url = '/signup';
+  const options: RequestInit = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password }),
+  };
+
+  const res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
+  if (!res.ok) {
+    const data = await res.json();
+    console.error(`status:${data.status} message:${data.messages.join()}`);
+    return false;
+  }
+
+  await login({ email, password });
+  return true;
+};
+
+export const logout = async () => {
+  const url = '/logout';
+  const options: RequestInit = {
+    method: 'POST',
+    credentials: 'include',
+  };
+
+  const res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
+  if (!res.ok) {
+    return false;
+  }
+
+  clearAccessToken();
+  return true;
+};
+
+export const fetchJsonWithAuth = async <T>(
+  url: string,
+  options: RequestInit = {}
+): Promise<T> => {
+  const accessToken = getAccessToken();
+  let res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
+    ...options,
+    headers: {
+      ...options.headers,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (res.status === 401) {
+    const newAccessToken = await refreshAccessToken();
+    if (!newAccessToken) {
+      clearAccessToken();
+      const error: CustomError = new Error(
+        `リフレッシュトークンの有効期限が切れました。URL: ${url}`
+      );
+      error.code = 'REFRESH_TOKEN_EXPIRED';
+      throw error;
+    }
+
+    setAccessToken(newAccessToken);
+    res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${newAccessToken}`,
+      },
+    });
+  }
+
+  if (!res.ok) {
+    throw new Error(`失敗しました。URL: ${url} ステータス: ${res.status}`);
+  }
+  return res.json();
+};
+
+export const fetchActionWithAuth = async (url: string, options?: RequestInit) => {
+  const token = getAccessToken();
+  let res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
+    ...options,
+    headers: {
+      ...options?.headers,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (res.status === 401) {
+    const newToken = await refreshAccessToken();
+    if (!newToken) {
+      clearAccessToken();
+      const error: CustomError = new Error(
+        `リフレッシュトークンの有効期限が切れました。URL: ${url}`
+      );
+      error.code = 'REFRESH_TOKEN_EXPIRED';
+      throw error;
+    }
+
+    setAccessToken(newToken);
+    res = await fetch(`${BOOKS_API_ENDPOINT}${url}`, {
+      ...options,
+      headers: {
+        ...options?.headers,
+        Authorization: `Bearer ${newToken}`,
+      },
+    });
+  }
+
+  if (!res.ok) {
+    throw new Error(`失敗しました。URL: ${url} ステータス: ${res.status}`);
+  }
+  return null;
+};
+
+export const refreshAccessToken = async () => {
   try {
-    const url = `/books/${bookId}/reviews?&page=${page}&maxResults=${FETCH_REVIEWS_MAX_RESULTS}`;
-    const reviewPage = await fetchJson<ReviewPage>(url);
-    return reviewPage;
-  } catch {
-    throw new Error('レビュー一覧の読み込みが失敗しました。');
+    const options: RequestInit = {
+      method: 'POST',
+      credentials: 'include',
+    };
+    const res = await fetch(`${BOOKS_API_ENDPOINT}/refresh-token`, options);
+    const AccessToken = (await res.json()) as AccessToken;
+    return AccessToken.accessToken;
+  } catch (e) {
+    console.error(e);
+    return null;
   }
 };
 
-export const getReviewSummary = async (bookId: string) => {
-  await sleep(2000);
-
+export const validateToken = async () => {
   try {
-    const url = `/books/${bookId}/reviews/summary`;
-    const reviewSummary = await fetchJson<ReviewSummary>(url);
-    return reviewSummary;
-  } catch {
-    throw new Error('レビュー情報の読み込みが失敗しました。');
-  }
-};
-
-export const checkMyReviewExists = async (bookId: string, userId: number | undefined) => {
-  if (!userId) return false;
-
-  try {
-    const url = `/books/${bookId}/reviews/${userId}`;
-    await fetchJson<Review>(url);
+    const url = `/validate-token`;
+    const options = { method: 'POST' };
+    await fetchActionWithAuth(url, options);
     return true;
-  } catch {
+  } catch (e) {
+    // リフレッシュトークンが無効な場合はnull返却
+    if ((e as CustomError).code) return null;
     return false;
   }
 };
 
-------------------------------------------------------------
-discover
-page
-
-import BookListByGenreId from '@/components/book-list/book-list-by-genre-id';
-import BookListSkeleton from '@/components/book-list/book-list-skeleton';
-import GenreSelector from '@/components/genre-list/genre-selector';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useSearchParams } from 'react-router-dom';
-
-export default function Page() {
-  const [searchParams] = useSearchParams();
-  const genreId = searchParams.get('genreId') || '';
-  const page = Number(searchParams.get('page') || '1');
-
-  return (
-    <>
-      <GenreSelector />
-
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<BookListSkeleton />}>
-          <BookListByGenreId genreId={genreId} page={page} />
-        </Suspense>
-      </ErrorBoundary>
-    </>
-  );
-}
 
 ------------------------------------------------------------
-login
-page
+login/page
 
 import Logo from '@/components/layout/logo';
 import PasswordInput from '@/components/settings/password-input';
@@ -1426,9 +1805,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/hooks/context/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/hooks/use-user';
-import { login } from '@/lib/auth';
 import { Loader2Icon } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -1440,7 +1818,7 @@ export default function Page() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const { fetchUser } = useUser();
+  const { login } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -1467,7 +1845,6 @@ export default function Page() {
       return;
     }
 
-    await fetchUser();
     setIsSubmitting(false);
 
     const pathname = location.state?.from?.pathname || '/';
@@ -1529,7 +1906,6 @@ export default function Page() {
 }
 
 ------------------------------------------------------------
-settings
 change-email
 
 import Logo from '@/components/layout/logo';
@@ -1538,10 +1914,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useApiUser } from '@/hooks/api/use-api-user';
+import { useAuth } from '@/hooks/context/use-auth';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/hooks/use-user';
-import { changeEmail } from '@/lib/action';
 import { cn } from '@/lib/util';
 import { Loader2Icon } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
@@ -1556,7 +1932,8 @@ export default function Page() {
   const emailRef = useRef<HTMLInputElement | null>(null);
 
   const navigate = useNavigate();
-  const { user, logout } = useUser();
+  const { user, logout } = useAuth();
+  const { changeEmail } = useApiUser();
   const { toast } = useToast();
   const { confirmDialog } = useConfirmDialog();
 
@@ -1692,6 +2069,7 @@ export default function Page() {
   );
 }
 
+
 ------------------------------------------------------------
 change-password
 
@@ -1700,8 +2078,8 @@ import PasswordInput from '@/components/settings/password-input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { useApiUser } from '@/hooks/api/use-api-user';
 import { useToast } from '@/hooks/use-toast';
-import { changePassword } from '@/lib/action';
 import { Loader2Icon } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -1712,6 +2090,7 @@ export default function Page() {
   const currentPasswordRef = useRef<HTMLInputElement | null>(null);
 
   const navigate = useNavigate();
+  const { changePassword } = useApiUser();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -1823,10 +2202,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AVATER_IMAGE_MAX_COIUNT, AVATER_IMAGE_URL } from '@/constants/constants';
+import { useApiUser } from '@/hooks/api/use-api-user';
+import { useAuth } from '@/hooks/context/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/hooks/use-user';
-import { updateCurrentUser } from '@/lib/action';
-import { checkUsernameExists } from '@/lib/data';
 import { CircleHelpIcon, Loader2Icon } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -1846,7 +2224,8 @@ export default function Page() {
   const avatarUrlRef = useRef<HTMLInputElement | null>(null);
 
   const navigate = useNavigate();
-  const { user, fetchUser } = useUser();
+  const { user, setUser } = useAuth();
+  const { getCurrentUser, checkUsernameExists, updateCurrentUser } = useApiUser();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -1900,7 +2279,7 @@ export default function Page() {
 
     toast({ title: 'ユーザー情報を変更しました' });
 
-    await fetchUser();
+    setUser(await getCurrentUser());
     setIsSubmitting(false);
 
     navigate('/settings/profile');
@@ -1990,7 +2369,7 @@ import ProfileCounts from '@/components/settings/profile-counts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { useUser } from '@/hooks/use-user';
+import { useAuth } from '@/hooks/context/use-auth';
 import ErrorElement from '@/routes/error-element';
 import { KeyRoundIcon, MailIcon, UserRoundIcon } from 'lucide-react';
 import { Suspense } from 'react';
@@ -1998,7 +2377,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Link } from 'react-router-dom';
 
 export default function Page() {
-  const { user } = useUser();
+  const { user } = useAuth();
 
   if (!user) return null;
 
@@ -2066,7 +2445,6 @@ export default function Page() {
 
 ------------------------------------------------------------
 signup
-page
 
 import Logo from '@/components/layout/logo';
 import PasswordInput from '@/components/settings/password-input';
@@ -2074,10 +2452,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useApiUser } from '@/hooks/api/use-api-user';
+import { useAuth } from '@/hooks/context/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/hooks/use-user';
-import { signup } from '@/lib/auth';
-import { checkUsernameExists } from '@/lib/data';
 import { cn } from '@/lib/util';
 import { Loader2Icon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -2095,7 +2472,8 @@ export default function Page() {
   const passwordRef = useRef<HTMLInputElement | null>(null);
 
   const navigate = useNavigate();
-  const { fetchUser } = useUser();
+  const { signup, setUser } = useAuth();
+  const { getCurrentUser, checkUsernameExists } = useApiUser();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -2130,7 +2508,7 @@ export default function Page() {
       return;
     }
 
-    await fetchUser();
+    setUser(await getCurrentUser());
     setIsSubmitting(false);
 
     navigate('/');
@@ -2257,92 +2635,255 @@ export default function Page() {
 }
 
 ------------------------------------------------------------
-MAIN
-page
+protected-route
 
-import BookListNewReleases from '@/components/book-list/book-list-new-releases';
-import BookListSkeleton from '@/components/book-list/book-list-skeleton';
-import GenreListSkeleton from '@/components/genre-list/genre-list-skeleton';
-import GenreListTopPage from '@/components/genre-list/genre-list-top-page';
-import Hero from '@/components/layout/hero';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { useApiToken } from '@/hooks/api/use-api-token';
+import { useAuth } from '@/hooks/context/use-auth';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useEffect, useState } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-export default function Page() {
+export const ProtectedRoute = () => {
+  const location = useLocation();
+  const { logout } = useAuth();
+  const { validateToken } = useApiToken();
+  const { confirmDialog } = useConfirmDialog();
+
+  const [isAuthenticated, setIsAuthenticated] = useState<null | boolean>(null);
+
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      const isValid = await validateToken();
+      console.log(isValid);
+
+      if (isValid) {
+        setIsAuthenticated(true);
+      } else {
+        logout();
+        setIsAuthenticated(false);
+        await confirmDialog({
+          icon: 'i',
+          title: 'ログアウトしました',
+          message:
+            'ログインしてから一定時間が経過したため、自動でログアウトしました。再度ログインしてください。',
+          actionLabel: 'ログイン画面へ',
+          actionOnly: true,
+          persistent: true,
+        });
+      }
+    };
+    checkAuthentication();
+  }, [logout, location, confirmDialog, validateToken]);
+
+  if (isAuthenticated === null) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <Outlet />;
+};
+
+------------------------------------------------------------
+stores/auth-provider
+
+import { BOOKS_API_ENDPOINT } from '@/constants/constants';
+import { AccessToken, LoginRequest, LoginResponse, SignupRequest, User } from '@/types';
+import { createContext, useEffect, useState } from 'react';
+
+type ContextType = {
+  accessToken: string | null;
+  user: User | null;
+  setUser: (user: User | null) => void;
+  login: (loginRequest: LoginRequest) => Promise<boolean>;
+  signup: (signupRequest: SignupRequest) => Promise<boolean>;
+  logout: () => Promise<void>;
+  refreshAccessToken: () => Promise<void>;
+};
+
+const AuthContext = createContext<ContextType | undefined>(undefined);
+
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+
+  const login = async ({ email, password }: LoginRequest) => {
+    try {
+      const url = `${BOOKS_API_ENDPOINT}/login`;
+      const options: RequestInit = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      };
+
+      const response = await fetch(url, options);
+      const loginResponse = (await response.json()) as LoginResponse;
+
+      setUser(loginResponse.user);
+      setAccessToken(loginResponse.accessToken);
+      return true;
+    } catch (error) {
+      console.error('Failed login:', error);
+      setUser(null);
+      setAccessToken(null);
+      return false;
+    }
+  };
+
+  const signup = async ({ name, email, password }: SignupRequest) => {
+    try {
+      const url = `${BOOKS_API_ENDPOINT}/signup`;
+      const options: RequestInit = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      };
+
+      await fetch(url, options);
+      await login({ email, password });
+
+      return true;
+    } catch (error) {
+      console.error('Failed signup:', error);
+      setAccessToken(null);
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    const url = `${BOOKS_API_ENDPOINT}/logout`;
+    const options: RequestInit = {
+      method: 'POST',
+      credentials: 'include',
+    };
+
+    await fetch(url, options);
+    setUser(null);
+    setAccessToken(null);
+  };
+
+  const refreshAccessToken = async () => {
+    try {
+      const url = `${BOOKS_API_ENDPOINT}/refresh-token`;
+      const options: RequestInit = {
+        method: 'POST',
+        credentials: 'include',
+      };
+
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        throw new Error();
+      }
+      const data = (await response.json()) as AccessToken;
+
+      setAccessToken(data.accessToken);
+    } catch {
+      setUser(null);
+      setAccessToken(null);
+    }
+  };
+
+  useEffect(() => {
+    refreshAccessToken();
+  }, []);
+
   return (
-    <>
-      <Hero />
-
-      <div className="flex flex-col">
-        <p className="font-bold text-primary">ジャンルから探す</p>
-
-        <div className="my-4">
-          <ErrorBoundary fallback={<ErrorElement />}>
-            <Suspense fallback={<GenreListSkeleton />}>
-              <GenreListTopPage />
-            </Suspense>
-          </ErrorBoundary>
-        </div>
-      </div>
-
-      <div className="flex flex-col">
-        <p className="mb-4 font-bold text-primary">ニューリリース</p>
-        <ErrorBoundary fallback={<ErrorElement />}>
-          <Suspense fallback={<BookListSkeleton paginationOff />}>
-            <BookListNewReleases />
-          </Suspense>
-        </ErrorBoundary>
-      </div>
-    </>
+    <AuthContext.Provider
+      value={{
+        accessToken,
+        user,
+        setUser,
+        login,
+        signup,
+        logout,
+        refreshAccessToken,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
+};
+
+export { AuthContext, AuthProvider };
+
+
+------------------------------------------------------------
+types/auth
+
+import { User } from '@/types/user';
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+};
+
+export interface LoginResponse {
+  accessToken: string;
+  user: User;
+}
+
+export interface SignupRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface AccessToken {
+  accessToken: string;
+}
+
+export interface CustomError extends Error {
+  code?: string;
 }
 
 ------------------------------------------------------------
-book
+error-response
 
-import { Genre } from '@/types/genre';
-
-export interface Book {
-  id: string;
-  title: string;
-  description: string;
-  genreIds: number[];
-  authors: string[];
-  publishedDate: string;
-  imageUrl: string;
-  reviewCount: number;
-  averageRating: number;
-}
-
-export interface BookPage {
-  page: number;
-  totalPages: number;
-  totalItems: number;
-  books: Book[];
-}
-
-export interface BookDetails {
-  id: string;
-  title: string;
-  description: string;
-  genres: Genre[];
-  authors: string[];
-  publisher: string;
-  publishedDate: string;
-  price: number;
-  pageCount: number;
-  isbn: string;
-  imageUrl: string;
-  reviewCount: number;
-  averageRating: number;
+export interface ErrorResponse {
+  messages: string[];
+  status: string;
 }
 
 ------------------------------------------------------------
+main
+
+import { router } from '@/routes/route';
+import { AuthProvider } from '@/stores/auth-provider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router-dom';
+import './index.css';
+
+const queryClient = new QueryClient();
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </QueryClientProvider>
+  </StrictMode>
+);
+
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+
 
