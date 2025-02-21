@@ -1,337 +1,148 @@
-７ファイル
+８ファイル
 
 ------------------------------------------------------------
-init.sql
+SecurityConfig
 
-DROP DATABASE IF EXISTS `my-books-db`;
-CREATE DATABASE `my-books-db`;
+package com.example.my_books_backend.config;
 
-USE `my-books-db`;
+import java.util.Arrays;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import lombok.RequiredArgsConstructor;
 
-DROP TABLE IF EXISTS `books`;
-DROP TABLE IF EXISTS `genres`;
-DROP TABLE IF EXISTS `book_genres`;
-DROP TABLE IF EXISTS `users`;
-DROP TABLE IF EXISTS `roles`;
-DROP TABLE IF EXISTS `user_roles`;
-DROP TABLE IF EXISTS `reviews`;
-DROP TABLE IF EXISTS `favorites`;
-DROP TABLE IF EXISTS `bookmarks`;
-DROP TABLE IF EXISTS `book_chapters`;
-DROP TABLE IF EXISTS `book_content_pages`;
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+@EnableMethodSecurity(prePostEnabled = true)
+public class SecurityConfig {
+    private final AuthTokenFilter authTokenFilter;
 
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable());
 
-CREATE TABLE `books` (
-  `id` VARCHAR(255) NOT NULL PRIMARY KEY,
-  `title` VARCHAR(255) NOT NULL DEFAULT '',
-  `description` TEXT NOT NULL,
-  `authors` VARCHAR(255) NOT NULL DEFAULT '',
-  `publisher` VARCHAR(255) NOT NULL DEFAULT '',
-  `published_date` DATE NOT NULL,
-  `price` INT NOT NULL DEFAULT 0,
-  `page_count` INT NOT NULL DEFAULT 0,
-  `isbn` VARCHAR(255) NOT NULL DEFAULT '',
-  `image_url` VARCHAR(255) DEFAULT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
-);
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-CREATE TABLE `genres` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `name` VARCHAR(255) NOT NULL DEFAULT '',
-  `description` VARCHAR(255) NOT NULL DEFAULT '',
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
-);
+        http.sessionManagement(
+                session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-CREATE TABLE `book_genres` (
-  `book_id` VARCHAR(255) NOT NULL,
-  `genre_id` BIGINT NOT NULL,
-  PRIMARY KEY (`book_id`, `genre_id`),
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`genre_id`) REFERENCES `genres`(`id`) ON DELETE CASCADE
-);
+        http.authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/api/v1/login", "/api/v1/signup", "/api/v1/logout").permitAll()
+                .requestMatchers("/api/v1/refresh-token", "/api/v1/users/exists").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/books/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/genres/**").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                .permitAll().anyRequest().authenticated());
 
-CREATE TABLE `users` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `email` VARCHAR(255) NOT NULL DEFAULT '',
-  `password` VARCHAR(255) NOT NULL DEFAULT '',
-  `name` VARCHAR(255) NOT NULL DEFAULT '',
-  `avatar_url` VARCHAR(255) DEFAULT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
-);
+        http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
-CREATE TABLE `roles` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `name` VARCHAR(255) NOT NULL DEFAULT '',
-  `description` VARCHAR(255) NOT NULL DEFAULT '',
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
-);
+        return http.build();
+    }
 
-CREATE TABLE `user_roles` (
-  `user_id` BIGINT NOT NULL,
-  `role_id` BIGINT NOT NULL,
-  PRIMARY KEY (`user_id`, `role_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE
-);
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 
-CREATE TABLE `reviews` (
-  `user_id` BIGINT NOT NULL,
-  `book_id` VARCHAR(255) NOT NULL,
-  `comment` TEXT NOT NULL,
-  `rating` DECIMAL(2, 1) CHECK (`rating` >= 0 AND `rating` <= 5),
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`user_id`, `book_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
-);
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-CREATE TABLE `favorites` (
-  `user_id` BIGINT NOT NULL,
-  `book_id` VARCHAR(255) NOT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`user_id`, `book_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
-);
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("https://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);
 
-CREATE TABLE `bookmarks` (
-  `user_id` BIGINT NOT NULL,
-  `book_id` VARCHAR(255) NOT NULL,
-  `chapter_number` INT NOT NULL,
-  `page_number` INT NOT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`user_id`, `book_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
-);
-
-CREATE TABLE `book_chapters` (
-  `book_id` VARCHAR(255) NOT NULL,
-  `chapter_number` INT NOT NULL,
-  `title` VARCHAR(255) NOT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`book_id`, `chapter_number`),
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
-);
-
-CREATE TABLE `book_content_pages` (
-  `book_id` VARCHAR(255) NOT NULL,
-  `chapter_number` INT NOT NULL,
-  `page_number` INT NOT NULL,
-  `content` TEXT NOT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`book_id`, `chapter_number`, `page_number`),
-  FOREIGN KEY (`book_id`, `chapter_number`) REFERENCES `book_chapters`(`book_id`, `chapter_number`) ON DELETE CASCADE
-);
-
--- データのロード
-LOAD DATA INFILE '/docker-entrypoint-initdb.d/books.csv'
-INTO TABLE books
-FIELDS TERMINATED BY ','
-ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-(`id`, `title`, `description`, `authors`, `publisher`, `published_date`, `price`, `page_count`, `isbn`, `image_url`);
-
-INSERT INTO `genres` (`name`, `description`) VALUES
-('ミステリー', '謎解きや推理をテーマにした作品'),
-('サスペンス', '緊張感や驚きを伴う作品'),
-('ロマンス', '恋愛をテーマにした作品'),
-('ファンタジー', '魔法や異世界を舞台にした作品'),
-('SF', '科学技術や未来をテーマにした作品'),
-('ホラー', '恐怖をテーマにした作品'),
-('歴史', '歴史的な出来事や人物をテーマにした作品'),
-('絵本', '子供向けのイラストが多い本'),
-('教科書', '教育機関で使用される教材'),
-('専門書', '特定の分野に特化した書籍'),
-('研究書', '学術的な研究をまとめた書籍'),
-('環境', '自然や環境問題をテーマにした作品'),
-('冒険', '冒険や探検をテーマにした作品'),
-('図鑑', '特定のテーマに関する情報を集めた書籍'),
-('音楽', '音楽に関する書籍'),
-('ドラマ', '人間関係や感情を描いた作品'),
-('教育', '教育に関する書籍');
-
-LOAD DATA INFILE '/docker-entrypoint-initdb.d/book_genres.csv'
-INTO TABLE book_genres
-FIELDS TERMINATED BY ','
-ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-(`book_id`, `genre_id`);
-
-INSERT INTO `users` (`name`, `email`, `password`, `avatar_url`) VALUES
-('Lars', 'lars@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar01.png'),
-('Nina', 'nina@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar02.png'),
-('Paul', 'paul@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar03.png'),
-('Julia', 'julia@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar04.png'),
-('Lee', 'lee@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar05.png'),
-('Lili', 'lili@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar06.png'),
-('Steve', 'steve@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar07.png'),
-('Anna', 'anna@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar08.png'),
-('Law', 'law@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar09.png'),
-('Alisa', 'alisa@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar10.png');
-
-INSERT INTO `roles` (`name`, `description`) VALUES
-('ROLE_ADMIN', '管理者権限'),
-('ROLE_USER', 'ユーザー権限');
-
-INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
-(1, 2),
-(2, 2),
-(3, 2),
-(4, 2),
-(5, 2),
-(6, 2),
-(7, 2),
-(8, 2),
-(9, 2),
-(10, 2),
-(3, 1),
-(4, 1);
-
-INSERT INTO `reviews` (`user_id`, `book_id`, `comment`, `rating`) VALUES
-(1, 'afcIMuetDuzj', '知識の宝庫で、読み終える頃には少し賢くなった気がした。', 4.5),
-(2, 'afcIMuetDuzj', '人生観が変わるほどの深い洞察が詰まっていました。', 3.0),
-(3, 'afcIMuetDuzj', '読む手が止まらないほど引き込まれた。', 3.5),
-(4, 'afcIMuetDuzj', '心に響く言葉が何度も胸を打った。', 5.0),
-(5, 'afcIMuetDuzj', '言葉の美しさに何度もページをめくり直した。', 4.0),
-(6, 'afcIMuetDuzj', '想像力をかき立てられる素晴らしいストーリーだった。', 4.5),
-(7, 'afcIMuetDuzj', '感動しました。何度も読み直したいと思いました。', 3.0),
-(8, 'afcIMuetDuzj', '登場人物に感情移入しすぎて泣いてしまった。', 5.0),
-(9, 'afcIMuetDuzj', '終わるのが惜しいほど楽しかった。', 4.5),
-(10, 'afcIMuetDuzj', '感動的な結末に、読後の余韻が心地よかった。', 3.5),
-(1, '9UizZw491wye', '読み進むにつれドンドン引き込まれていきました。', 3.5),
-(2, '9UizZw491wye', '首を長くして待っていました。非常に楽しかったです。', 3.0),
-(3, '9UizZw491wye', '読んでいる間、時間を忘れるほど夢中になれました。', 3.0),
-(4, '9UizZw491wye', '物語の展開が巧妙で、予想を超える展開が続いて面白かったです。', 3.0),
-(1, 'pDYIwtdahwkp', '私もこんな経験をしたいと思いました。', 5.0);
-
-INSERT INTO `favorites` (`user_id`, `book_id`) VALUES
-(1, 'afcIMuetDuzj'),
-(2, 'afcIMuetDuzj'),
-(3, 'afcIMuetDuzj'),
-(4, 'afcIMuetDuzj'),
-(4, 'pDYIwtdahwkp'),
-(5, 'pDYIwtdahwkp'),
-(6, 'pDYIwtdahwkp'),
-(3, '9UizZw491wye'),
-(3, 'ln5NiMJq02V7');
-
-INSERT INTO `bookmarks` (`user_id`, `book_id`, `chapter_number`, `page_number`) VALUES
-(1, 'afcIMuetDuzj', 1, 1),
-(3, 'afcIMuetDuzj', 3, 3),
-(4, 'afcIMuetDuzj', 6, 4);
-
-INSERT INTO `book_chapters` (`book_id`, `chapter_number`, `title`) VALUES
-('afcIMuetDuzj', 1, 'プロローグ'),
-('afcIMuetDuzj', 2, '第一章：湖畔の招待状'),
-('afcIMuetDuzj', 3, '第二章：運命の出会い'),
-('afcIMuetDuzj', 4, '第三章：舞踏会の奇跡'),
-('afcIMuetDuzj', 5, '第四章：消えゆく光'),
-('afcIMuetDuzj', 6, '第五章：新たな誓い');
-
-INSERT INTO `book_content_pages` (`book_id`, `chapter_number`, `page_number`, `content`) VALUES
-('afcIMuetDuzj', 1, 1, '月が湖面に銀の道を描く夜、静寂の森の奥深くで、ワニたちの秘密の舞踏会が開かれる。年に一度、満月の夜にだけ現れるこの神秘の宴は、選ばれた者だけが参加を許される。'),
-
-('afcIMuetDuzj', 2, 1, '若きワニのルカは、幼いころからこの舞踏会の伝説を聞かされて育った。しかし、実際にその場に足を踏み入れた者は少なく、語られる話のほとんどは夢物語のようだった。月の舞踏会とは、一体どのようなものなのか。その幻想的な響きに、ルカは幼いころから憧れを抱いていた。\n\nある日、湖の畔を散歩していると、微かに光るものが目に入った。近づいてみると、青い蓮の葉の上に、一枚の紙が置かれていた。それは銀色の文字で「月の舞踏会へようこそ」と記された招待状だった。光を帯びた紙は、まるで月の欠片のように輝いている。\n\nルカは驚きと共にそれを手に取った。招待状は、信じられないほど滑らかな手触りで、触れると心が温かくなるような気がした。なぜ自分が選ばれたのか、考えても答えは出なかったが、胸の奥に湧き上がる興奮を抑えることはできなかった。\n\nその夜、ルカは星空の下で静かに湖を見つめた。湖面には月が映り、ゆらゆらと揺れていた。その光景が、まるでこれから訪れる運命を象徴しているかのように感じられた。月は優しく光を投げかけ、まるでルカを舞踏会へ誘うように湖面を照らしていた。'),
-('afcIMuetDuzj', 2, 2, '翌日、ルカは森の長老のもとを訪れ、舞踏会について尋ねた。長老はゆっくりと目を閉じ、深い呼吸をしたあと、静かに語り始めた。「月の舞踏会は、心を持つ者のみが招かれる。お前が選ばれたということは、運命がお前に試練を与えたのかもしれん」\n\n「試練……？」ルカは長老の言葉を反芻した。\n\n「そうじゃ。舞踏会に足を踏み入れた者は、ただ踊るだけではない。そこでは、心の奥底に眠る想いが試されるのじゃ」\n\n長老は遠い目をしながら続けた。「かつて、舞踏会に参加した者の中には、愛を見つけた者もおれば、悲しみを抱えた者もいた。だが、いずれもこの宴が人生にとって大切な瞬間になったことは確かじゃ」\n\nルカはその言葉の意味を考えながら、招待状を大切に胸に抱いた。そして、舞踏会の夜が訪れるのを、今か今かと待ちわびた。'),
-
-('afcIMuetDuzj', 3, 1, '舞踏会の夜、ルカは湖のほとりへと向かった。湖は鏡のように月の光を映し、その周囲には神秘的な青白い霧が漂っていた。湖畔にはすでに多くのワニたちが集まっていた。彼らの鱗は月光を浴びて淡く輝き、まるでこの世のものとは思えないほど幻想的な光景が広がっていた。\n\nルカは緊張しながらその輪の中へと足を踏み入れた。すると、遠くの方でひときわ美しく輝くワニの姿が目に入った。彼女の名はセレナ。透き通るような銀色の鱗を持ち、瞳は夜空の星を映したように輝いていた。その姿は、まるで月の化身のようだった。\n\n「今夜は特別な夜よ」\n\nセレナは微笑みながらルカに手を差し出した。その瞬間、ルカの胸の奥にかすかな震えが走った。彼の鼓動は高鳴り、時間が止まったかのように感じられた。迷うことなくルカは彼女の手を取り、二人はゆっくりと舞踏の輪の中へと入っていった。\n\n最初はぎこちない動きだったが、セレナが優しくリードしてくれた。彼女の手は驚くほど柔らかく温かかった。ルカの緊張は徐々に解け、二人のステップはしだいに調和を生み出し始めた。湖の水面には、月の光と二人の姿が映り込み、ゆらめく波紋とともに美しい模様を描いていた。'),
-('afcIMuetDuzj', 3, 2, '他のワニたちもそれぞれのパートナーと踊り、湖全体がまるで幻想の世界へと変わっていく。水のさざめきと夜風の旋律が、音楽のように響き渡る。ルカはこの夜が永遠に続けばいいと心から願った。\n\n「ここでは、過去も未来も関係ない。私たちは今、この瞬間だけを生きているの」\n\nセレナはルカの耳元で囁いた。その声は心の奥深くに響き、ルカの胸を熱くした。彼はセレナの手を強く握りしめ、踊り続けた。言葉を交わさずとも、彼らの間には確かな絆が生まれつつあった。\n\n夜が更けるにつれ、湖面の霧はますます濃くなり、まるで夢の世界へと足を踏み入れたかのようだった。ワニたちは次第に踊りに没頭し、時間の流れを忘れていった。ルカはふと、セレナの瞳を覗き込んだ。その深い輝きの中には、何か秘密が隠されているように感じられた。\n\n「セレナ……君は、なぜこの舞踏会に？」\n\nルカが尋ねると、セレナは少し寂しそうに微笑んだ。「私は、月に仕える一族のワニなの。だから、満月の夜にだけこの場所へ来ることができるの」\n\n「満月の夜だけ……？」ルカは思わず息を呑んだ。'),
-('afcIMuetDuzj', 3, 3, 'セレナは静かに頷いた。「この舞踏会は、月の光によって開かれる。でも、その光が消えれば、私は再び湖の奥深くへ戻らなければならないの」\n\nルカは彼女の言葉を飲み込みながら、胸が締めつけられるような感覚を覚えた。この夜が終われば、彼女とは離れ離れになってしまうのだろうか。\n\nしかし、ルカはその思いを押し殺し、今はただこの瞬間を大切にしようと決めた。彼はセレナの手をそっと引き寄せ、静かに言った。「今は……この夜を楽しもう」\n\nセレナの瞳が驚いたように揺れ、そして優しく微笑んだ。「ええ、そうね」\n\n二人は再び踊り始めた。湖の水面はまるで鏡のように彼らを映し出し、月の光が二人の周りを優しく包み込んでいた。ルカは、今この瞬間だけは、彼女とずっと一緒にいられるのだと信じたかった。\n\nその夜、彼らの心は一つになり、運命が新たな軌跡を描き始めたのだった。'),
-
-('afcIMuetDuzj', 4, 1, 'ワニたちのダンスは、水面を揺らす優雅な波紋となり、月の光がそれに呼応するかのように輝きを増した。音もなく進むダンスの中で、ルカはセレナに心を奪われていく。\n\n「ここでは、時間が止まるの」\n\nセレナの言葉どおり、この夜の間だけ、ワニたちは自由に心を通わせることができる。しかし、夜明けとともに舞踏会は終わり、それぞれの生活へと戻らなければならなかった。\n\nルカはその言葉の意味を考えながら、彼女の手をぎゅっと握った。セレナの温もりが、彼の胸の中に深く刻まれていく。彼女の微笑みが、この場所の魔法そのものであるかのように感じられた。'),
-('afcIMuetDuzj', 4, 2, 'しかし、彼の心には小さな不安が芽生え始めていた。この夜が終わったら、彼はまた孤独に戻るのだろうか？セレナと過ごした時間は夢のように消えてしまうのか？\n\n「セレナ……この夜が終わっても、君に会う方法はないの？」\n\nルカが問いかけると、セレナは一瞬言葉を飲み込んだ。しかし、彼の真剣なまなざしを見つめると、静かに微笑んだ。\n\n「ルカ、私は月の光によってここに来ることができるの。だから……あなたが月を信じてくれるなら、私はまたここに戻ってこられるわ」\n\n彼女の言葉には確かな優しさと切なさが込められていた。ルカはその意味を深く理解した。彼女は、自らの運命に縛られているのだ。それでも、彼女はこの夜を楽しもうとしている。\n\n「だったら……僕は月を信じる。君を信じるよ、セレナ」\n\n彼は力強く言い、彼女の手を握る。その瞬間、月の光が二人を包み込み、まるで二人だけの世界が広がったかのようだった。'),
-('afcIMuetDuzj', 4, 3, '舞踏会はますます盛り上がり、ワニたちは次々と踊りに身を委ねていく。湖の水面には、光の粒が浮かび、まるで星々が降り注いでいるかのようだった。ルカとセレナは、その美しさに酔いしれながら、静かに踊り続けた。\n\n「ルカ……ありがとう」\n\nセレナがそっと囁く。彼女の声には、感謝と切なさが混じっていた。\n\n「セレナ、僕は……」\n\nルカが何かを言おうとした瞬間、遠くの空に一筋の流れ星が走った。その光が湖に反射し、まるで二人の未来を示すように揺らめいた。ルカはその輝きを見上げながら、心に誓った。\n\nこの夜がどれだけ儚くても、この出会いは永遠のものにしよう。\n\n彼らは夜明けまで踊り続けた。時が止まったように、ただひたすらに。\n\nルカは願った。この時間が永遠に続くようにと。'),
-
-('afcIMuetDuzj', 5, 1, '夜が更けるにつれ、月はゆっくりと傾き始めた。そして、舞踏会が終わる時が近づいてくる。湖の水面に映る月の光が揺らめき、ワニたちは一匹また一匹と静かに去っていった。しかし、ルカはその場を動けなかった。セレナの手を握りしめたまま、彼は心の奥からこみ上げる感情を抑えきれずにいた。\n\n「朝が来ても、僕たちはまた会えるの？」\n\nルカの問いかけに、セレナはわずかに微笑んだ。しかし、その笑顔の奥には悲しみが滲んでいた。\n\n「この夜を信じて……」\n\nそう囁くと、彼女の体はゆっくりと透明になり始めた。ルカは目を見開いた。彼女の手の感触が消えていく。彼の目の前で、セレナは淡い月光とともに霧のように消えていったのだ。\n\n「セレナ！！」\n\nルカは叫んだ。彼女の名を何度も呼び、手を伸ばした。しかし、彼が触れることができたのは冷たい湖の風だけだった。湖面には静かな波紋が広がり、すべてが夢であったかのように静寂に包まれた。'),
-('afcIMuetDuzj', 5, 2, '彼女はどこへ行ってしまったのか？ なぜ突然消えてしまったのか？\n\nそのとき、ルカの後ろから低い声が響いた。\n\n「お前も気づいたか……？」\n\nルカが振り返ると、そこには長老のワニ、エルダーが立っていた。彼は湖の舞踏会を何十年も見守ってきた賢者だった。\n\n「彼女は……どこへ？」\n\n震える声でルカが尋ねると、エルダーは深いため息をついた。\n\n「セレナは……もともとこの世界の住人ではないのだよ」\n\nルカの心臓が跳ねた。\n\n「それは、どういうことですか？」\n\nエルダーは湖面を見つめながら語り始めた。\n\n「昔、この湖には月の使者がいた。彼らは満月の夜にだけ現れ、地上の者と交流を持つことが許されていた。しかし、それは決して永遠には続かない掟だった。舞踏会が終わるとともに、彼らは月へと帰らなければならないのだ」\n\nルカの心臓が強く打った。'),
-('afcIMuetDuzj', 5, 3, '「セレナが……月の使者？」\n\n「そうだ。彼女は湖に住むワニではなく、月の民の一人だった。お前と出会ったのも偶然ではない。彼女は、この湖で自分を待ってくれる者を探していたのかもしれない」\n\nルカは震えた。彼の心の中に生まれた愛は、彼女の運命によって引き裂かれてしまうのか。彼は拳を握りしめた。\n\n「でも……彼女は僕に言ったんです。また会えるって」\n\nエルダーは静かに頷いた。\n\n「確かに、満月の夜になれば彼女は再びここへ来ることができる。しかし、それはお前の想いの強さにかかっているのだ」\n\n「僕の……想い？」\n\n「そうだ。月の使者が地上に留まるためには、強い絆が必要だ。もし、お前が彼女を心から信じ続けるなら、彼女は再びこの湖に降り立つことができるかもしれない」\n\nルカは湖を見つめた。月の光が優しく揺らめき、まるでセレナの面影を映しているようだった。彼の胸に強い決意が生まれた。\n\n「僕は、彼女を信じます。何があっても、満月の夜を待ちます」\n\nエルダーは静かに微笑んだ。\n\n「ならば、お前に試練が与えられるだろう。次の満月までに、心を揺らがせぬよう強く持ち続けるのだ。そうすれば、月はお前の願いを聞き入れてくれるかもしれない」\n\nルカは深く息を吸った。湖の冷たい風が、彼の心に決意を刻み込んだ。\n\n「セレナ……僕は君を待つよ。何があっても……」\n\nそう誓った夜、湖の奥からかすかな光が浮かび上がった。月の使者が残した、わずかな奇跡のように。彼はその場を離れることができず、ただ彼女の影を探し続けた。'),
-
-('afcIMuetDuzj', 6, 1, 'ルカは満月の夜を待ち続けた。日が昇り、日が沈むたびに、彼の心はセレナへの想いを募らせていった。彼女が本当に戻ってくるのか、それともこれは儚い夢だったのか。不安と希望が入り混じりながらも、彼は誓いを守り続けた。\n\nそして、運命の夜が訪れた。\n\n湖のほとりに立つルカの前で、水面が光を帯び始めた。その光は月と呼応するように輝き、やがて湖の中心からセレナの姿が浮かび上がった。\n\n「ルカ……」\n\n彼女の声は、夜風に溶けるように優しく響いた。ルカは目を見開き、彼女へと駆け寄った。\n\n「セレナ！ 本当に戻ってきたんだね！」\n\n彼は彼女の手を取った。その温もりが、確かにここにいることを証明していた。\n\n「私はあなたの想いに導かれて戻ってきたの。でも……私は決めなければならないの」\n\n「決める？」\n\n「私は月へ戻るか、ここに残るかの選択を迫られているの」\n\n湖の光が強くなり、セレナの姿を包み込むように揺らめいた。'),
-('afcIMuetDuzj', 6, 2, '「ルカ、私は……」\n\n彼女の目が揺れ動いていた。戸惑い、恐れ、そして希望。すべての感情が交錯していた。\n\n「私は、あなたと共に生きたい。でも、もし私がこの世界に残るなら、二度と月の光に触れることはできないの」\n\nルカの心臓が強く打った。\n\n「それは……どういうこと？」\n\nセレナは静かに湖を見つめた。月の光が彼女の足元に淡く差し込み、その身体を透かしていた。\n\n「私は月の使者。私の存在は月と結びついている。でも、もし私がこの湖に残るなら、私は……」\n\n彼女は言葉を飲み込んだ。\n\n「私は、ただのワニになる」\n\nルカは息をのんだ。\n\n「それって……どういうこと？」\n\n「私は、今までの記憶を失い、この湖の住人として生きることになるの」\n\n静寂が広がった。\n\n「君のことも、全部忘れるってこと？」\n\nセレナは小さく頷いた。\n\n「でも、私はあなたと生きたい。あなたが私を愛してくれるなら……たとえ記憶がなくなっても、私はあなたのそばにいたいの」\n\nルカは拳を握りしめた。セレナのそばにいられるなら、それだけでいいと思うべきなのか。でも、彼女が自分のことを忘れてしまうのなら、それは本当に幸せと言えるのか。'),
-('afcIMuetDuzj', 6, 3, '「……セレナ、本当にそれでいいの？」\n\n「怖い。でも、あなたのそばにいたい。だから……選ぶのはあなた」\n\nルカは震える手で彼女の頬に触れた。\n\n「僕は……」\n\nそのとき、湖の奥から新たな光が差し込んだ。エルダーが静かに現れた。\n\n「決断の時だ。ルカ、お前が彼女を心から愛し、彼女のすべてを受け入れるなら……月の掟を超える方法がある」\n\n「方法が？」\n\nエルダーは湖に手をかざし、湖面が波打った。\n\n「お前が彼女を愛し続け、どんな時もその想いを忘れなければ……セレナは月の使者としてではなく、一個の存在として生きることができる。記憶を失わずに」\n\n「本当か？」\n\n「ただし、それにはお前の魂も試される。お前が彼女を信じ続け、どんな困難にも負けない覚悟が必要だ」\n\nルカはセレナを見つめた。\n\n「セレナ、僕は君と共に生きたい。君の記憶が消えるなんて、そんなの耐えられない。でも、もし僕の想いが君をつなぎとめるなら……」\n\nセレナは微笑んだ。'),
-('afcIMuetDuzj', 6, 4, '「なら……試してみる？」\n\nルカは深く頷いた。\n\n「どんな試練でも、僕は乗り越える。君と一緒にいるためなら」\n\nその瞬間、湖の光が大きく揺らぎ、二人を包み込んだ。世界が眩しい光に満たされ、すべてが溶け合うような感覚に襲われた。\n\n気が付くと、ルカは湖のほとりに倒れていた。\n\n「ルカ？」\n\n優しい声が聞こえた。顔を上げると、そこには変わらぬ姿のセレナがいた。\n\n「セレナ……？」\n\n「私、まだ覚えてる……！」\n\nルカの胸に喜びが広がった。彼はセレナを抱きしめた。\n\n「やった……！」\n\n湖の水面には、二匹のワニが寄り添う影が映っていた。月は穏やかに輝き、二人の未来を祝福するように照らしていた。\n\n彼らの愛は、月の掟すら超えたのだ。\n\n──ワニと月の舞踏会は、終わりを迎えた。\n\nしかし、それは二人の新たな物語の始まりでもあった。');
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+}
 
 ------------------------------------------------------------
-BookController
+AuthController
 
 package com.example.my_books_backend.controller;
 
-import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.BookDetailsResponse;
-import com.example.my_books_backend.dto.book.BookPageResponse;
-import com.example.my_books_backend.service.BookService;
+import com.example.my_books_backend.dto.auth.LoginRequest;
+import com.example.my_books_backend.dto.auth.LoginResponse;
+import com.example.my_books_backend.dto.auth.SignupRequest;
+import com.example.my_books_backend.dto.auth.AccessTokenResponse;
+import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-public class BookController {
-    private final BookService bookService;
+public class AuthController {
+    private final AuthService authService;
 
-    @GetMapping("/books/{bookId}")
-    public ResponseEntity<BookDetailsResponse> getBookDetailsById(@PathVariable String bookId) {
-        BookDetailsResponse bookDetailsResponse = bookService.getBookDetailsById(bookId);
-        return ResponseEntity.ok(bookDetailsResponse);
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request,
+            HttpServletResponse response) {
+        LoginResponse loginResponse = authService.login(request, response);
+        return ResponseEntity.ok(loginResponse);
     }
 
-    @GetMapping("/books/new-books")
-    public ResponseEntity<List<BookResponse>> getNewBooks() {
-        List<BookResponse> bookResponses = bookService.getNewBooks();
-        return ResponseEntity.ok(bookResponses);
+    @PostMapping("/signup")
+    public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignupRequest request) {
+        UserResponse userResponse = authService.signup(request);
+        return ResponseEntity.ok(userResponse);
     }
 
-    @GetMapping("/books/search")
-    public ResponseEntity<BookPageResponse> getBookPageByTitle(@RequestParam String q,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookPageResponse bookPageResponse = bookService.getBookPageByTitle(q, page, maxResults);
-        return ResponseEntity.ok(bookPageResponse);
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AccessTokenResponse> refreshToken(HttpServletRequest request) {
+        AccessTokenResponse accessTokenResponse = authService.refreshAccessToken(request);
+        return ResponseEntity.ok(accessTokenResponse);
     }
 
-    @GetMapping("/books/discover")
-    public ResponseEntity<BookPageResponse> getBookPageByGenreId(@RequestParam String genreId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookPageResponse bookPageResponse =
-                bookService.getBookPageByGenreId(genreId, page, maxResults);
-        return ResponseEntity.ok(bookPageResponse);
+    @PostMapping("/validate-token")
+    public ResponseEntity<Void> validateToken(HttpServletRequest request) {
+        authService.validateToken(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        authService.logout(response);
+        return ResponseEntity.ok().build();
     }
 }
 
 ------------------------------------------------------------
-BookDetailsResponse
+LoginResponse
 
-package com.example.my_books_backend.dto.book;
+package com.example.my_books_backend.dto.auth;
 
-import java.sql.Date;
-import java.util.List;
-import com.example.my_books_backend.dto.genre.GenreResponse;
+import com.example.my_books_backend.dto.user.UserResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -339,225 +150,487 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookDetailsResponse {
-    private String id;
-    private String title;
-    private String description;
-    private List<GenreResponse> genres;
-    private List<String> authors;
-    private String publisher;
-    private Date publishedDate;
-    private Integer price;
-    private Integer pageCount;
-    private String isbn;
-    private String imageUrl;
-    private Integer reviewCount;
-    private Double averageRating;
+public class LoginResponse {
+    private String accessToken;
+    private UserResponse user;
 }
 
 ------------------------------------------------------------
-BookResponse
+ExceptionControllerAdvice
 
-package com.example.my_books_backend.dto.book;
+package com.example.my_books_backend.exception;
 
-import java.sql.Date;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class BookResponse {
-    private String id;
-    private String title;
-    private String description;
-    private List<Long> genreIds;
-    private List<String> authors;
-    private Date publishedDate;
-    private String imageUrl;
-    private Integer reviewCount;
-    private Double averageRating;
-}
-
-------------------------------------------------------------
-BookMapper
-
-package com.example.my_books_backend.mapper;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.review.ReviewSummaryResponse;
-import com.example.my_books_backend.dto.book.BookDetailsResponse;
-import com.example.my_books_backend.dto.book.BookPageResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.service.ReviewService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-@Component
-@RequiredArgsConstructor
-public class BookMapper {
-    private final ModelMapper modelMapper;
-    private final ReviewService reviewService;
+@ControllerAdvice
+public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
+        @ExceptionHandler({NotFoundException.class})
+        public ResponseEntity<Object> handleNotFound(NotFoundException ex, WebRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()),
+                                HttpStatus.NOT_FOUND);
+                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
+                                HttpStatus.NOT_FOUND, request);
+        }
 
-    public BookResponse toBookResponse(Book book) {
-        BookResponse bookResponse = modelMapper.map(book, BookResponse.class);
+        @ExceptionHandler({BadRequestException.class})
+        public ResponseEntity<Object> handleBadRequest(BadRequestException ex, WebRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()),
+                                HttpStatus.BAD_REQUEST);
+                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
+                                HttpStatus.BAD_REQUEST, request);
+        }
 
-        List<Long> genres = book.getGenres().stream().map(genre -> genre.getId()).toList();
-        bookResponse.setGenreIds(genres);
+        @ExceptionHandler({ValidationException.class})
+        public ResponseEntity<Object> handleBadRequest(ValidationException ex, WebRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()),
+                                HttpStatus.BAD_REQUEST);
+                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
+                                HttpStatus.BAD_REQUEST, request);
+        }
 
-        List<String> authors = Arrays.asList(book.getAuthors().split(","));
-        bookResponse.setAuthors(authors);
+        @ExceptionHandler({ConflictException.class})
+        public ResponseEntity<Object> handleConflict(ConflictException ex, WebRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()),
+                                HttpStatus.CONFLICT);
+                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
+                                HttpStatus.CONFLICT, request);
+        }
 
-        ReviewSummaryResponse reviewSummaryResponse = reviewService.getReviewSummary(book.getId());
-        bookResponse.setReviewCount(reviewSummaryResponse.getReviewCount());
-        bookResponse.setAverageRating(reviewSummaryResponse.getAverageRating());
+        @ExceptionHandler({UnauthorizedException.class})
+        public ResponseEntity<Object> handleUnauthorized(UnauthorizedException ex,
+                        WebRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()),
+                                HttpStatus.UNAUTHORIZED);
+                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
+                                HttpStatus.UNAUTHORIZED, request);
+        }
 
-        return bookResponse;
-    }
+        @ExceptionHandler({ForbiddenException.class})
+        public ResponseEntity<Object> handleForbidden(ForbiddenException ex, WebRequest request) {
+                ErrorResponse errorResponse = new ErrorResponse(Arrays.asList(ex.getMessage()),
+                                HttpStatus.FORBIDDEN);
+                return this.handleExceptionInternal(ex, errorResponse, new HttpHeaders(),
+                                HttpStatus.FORBIDDEN, request);
+        }
 
-    public List<BookResponse> toBookResponseList(List<Book> books) {
-        return books.stream().map(book -> toBookResponse(book)).toList();
-    }
+        @Override
+        protected ResponseEntity<Object> handleMethodArgumentNotValid(
+                        @NonNull MethodArgumentNotValidException ex, @NonNull HttpHeaders headers,
+                        @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+                ErrorResponse errorResponse = buildErrorResponse(ex.getBindingResult());
+                return this.handleExceptionInternal(ex, errorResponse, headers,
+                                HttpStatus.BAD_REQUEST, request);
+        }
 
-    public BookPageResponse toBookPageResponse(Page<Book> bookPage) {
-        Integer page = bookPage.getNumber();
-        Integer totalPages = bookPage.getTotalPages();
-        Integer totalItems = (int) bookPage.getTotalElements();
-        List<BookResponse> bookResponses = toBookResponseList(bookPage.getContent());
-        return new BookPageResponse(page, totalPages, totalItems, bookResponses);
-    }
-
-    public BookDetailsResponse toBookDetailsResponse(Book book) {
-        BookDetailsResponse bookDetailsResponse = modelMapper.map(book, BookDetailsResponse.class);
-
-        List<String> authors = Arrays.asList(book.getAuthors().split(","));
-        bookDetailsResponse.setAuthors(authors);
-
-        ReviewSummaryResponse reviewSummaryResponse = reviewService.getReviewSummary(book.getId());
-        bookDetailsResponse.setReviewCount(reviewSummaryResponse.getReviewCount());
-        bookDetailsResponse.setAverageRating(reviewSummaryResponse.getAverageRating());
-
-        return bookDetailsResponse;
-    }
+        private ErrorResponse buildErrorResponse(BindingResult bindingResult) {
+                List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+                List<String> errorMessages = new ArrayList<>();
+                for (final FieldError error : fieldErrors) {
+                        errorMessages.add(error.getField() + ": " + error.getDefaultMessage());
+                }
+                ErrorResponse errorResponse =
+                                new ErrorResponse(errorMessages, HttpStatus.BAD_REQUEST);
+                return errorResponse;
+        }
 }
 
 ------------------------------------------------------------
-BookServiceImpl
+AuthService
 
-package com.example.my_books_backend.service.impl;
+package com.example.my_books_backend.service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-import com.example.my_books_backend.dto.book.BookDetailsResponse;
-import com.example.my_books_backend.dto.book.BookPageResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.Genre;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.BookMapper;
-import com.example.my_books_backend.repository.BookRepository;
-import com.example.my_books_backend.service.BookService;
-import com.example.my_books_backend.service.GenreService;
-import com.example.my_books_backend.util.PaginationUtil;
+import com.example.my_books_backend.dto.auth.LoginRequest;
+import com.example.my_books_backend.dto.auth.LoginResponse;
+import com.example.my_books_backend.dto.auth.SignupRequest;
+import com.example.my_books_backend.dto.auth.AccessTokenResponse;
+import com.example.my_books_backend.dto.user.CreateUserRequest;
+import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.entity.User;
+import com.example.my_books_backend.exception.ConflictException;
+import com.example.my_books_backend.exception.UnauthorizedException;
+import com.example.my_books_backend.exception.ValidationException;
+import com.example.my_books_backend.mapper.UserMapper;
+import com.example.my_books_backend.repository.UserRepository;
+import com.example.my_books_backend.service.impl.UserDetailsServiceImpl;
+import com.example.my_books_backend.util.JwtUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class BookServiceImpl implements BookService {
-    private final BookRepository bookRepository;
-    private final BookMapper bookMapper;
+public class AuthService {
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final UserDetailsServiceImpl userDetailsService;
+    private final UserMapper userMapper;
+    private final JwtUtil jwtUtil;
 
-    private final PaginationUtil paginationUtil;
-    private final GenreService genreService;
+    public LoginResponse login(LoginRequest request, HttpServletResponse response) {
+        Authentication authentication;
+        try {
+            authentication =
+                    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                            request.getEmail(), request.getPassword()));
+        } catch (AuthenticationException e) {
+            throw new UnauthorizedException("ログインに失敗しました。メールアドレスまたはパスワードが無効です。");
+        }
 
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "publishedDate");
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        User user = (User) authentication.getPrincipal();
 
-    @Override
-    public BookDetailsResponse getBookDetailsById(String id) {
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Book not found"));
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        List<GenreResponse> genreResponses = genreService.getAllGenres();
+        Cookie refreshTokenCookie = jwtUtil.createRefreshTokenCookie(refreshToken);
+        response.addCookie(refreshTokenCookie);
 
-        List<Long> bookGenreIds =
-                book.getGenres().stream().map(Genre::getId).collect(Collectors.toList());
+        UserResponse userResponse = userMapper.toUserResponse(user);
 
-        List<GenreResponse> filteredGenres = genreResponses.stream()
-                .filter(genreResponse -> bookGenreIds.contains(genreResponse.getId()))
-                .collect(Collectors.toList());
-
-        BookDetailsResponse bookDetailsResponse = bookMapper.toBookDetailsResponse(book);
-
-        bookDetailsResponse.setGenres(filteredGenres);
-
-        return bookDetailsResponse;
+        return new LoginResponse(accessToken, userResponse);
     }
 
-    @Override
-    public List<BookResponse> getNewBooks() {
-        List<Book> books = bookRepository.findTop10ByOrderByPublishedDateDesc();
-        return bookMapper.toBookResponseList(books);
+    public UserResponse signup(SignupRequest request) {
+        String name = request.getName();
+        String email = request.getEmail();
+        String password = request.getPassword();
+
+        if (userRepository.existsByName(name)) {
+            throw new ConflictException("サインアップに失敗しました。このユーザー名は既に登録されています。: " + name);
+        }
+
+        if (userRepository.existsByEmail(email)) {
+            throw new ConflictException("サインアップに失敗しました。このメールアドレスは既に登録されています。: " + email);
+        }
+
+        CreateUserRequest createUserRequest = new CreateUserRequest();
+        createUserRequest.setName(name);
+        createUserRequest.setEmail(email);
+        createUserRequest.setPassword(password);
+
+        return userService.createUser(createUserRequest);
     }
 
-    @Override
-    public BookPageResponse getBookPageByTitle(String q, Integer page, Integer maxResults) {
-        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
-        Page<Book> bookPage = bookRepository.findByTitleContaining(q, pageable);
-        return bookMapper.toBookPageResponse(bookPage);
+    public AccessTokenResponse refreshAccessToken(HttpServletRequest request) {
+        String refreshToken = jwtUtil.getRefreshTokenFromCookie(request);
+
+        if (refreshToken == null || !jwtUtil.validateToken(refreshToken)) {
+            throw new ValidationException("リフレッシュトークンが無効です。");
+        }
+
+        String email = jwtUtil.getSubjectFromToken(refreshToken);
+        User user = (User) userDetailsService.loadUserByUsername(email);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String accessToken = jwtUtil.generateAccessToken(user);
+        return new AccessTokenResponse(accessToken);
     }
 
-    @Override
-    public BookPageResponse getBookPageByGenreId(String genreId, Integer page, Integer maxResults) {
-        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
+    public void validateToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+            throw new ValidationException("アクセストークンが無効です。");
+        }
+        String accessToken = bearerToken.substring(7);
+        if (!jwtUtil.validateToken(accessToken)) {
+            throw new ValidationException("アクセストークンが無効です。");
+        }
+    }
 
-        Boolean isAndSearch = genreId.contains(",");
-
-        // split()で、"|"を正規表現として解釈されないようにエスケープ
-        String splitStr = isAndSearch ? "," : "\\|";
-
-        List<Long> genreIds = Arrays.stream(genreId.split(splitStr)).map(Long::parseLong)
-                .collect(Collectors.toList());
-
-        Page<Book> bookPage =
-                isAndSearch ? bookRepository.findByAllGenreIds(genreIds, genreIds.size(), pageable)
-                        : bookRepository.findByGenreIds(genreIds, pageable);
-
-        return bookMapper.toBookPageResponse(bookPage);
+    public void logout(HttpServletResponse response) {
+        Cookie cookie = jwtUtil.getInvalidateRefreshTokenCookie();
+        response.addCookie(cookie);
     }
 }
 
 ------------------------------------------------------------
-BookService
+JwtUtil
 
-package com.example.my_books_backend.service;
+package com.example.my_books_backend.util;
 
+import java.security.Key;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
-import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.BookDetailsResponse;
-import com.example.my_books_backend.dto.book.BookPageResponse;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.crypto.SecretKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import com.example.my_books_backend.entity.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
-public interface BookService {
-    BookDetailsResponse getBookDetailsById(String id);
+@Component
+public class JwtUtil {
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
-    List<BookResponse> getNewBooks();
+    @Value("${spring.app.jwtSecret}")
+    private String secret;
 
-    BookPageResponse getBookPageByTitle(String q, Integer page, Integer maxResults);
+    @Value("${spring.app.jwtAccessExpiration}")
+    private int accessExpiration;
 
-    BookPageResponse getBookPageByGenreId(String genreId, Integer page, Integer maxResults);
+    @Value("${spring.app.jwtRefreshExpiration}")
+    private int refreshExpiration;
+
+    private static final String REFRESH_TOKEN_KEY = "refreshToken";
+
+    // アクセストークン生成
+    public String generateAccessToken(User user) {
+        String email = user.getEmail();
+        String name = user.getName();
+        String roles = user.getRoles().stream().map(role -> role.getName().toString())
+                .collect(Collectors.joining(","));
+
+        return Jwts.builder().subject(email).claim("name", name).claim("roles", roles)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + accessExpiration * 1000))
+                .signWith(key()).compact();
+    }
+
+    // リフレッシュトークン生成
+    public String generateRefreshToken(User user) {
+        String email = user.getEmail();
+
+        return Jwts.builder().subject(email).issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + refreshExpiration * 1000))
+                .signWith(key()).compact();
+    }
+
+    // リフレッシュトークンからCookieを作成
+    public Cookie createRefreshTokenCookie(String refreshToken) {
+        Cookie cookie = new Cookie(REFRESH_TOKEN_KEY, refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setAttribute("SameSite", "None");
+        cookie.setSecure(true);
+        cookie.setMaxAge(refreshExpiration);
+        return cookie;
+    }
+
+    // リフレッシュトークンを無効にしたCookieを取得
+    public Cookie getInvalidateRefreshTokenCookie() {
+        Cookie cookie = new Cookie(REFRESH_TOKEN_KEY, "");
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setAttribute("SameSite", "None");
+        cookie.setSecure(true);
+        cookie.setMaxAge(0); // すぐに削除
+        return cookie;
+    }
+
+    // リフレッシュトークンをCookieから取得
+    public String getRefreshTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (REFRESH_TOKEN_KEY.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    // トークンの検証
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(token);
+            return true;
+        } catch (MalformedJwtException e) {
+            logger.error("無効な JWTトークン: {}", e.getMessage());
+        } catch (ExpiredJwtException e) {
+            logger.error("JWTトークンの有効期限が切れています: {}", e.getMessage());
+        } catch (UnsupportedJwtException e) {
+            logger.error("JWTトークンはサポートされていません: {}", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logger.error("JWTクレーム文字列が空です: {}", e.getMessage());
+        }
+        return false;
+    }
+
+    // トークンからサブジェクトを取得
+    public String getSubjectFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.getSubject());
+    }
+
+    // トークンからJTIを取得
+    public String getJtiFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.getId());
+    }
+
+    // トークンから有効期限を取得
+    public Date getExpiryTimeFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.getExpiration());
+    }
+
+    // トークンのロールを取得
+    public List<String> getRolesFromToken(String token) {
+        return getClaimFromToken(token, claims -> {
+            String rolesString = claims.get("roles", String.class);
+            return rolesString != null ? Arrays.asList(rolesString.split(","))
+                    : Collections.emptyList();
+        });
+    }
+
+    // 秘密鍵の生成
+    private Key key() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    // 汎用的なクレーム取得メソッド
+    private <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = getAllClaimsFromToken(token);
+        return claimsResolver.apply(claims);
+    }
+
+    // すべてのクレームを取得
+    private Claims getAllClaimsFromToken(String token) {
+        return Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(token)
+                .getPayload();
+    }
 }
 
+// ---------------------------------------------------------------------------
+// JWT秘密鍵
+// @Value("${spring.app.jwtSecret}")
+// private String secret;
+//
+// 以下のようなプログラムで生成した値を環境変数に設定
+// import java.security.SecureRandom;
+// import java.util.Base64;
+//
+// public class JwtSecretGenerator {
+// public static void main(String[] args) {
+// // 256ビット（32バイト）のランダムな秘密鍵を生成
+// byte[] keyBytes = new byte[32];
+// new SecureRandom().nextBytes(keyBytes);
+//
+// // Base64エンコード
+// String base64EncodedSecret = Base64.getEncoder().encodeToString(keyBytes);
+//
+// System.out.println("生成されたBase64エンコード秘密鍵:");
+// System.out.println(base64EncodedSecret);
+// }
+// }
+
+------------------------------------------------------------
+application.properties
+
+spring.application.name=my-books-backend
+
+spring.jpa.properties.hibernate.hbm2dll.create_namespaces=true
+spring.jpa.hibernate.ddl-auto=update
+# spring.jpa.show-sql=true
+spring.jpa.open-in-view=false
+
+# X-Forwarded-Protoヘッダーを使用して元のプロトコルを認識する
+# （リバースプロキシ元がHTTPS通信ならHTTPS通信と認識するため）
+server.forward-headers-strategy = native
+
+# DB
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+
+# JWT
+spring.app.jwtSecret=${SPRING_APP_JWT_SECRET}
+# spring.app.jwtAccessExpiration=${SPRING_APP_JWT_ACCESS_EXPIRATION}
+# spring.app.jwtRefreshExpiration=${SPRING_APP_JWT_REFRESH_EXPIRATION}
+spring.app.jwtAccessExpiration=30
+spring.app.jwtRefreshExpiration=120
+
+# ユーザーのデフォルトアバター
+spring.app.defaultAvatarUrl=https://localhost/images/avatars/avatar00.png
+------------------------------------------------------------
+docker-compose.yml
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/my-books-backend
+    tty: true
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/my-books-db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_APP_JWT_SECRET: j2fEn1JVrRd0IPQuPJAixNP5zM97PxcSdkt82O5MVJQ=
+      SPRING_APP_JWT_ACCESS_EXPIRATION: 3600
+      SPRING_APP_JWT_REFRESH_EXPIRATION: 86400
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: my-books-db
+    ports:
+      - 3306:3306
+    volumes:
+      - ./.devcontainer/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./.devcontainer/db/books.csv:/docker-entrypoint-initdb.d/books.csv
+      - ./.devcontainer/db/book_genres.csv:/docker-entrypoint-initdb.d/book_genres.csv
+      - ./.devcontainer/db/book_content_pages.csv:/docker-entrypoint-initdb.d/book_content_pages.csv
+      - ./.devcontainer/db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - db_data:/var/lib/mysql
+    command: --secure-file-priv=/docker-entrypoint-initdb.d
+
+volumes:
+  db_data:
+
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
 ------------------------------------------------------------
 
 
