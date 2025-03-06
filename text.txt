@@ -1,336 +1,51 @@
-６３ファイル
+５３ファイル
 
 ------------------------------------------------------------
-book-detail-skeleton.tsx
+devcontainer.json
 
-import { Skeleton } from '@/components/ui/skeleton';
-
-export default function BookDetailSkeleton() {
-  return (
-    <div className="flex flex-col justify-center p-3 pt-10 sm:p-6 lg:flex-row">
-      <div className="flex flex-col items-center justify-center lg:w-1/2">
-        <Skeleton className="h-[360px] w-[280px] rounded bg-muted-foreground/5 object-cover sm:h-[480px] sm:w-[360px]" />
-        <div className="mt-2 flex flex-col items-center justify-around sm:w-[440px] sm:flex-row">
-          <div className="flex justify-center gap-x-2">
-            <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
-            <Skeleton className="size-8 rounded-full bg-muted-foreground/5" />
-          </div>
-          <Skeleton className="mt-2 h-6 w-48 rounded-full bg-muted-foreground/5" />
-        </div>
-        <div className="my-4 flex items-center">
-          <Skeleton className="h-11 w-48 rounded-full bg-muted-foreground/5" />
-        </div>
-      </div>
-
-      <div className="p-4 lg:w-1/2">
-        <div className="text-3xl font-bold sm:text-4xl">
-          <Skeleton className="h-9 w-64 rounded-full bg-muted-foreground/5 sm:h-10" />
-        </div>
-        <div className="my-4 flex w-full flex-wrap items-center justify-end gap-x-3">
-          <Skeleton className="h-7 w-24 rounded-full bg-muted-foreground/5 sm:h-8" />
-        </div>
-
-        <div className="flex gap-x-2">
-          <Skeleton className="h-9 w-24 rounded-full bg-muted-foreground/5" />
-          <Skeleton className="h-9 w-24 rounded-full bg-muted-foreground/5" />
-        </div>
-
-        <div className="my-6 md:my-10">
-          <Skeleton className="my-2 h-6 w-full rounded-full bg-muted-foreground/5" />
-          <Skeleton className="my-2 h-6 w-full rounded-full bg-muted-foreground/5" />
-          <Skeleton className="my-2 h-6 w-full rounded-full bg-muted-foreground/5" />
-        </div>
-
-        <div className="flex flex-col justify-between gap-y-4 lg:flex-row">
-          <div className="flex flex-col gap-y-1 text-muted-foreground">
-            <div className="flex">
-              <Skeleton className="mb-1 h-5 w-48 rounded-full bg-muted-foreground/5" />
-            </div>
-            <div className="flex">
-              <Skeleton className="mb-1 h-5 w-36 rounded-full bg-muted-foreground/5" />
-            </div>
-            <div className="flex">
-              <Skeleton className="mb-1 h-5 w-44 rounded-full bg-muted-foreground/5" />
-            </div>
-            <div className="flex">
-              <Skeleton className="mb-1 h-5 w-36 rounded-full bg-muted-foreground/5" />
-            </div>
-            <div className="flex">
-              <Skeleton className="mb-1 h-5 w-32 rounded-full bg-muted-foreground/5" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+{
+  "name": "my-books-frontend",
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
+  "service": "app",
+  "workspaceFolder": "/my-books-frontend",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "formulahendry.auto-rename-tag",
+        "streetsidesoftware.code-spell-checker",
+        "dsznajder.es7-react-js-snippets",
+        "dbaeumer.vscode-eslint",
+        "mhutchie.git-graph",
+        "ecmel.vscode-html-css",
+        "oderwat.indent-rainbow",
+        "christian-kohler.path-intellisense",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "shardulm94.trailing-spaces",
+        "mosapride.zenkaku"
+      ]
+    }
+  }
 }
 
 ------------------------------------------------------------
-book-card.tsx
+book-detail.tsx
 
-import AverageRatingIcon from '@/components/count-icon/average-rating-icon';
 import FavoriteCountIcon from '@/components/count-icon/favorite-count-icon';
 import ReviewCountIcon from '@/components/count-icon/review-count-icon';
-import { Card, CardContent } from '@/components/ui/card';
-import { formatDateJP } from '@/lib/util';
-import { Book } from '@/types';
+import GenreList from '@/components/genres/genre-list';
+import Rating from '@/components/rating';
+import { Button } from '@/components/ui/button';
+import { useApiBook } from '@/hooks/api/use-api-book';
+import { formatDateJP, formatIsbn, formatPrice } from '@/lib/util';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-
-type Props = {
-  book: Book;
-};
-
-export default function BookCard({ book }: Props) {
-  return (
-    <Card className="border-card-foreground/5 bg-card/70">
-      <CardContent className="relative flex w-40 flex-col items-center px-3 pb-2 pt-4 sm:w-48 sm:px-4">
-        <Link to={`/book/${book.id}`} className="flex justify-center">
-          <img
-            className="h-44 rounded object-cover sm:h-52"
-            src={book.imageUrl}
-            alt={book.title}
-          />
-        </Link>
-        <Link
-          to={`/book/${book.id}`}
-          className="mt-1 flex h-8 w-full items-center justify-center text-xs hover:text-primary sm:h-10 sm:text-sm"
-        >
-          <p className="line-clamp-2 text-center">{book.title}</p>
-        </Link>
-        <div className="mt-1 flex w-full flex-col items-center gap-y-1">
-          <p className="text-xs tracking-wide text-muted-foreground">
-            {formatDateJP(book.publishedDate)}
-          </p>
-          <div className="flex justify-around gap-x-2 sm:gap-x-4">
-            <FavoriteCountIcon size="sm" bookId={book.id} />
-            <ReviewCountIcon size="sm" reviewCount={book.reviewCount} />
-            <AverageRatingIcon size="sm" averageRating={book.averageRating} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-------------------------------------------------------------
-book-list-by-genre-id.tsx
-
-import BookList from '@/components/book-list/book-list';
-import BookPagination from '@/components/book-list/book-pagination';
-import { useApiBook } from '@/hooks/api/use-api-book';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-type Props = {
-  genreIdsQuery: string;
-  conditionQuery: string;
-  page: number;
-};
-
-export default function BookListByGenreId({
-  genreIdsQuery,
-  conditionQuery,
-  page,
-}: Props) {
-  const { getBookPageByGenreId } = useApiBook();
-
-  const { data: bookPage } = useSuspenseQuery({
-    queryKey: ['getBookPageByGenreId', genreIdsQuery, conditionQuery, page],
-    queryFn: () => getBookPageByGenreId(genreIdsQuery, conditionQuery, page),
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <p className="text-right">
-        {bookPage.totalItems}
-        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-      </p>
-      <BookList books={bookPage.books} />
-      <BookPagination totalPages={bookPage.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-by-query.tsx
-
-import BookList from '@/components/book-list/book-list';
-import BookPagination from '@/components/book-list/book-pagination';
-import { useApiBook } from '@/hooks/api/use-api-book';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-type Props = {
-  query: string;
-  page: number;
-};
-
-export default function BookListByQuery({ query, page }: Props) {
-  const { getBookPageByQuery } = useApiBook();
-
-  const { data: bookPage } = useSuspenseQuery({
-    queryKey: ['getBookPageByQuery', query, page],
-    queryFn: () => getBookPageByQuery(query, page),
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <p className="text-right">
-        {bookPage.totalItems}
-        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-      </p>
-      <BookList books={bookPage.books} />
-      <BookPagination totalPages={bookPage.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-empty.tsx
-
-export default function BookListEmpty() {
-  return (
-    <div className="flex h-32 items-center justify-center">
-      <p>見つかりませんでした</p>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-favorites.tsx
-
-import BookList from '@/components/book-list/book-list';
-import BookPagination from '@/components/book-list/book-pagination';
-import { useApiFavorite } from '@/hooks/api/use-api-favorite';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-type Props = {
-  page: number;
-};
-
-export default function BookListFavorites({ page }: Props) {
-  const { getFavoritePage } = useApiFavorite();
-
-  const { data: bookPage } = useSuspenseQuery({
-    queryKey: ['getFavoritePage', page],
-    queryFn: () => getFavoritePage(page),
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <p className="text-right">
-        {bookPage.totalItems}
-        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-      </p>
-      <BookList books={bookPage.favorites.map((favorite) => favorite.book)} />
-      <BookPagination totalPages={bookPage.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-new-releases.tsx
-
-import BookList from '@/components/book-list/book-list';
-import { useApiBook } from '@/hooks/api/use-api-book';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-export default function BookListNewReleases() {
-  const { getNewBooks } = useApiBook();
-
-  const { data: bookPage } = useSuspenseQuery({
-    queryKey: ['getNewBooks'],
-    queryFn: () => getNewBooks(),
-  });
-
-  return (
-    <div className="pb-4">
-      <BookList books={bookPage.books} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-list-skeleton.tsx
-
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
-
-export default function BookListSkeleton() {
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <div className="h-6" />
-      <ul className="grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
-        {[...Array<number>(FETCH_BOOKS_MAX_RESULTS)].map((_, index) => (
-          <li key={index}>
-            <Card>
-              <CardContent className="relative flex w-40 flex-col items-center px-3 pb-2 pt-4 sm:w-48 sm:px-4">
-                <Skeleton className="h-44 w-32 rounded bg-muted-foreground/5 object-cover sm:h-52 sm:w-36" />
-                <div className="mt-1 flex h-8 w-full items-center justify-center sm:h-10">
-                  <Skeleton className="h-4 w-4/5 rounded-full bg-muted-foreground/5 sm:h-5" />
-                </div>
-                <div className="mt-1 flex h-11 w-full flex-col items-center">
-                  <Skeleton className="h-3 w-24 rounded-lg bg-muted-foreground/5" />
-                  <Skeleton className="mt-3 h-3 w-24 rounded-lg bg-muted-foreground/5" />
-                </div>
-              </CardContent>
-            </Card>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-pagination.tsx
-
-import Pagination from '@/components/pagination';
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-
-type Props = {
-  totalPages: number;
-};
-
-export default function BookPagination({ totalPages }: Props) {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const page = Number(params.get('page') ?? '1');
-    setPage(page);
-  }, [location.search]);
-
-  const handleChange = (page: number) => {
-    setPage(page);
-    const params = new URLSearchParams(location.search);
-    params.set('page', page.toString());
-    navigate(`${location.pathname}?${params.toString()}`);
-  };
-
-  return (
-    <div className="flex justify-center">
-      {totalPages > 1 && (
-        <Pagination total={totalPages} page={page} onChangePage={handleChange} />
-      )}
-    </div>
-  );
-}
-
-------------------------------------------------------------
-book-read-background.tsx
-
-import { useApiBook } from '@/hooks/api/use-api-book';
-import { useSuspenseQuery } from '@tanstack/react-query';
 
 type Props = {
   bookId: string;
 };
 
-export default function BookReadBackground({ bookId }: Props) {
+export default function BookDetail({ bookId }: Props) {
   const { getBookDetailsById } = useApiBook();
 
   const { data: book } = useSuspenseQuery({
@@ -339,12 +54,70 @@ export default function BookReadBackground({ bookId }: Props) {
   });
 
   return (
-    <div className="fixed left-0 top-0 -z-10 flex h-screen w-full justify-center">
-      <img
-        className="w-full max-w-7xl object-cover opacity-5"
-        src={book.imageUrl}
-        alt="bg-image"
-      />
+    <div className="flex flex-col justify-center p-3 pt-10 sm:p-6 lg:flex-row">
+      <div className="flex flex-col items-center justify-center lg:w-1/2">
+        <Link to={`/read/${bookId}/table-of-contents`} className="size-fit">
+          <img
+            className="h-[360px] rounded object-cover sm:h-[480px]"
+            src={book.imageUrl}
+            alt={book.title}
+          />
+        </Link>
+        <div className="mt-2 flex flex-col items-center justify-around sm:w-[440px] sm:flex-row">
+          <div className="flex justify-center gap-x-2">
+            <FavoriteCountIcon bookId={bookId} />
+            <ReviewCountIcon reviewCount={book.reviewCount} />
+          </div>
+          <Rating rating={book.averageRating} readOnly />
+        </div>
+        <div className="my-4 flex items-center">
+          <Button className="w-44 rounded-full bg-transparent" variant="outline" asChild>
+            <Link to={`/read/${bookId}/table-of-contents`}>目次を見る</Link>
+          </Button>
+        </div>
+      </div>
+
+      <div className="p-4 lg:w-1/2">
+        <p className="text-3xl font-bold sm:text-4xl">{book.title}</p>
+
+        <div className="my-4 flex w-full flex-wrap items-center justify-end gap-x-3">
+          <p>著者</p>
+          {book.authors.map((author) => (
+            <p className="text-lg font-bold sm:text-2xl" key={author}>
+              {author}
+            </p>
+          ))}
+        </div>
+
+        <GenreList genres={book.genres} variant="outline" />
+
+        <div className="my-6 md:my-10">{book.description}</div>
+
+        <div className="flex flex-col justify-between gap-y-4 lg:flex-row">
+          <div className="flex flex-col gap-y-1 text-muted-foreground">
+            <div className="flex">
+              <p className="min-w-20">ISBN</p>
+              <p>{formatIsbn(book.isbn)}</p>
+            </div>
+            <div className="flex">
+              <p className="min-w-20">出版社</p>
+              <p>{book.publisher}</p>
+            </div>
+            <div className="flex">
+              <p className="min-w-20">発売日</p>
+              <p className="tracking-wide">{formatDateJP(book.publishedDate)}</p>
+            </div>
+            <div className="flex">
+              <p className="min-w-20">ページ数</p>
+              <p>{`${book.pageCount}ページ`}</p>
+            </div>
+            <div className="flex">
+              <p className="min-w-20">価格</p>
+              <p>{formatPrice(book.price)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -352,15 +125,27 @@ export default function BookReadBackground({ bookId }: Props) {
 ------------------------------------------------------------
 book-read-content.tsx
 
-import BookmarkButton from '@/components/count-icon/bookmark-button';
+import BookmarkCreateDialog from '@/components/bookmarks/bookmark-create-dialog';
+import BookmarkUpdateDialog from '@/components/bookmarks/bookmark-update-dialog';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useApiBook } from '@/hooks/api/use-api-book';
 import { useApiBookmark } from '@/hooks/api/use-api-bookmark';
+import {
+  getCurrentPageText,
+  getPageLink,
+  getPagePosition,
+} from '@/lib/book-read-content';
 import { cn } from '@/lib/util';
-import { Bookmark, BookTableOfContents } from '@/types';
-import { useSuspenseQueries } from '@tanstack/react-query';
-import { ChevronLeftIcon, ChevronRightIcon, TableOfContentsIcon } from 'lucide-react';
+import { Bookmark, BookmarkRequest } from '@/types';
+import { useMutation, useQueryClient, useSuspenseQueries } from '@tanstack/react-query';
+import {
+  BookmarkIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  TableOfContentsIcon,
+} from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 type Props = {
@@ -370,8 +155,12 @@ type Props = {
 };
 
 export default function BookReadContent({ bookId, chapterNumber, pageNumber }: Props) {
+  const [isOpenCreateDialog, setIsOpenCreateDialog] = useState(false);
+  const [isOpenUpdateDialog, setIsOpenUpdateDialog] = useState(false);
+
   const { getBookTableOfContents, getBookContentPage } = useApiBook();
-  const { getBookmarkByBookId } = useApiBookmark();
+  const { getBookmarkByBookId, createBookmark, updateBookmark, deleteBookmark } =
+    useApiBookmark();
 
   const [{ data: bookTableOfContents }, { data: bookContentPage }, { data: bookmark }] =
     useSuspenseQueries({
@@ -398,144 +187,156 @@ export default function BookReadContent({ bookId, chapterNumber, pageNumber }: P
       ],
     });
 
-  const chapterIndex = bookTableOfContents.chapters.findIndex(
-    (chapter) => chapter.chapterNumber === chapterNumber
-  );
-  const totalPage = bookTableOfContents.chapters[chapterIndex]?.pageNumbers.length ?? 1;
-  const pageTitle = `（${pageNumber}/${totalPage}）`;
+  const queryClient = useQueryClient();
 
-  const isFirstPage = chapterNumber === 1 && pageNumber === 1;
-  const isLastPage =
-    chapterNumber === bookTableOfContents.chapters.length &&
-    pageNumber ===
-      bookTableOfContents.chapters.find(
-        (chapter) => chapter.chapterNumber === chapterNumber
-      )?.pageNumbers.length;
-
-  /**
-   * 指定方向（次 or 前）のページ情報を取得する関数
-   */
-  const getPageInfo = (
-    bookTableOfContents: BookTableOfContents,
-    chapterNumber: number,
-    pageNumber: number,
-    direction: 'next' | 'prev'
-  ) => {
-    const chapterIndex = bookTableOfContents.chapters.findIndex(
-      (chapter) => chapter.chapterNumber === chapterNumber
-    );
-
-    if (chapterIndex === -1) return { chapterNumber, pageNumber };
-
-    const totalPages =
-      bookTableOfContents.chapters[chapterIndex]?.pageNumbers.length ?? 1;
-    const isMovingForward = direction === 'next';
-
-    const isLastPage = pageNumber >= totalPages;
-    const isFirstPage = pageNumber <= 1;
-    const isLastChapter = chapterIndex >= bookTableOfContents.chapters.length - 1;
-    const isFirstChapter = chapterIndex <= 0;
-
-    let newChapterNumber = chapterNumber;
-    let newPageNumber = pageNumber;
-
-    if (isMovingForward) {
-      if (isLastPage) {
-        // 最終章の最後のページなら、それ以上進めない
-        if (isLastChapter) {
-          newPageNumber = totalPages; // 現在の最後のページのまま
-        } else {
-          // 次のチャプターの最初のページへ
-          newChapterNumber = chapterNumber + 1;
-          newPageNumber = 1;
-        }
-      } else {
-        newPageNumber = pageNumber + 1;
-      }
-    } else {
-      if (isFirstPage) {
-        // 最初の章の最初のページなら、それ以上戻れない
-        if (isFirstChapter) {
-          newPageNumber = 1; // 現在の最初のページのまま
-        } else {
-          // 前のチャプターの最後のページへ
-          newChapterNumber = chapterNumber - 1;
-          newPageNumber =
-            bookTableOfContents.chapters[chapterIndex - 1].pageNumbers.length;
-        }
-      } else {
-        newPageNumber = pageNumber - 1;
-      }
-    }
-
-    return { chapterNumber: newChapterNumber, pageNumber: newPageNumber };
+  const onSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['getBookmarkByBookId', bookId] });
   };
 
-  const { chapterNumber: nextChapter, pageNumber: nextPage } = getPageInfo(
+  const onError = (error: Error) => {
+    console.error(error);
+  };
+
+  const createMutation = useMutation({
+    mutationFn: (requestBody: BookmarkRequest) => createBookmark(requestBody),
+    onSuccess,
+    onError,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, requestBody }: { id: number; requestBody: BookmarkRequest }) =>
+      updateBookmark(id, requestBody),
+    onSuccess,
+    onError,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (bookmarkId: number) => deleteBookmark(bookmarkId),
+    onSuccess,
+    onError,
+  });
+
+  const handleClickCreate = () => {
+    setIsOpenCreateDialog(true);
+  };
+
+  const handleClickUpdate = () => {
+    setIsOpenUpdateDialog(true);
+  };
+
+  const currentPageText = getCurrentPageText(
+    bookTableOfContents,
+    chapterNumber,
+    pageNumber
+  );
+
+  const { isFirstPage, isLastPage } = getPagePosition(
+    bookTableOfContents,
+    chapterNumber,
+    pageNumber
+  );
+
+  const nextPageLink = getPageLink(
     bookTableOfContents,
     chapterNumber,
     pageNumber,
     'next'
   );
-  const nextPageLink = `/read/${bookId}/chapter/${nextChapter}/page/${nextPage}`;
 
-  const { chapterNumber: prevChapter, pageNumber: prevPage } = getPageInfo(
+  const prevPageLink = getPageLink(
     bookTableOfContents,
     chapterNumber,
     pageNumber,
     'prev'
   );
-  const prevPageLink = `/read/${bookId}/chapter/${prevChapter}/page/${prevPage}`;
 
   return (
     <div className="delay-0 duration-200 animate-in fade-in-0">
       <div className="flex flex-col gap-y-12 px-4 pb-6 pt-12 sm:px-20">
-        <div className="flex flex-col items-start justify-center gap-x-2">
-          <p className="mb-2 text-xs text-muted-foreground/70 sm:text-sm">{`chapter ${bookContentPage.chapterNumber}`}</p>
-          <div className="text-xl font-bold sm:text-2xl">
-            {bookContentPage.chapterTitle}
-            <span className="text-sm text-muted-foreground sm:text-base">
-              {pageTitle}
-            </span>
-            <div className="inline-block">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className="size-8 rounded-full"
-                    variant="ghost"
-                    size="icon"
-                    asChild
+        <div>
+          <p className="mb-2 text-xs text-muted-foreground sm:text-sm">{`第 ${bookContentPage.chapterNumber} 章`}</p>
+          <div className="flex flex-wrap items-center">
+            <p className="text-wrap text-xl font-bold sm:text-2xl">
+              {bookContentPage.chapterTitle}
+            </p>
+            <p className="ml-4 mr-2 text-xs text-muted-foreground sm:text-sm">
+              {currentPageText}
+            </p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  className="size-8 rounded-full"
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                >
+                  <Link
+                    to={`/read/${bookId}/table-of-contents`}
+                    className="flex items-center gap-x-2"
                   >
-                    <Link
-                      to={`/read/${bookId}/table-of-contents`}
-                      className="flex items-center gap-x-2"
+                    <TableOfContentsIcon className="size-4" />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>目次に戻る</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                {bookmark ? (
+                  <>
+                    <Button
+                      className={cn(
+                        'rounded-full text-muted-foreground size-8',
+                        bookmark && 'text-primary bg-transparent'
+                      )}
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleClickUpdate}
                     >
-                      <TableOfContentsIcon className="size-4" />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>目次に戻る</TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="inline-block">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <BookmarkButton
-                    bookmark={bookmark}
-                    bookId={bookId}
-                    chapterNumber={chapterNumber}
-                    pageNumber={pageNumber}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  {bookmark
-                    ? bookmark.note
-                      ? `メモ「${bookmark.note}」`
-                      : 'ブックマークからから削除'
-                    : 'ブックマークに追加'}
-                </TooltipContent>
-              </Tooltip>
-            </div>
+                      <BookmarkIcon
+                        className="size-4"
+                        style={{
+                          fill: 'hsl(var(--primary))',
+                        }}
+                      />
+                    </Button>
+                    <BookmarkUpdateDialog
+                      bookmark={bookmark}
+                      isOpen={isOpenUpdateDialog}
+                      setIsOpen={setIsOpenUpdateDialog}
+                      updateMutation={updateMutation}
+                      deleteMutation={deleteMutation}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      className="size-8 rounded-full text-muted-foreground"
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleClickCreate}
+                    >
+                      <BookmarkIcon className="size-4" />
+                    </Button>
+                    <BookmarkCreateDialog
+                      bookId={bookId}
+                      chapterNumber={chapterNumber}
+                      pageNumber={pageNumber}
+                      isOpen={isOpenCreateDialog}
+                      setIsOpen={setIsOpenCreateDialog}
+                      createMutation={createMutation}
+                    />
+                  </>
+                )}
+              </TooltipTrigger>
+              <TooltipContent>
+                {bookmark
+                  ? bookmark.note
+                    ? `メモ「${bookmark.note}」`
+                    : 'ブックマークからから削除'
+                  : 'ブックマークに追加'}
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
         <p className="whitespace-pre-wrap">{bookContentPage.content}</p>
@@ -544,7 +345,7 @@ export default function BookReadContent({ bookId, chapterNumber, pageNumber }: P
         <Button
           className={cn(
             'flex items-center gap-x-2 rounded-full hover:bg-transparent',
-            isFirstPage ? 'pointer-events-none opacity-30' : ''
+            isFirstPage && 'pointer-events-none opacity-30'
           )}
           variant="ghost"
           asChild
@@ -557,7 +358,7 @@ export default function BookReadContent({ bookId, chapterNumber, pageNumber }: P
         <Button
           className={cn(
             'flex items-center gap-x-2 rounded-full hover:bg-transparent',
-            isLastPage ? 'pointer-events-none opacity-30' : ''
+            isLastPage && 'pointer-events-none opacity-30'
           )}
           variant="ghost"
           asChild
@@ -628,10 +429,10 @@ export default function BookTableOfContents({ bookId }: Props) {
         </div>
 
         {bookTableOfContents.chapters.length ? (
-          <ul className="flex w-full flex-col items-center gap-y-8 sm:items-start">
+          <ul className="flex w-full flex-col gap-y-8">
             {bookTableOfContents.chapters.map((chapter) => (
-              <li key={chapter.chapterNumber}>
-                <p className="text-center text-xs text-muted-foreground/70 sm:text-left sm:text-sm">{`chapter ${chapter.chapterNumber}`}</p>
+              <li className="w-full text-center sm:text-left" key={chapter.chapterNumber}>
+                <p className="text-xs text-muted-foreground/70 sm:text-sm">{`第 ${chapter.chapterNumber} 章`}</p>
                 <Link
                   to={`/read/${bookId}/chapter/${chapter.chapterNumber}/page/1`}
                   className={cn(
@@ -653,224 +454,935 @@ export default function BookTableOfContents({ bookId }: Props) {
 }
 
 ------------------------------------------------------------
+bookmark-create-dialog.tsx
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { BookmarkCreateMutation, BookmarkRequest } from '@/types';
+import React, { useEffect, useRef, useState } from 'react';
+
+type Props = {
+  bookId: string;
+  chapterNumber: number;
+  pageNumber: number;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  createMutation?: BookmarkCreateMutation;
+};
+
+export default function BookmarkCreateDialog({
+  bookId,
+  chapterNumber,
+  pageNumber,
+  isOpen,
+  setIsOpen,
+  createMutation,
+}: Props) {
+  const [note, setNote] = useState('');
+
+  const ref = useRef<HTMLTextAreaElement | null>(null);
+
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOpen) {
+      setNote('');
+    }
+  }, [isOpen]);
+
+  const handleAnimationStart = (e: React.AnimationEvent) => {
+    if (e.animationName === 'enter') {
+      ref.current?.focus();
+    }
+  };
+
+  const handleCreate = () => {
+    const requestBody: BookmarkRequest = {
+      bookId,
+      chapterNumber,
+      pageNumber,
+      note,
+    };
+    createMutation?.mutate(requestBody, {
+      onSuccess: () => {
+        toast({ title: 'ブックマークを作成しました' });
+        setIsOpen(false);
+      },
+      onError: () => {
+        toast({
+          title: 'ブックマークの作成に失敗しました',
+          description: '管理者へ連絡してください。',
+          variant: 'destructive',
+          duration: 5000,
+        });
+        setIsOpen(false);
+      },
+    });
+  };
+
+  const handleCloseDialog = () => {
+    setIsOpen(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent
+        className="w-3/4 min-w-[360px] max-w-[600px] p-4 sm:p-6"
+        onEscapeKeyDown={handleCloseDialog}
+        onPointerDownOutside={handleCloseDialog}
+        onAnimationStart={handleAnimationStart}
+      >
+        <div>
+          <p className="font-semibold leading-10">ブックマーク</p>
+          <p className="text-xs text-muted-foreground sm:text-sm">
+            このブックマークにメモを残せます。メモが未入力でもブックマーク登録できます。
+          </p>
+        </div>
+
+        <Textarea
+          ref={ref}
+          spellCheck={false}
+          value={note}
+          onChange={(e) => setNote(e.currentTarget.value)}
+        />
+
+        <DialogFooter>
+          <Button
+            className="min-w-24 rounded-full"
+            variant="ghost"
+            onClick={handleCloseDialog}
+          >
+            キャンセル
+          </Button>
+          <Button className="min-w-24 rounded-full" onClick={handleCreate}>
+            作成
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+------------------------------------------------------------
+bookmark-item.tsx
+
+import BookmarkUpdateDialog from '@/components/bookmarks/bookmark-update-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { formatDateJP, formatTime } from '@/lib/util';
+import {
+  Bookmark,
+  BookmarkCreateMutation,
+  BookmarkDeleteMutation,
+  BookmarkUpdateMutation,
+} from '@/types';
+import { BookmarkIcon, SquarePenIcon, Trash2Icon } from 'lucide-react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+
+type Props = {
+  bookmark: Bookmark;
+  createMutation?: BookmarkCreateMutation;
+  updateMutation?: BookmarkUpdateMutation;
+  deleteMutation?: BookmarkDeleteMutation;
+};
+
+export default function BookmarkItem({
+  bookmark,
+  updateMutation,
+  deleteMutation,
+}: Props) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { toast } = useToast();
+  const { confirmDialog } = useConfirmDialog();
+
+  const handleClickUpdate = () => {
+    setIsOpen(true);
+  };
+
+  const handleClickDelete = async () => {
+    const { isCancel } = await confirmDialog({
+      icon: '!',
+      title: '削除しますか？',
+      message: '削除すると元に戻りません。',
+      actionLabel: '削除',
+    });
+    if (isCancel) return;
+
+    deleteMutation?.mutate(bookmark.id, {
+      onSuccess: () => {
+        toast({ title: 'ブックマークを削除しました' });
+      },
+    });
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <div className="flex gap-x-4 p-4">
+          <div className="flex min-w-20 justify-center sm:min-w-24">
+            <Link
+              to={`/read/${bookmark.bookId}/chapter/${bookmark.chapterNumber}/page/${bookmark.pageNumber}`}
+              className="size-fit"
+            >
+              <img
+                className="h-24 rounded object-cover sm:h-28"
+                src={bookmark.book.imageUrl}
+                alt={bookmark.book.title}
+              />
+            </Link>
+          </div>
+          <div className="flex w-full flex-col justify-center">
+            <div className="mb-2 flex flex-col items-start gap-x-4 sm:flex-row sm:items-center">
+              <Link
+                to={`/read/${bookmark.bookId}/chapter/${bookmark.chapterNumber}/page/${bookmark.pageNumber}`}
+                className="size-fit"
+              >
+                <p className="text-base font-semibold hover:text-primary sm:text-xl">
+                  {bookmark.book.title}
+                </p>
+              </Link>
+              <div className="flex flex-wrap items-center">
+                <BookmarkIcon
+                  className="size-4 text-primary"
+                  style={{ fill: 'hsl(var(--primary))' }}
+                />
+                <p className="mx-2 whitespace-nowrap text-xs leading-8 tracking-wide text-muted-foreground sm:text-sm">
+                  {formatDateJP(bookmark.updatedAt)} {formatTime(bookmark.updatedAt)}
+                </p>
+                <Button
+                  className="size-8 rounded-full text-muted-foreground"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClickUpdate}
+                >
+                  <SquarePenIcon className="size-4" />
+                </Button>
+                <BookmarkUpdateDialog
+                  bookmark={bookmark}
+                  isOpen={isOpen}
+                  setIsOpen={setIsOpen}
+                  updateMutation={updateMutation}
+                />
+                <Button
+                  className="size-8 rounded-full text-muted-foreground"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClickDelete}
+                >
+                  <Trash2Icon className="size-4" />
+                </Button>
+              </div>
+            </div>
+            <p className="mb-4 text-xs text-muted-foreground sm:text-sm">
+              第 {bookmark.chapterNumber} 章 : {bookmark.chapterTitle}（
+              {bookmark.pageNumber}ページ目）
+            </p>
+            <p className="text-muted-foreground">
+              {bookmark.note && <span>{bookmark.note}</span>}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+------------------------------------------------------------
 bookmark-list.tsx
 
-import BookPagination from '@/components/book-list/book-pagination';
-import { Card, CardContent } from '@/components/ui/card';
+import BookmarkItem from '@/components/bookmarks/bookmark-item';
+import {
+  Bookmark,
+  BookmarkCreateMutation,
+  BookmarkDeleteMutation,
+  BookmarkUpdateMutation,
+} from '@/types';
+
+type Props = {
+  bookmarks: Bookmark[];
+  createMutation?: BookmarkCreateMutation;
+  updateMutation?: BookmarkUpdateMutation;
+  deleteMutation?: BookmarkDeleteMutation;
+};
+
+export default function BookmarkList({
+  bookmarks,
+  createMutation,
+  updateMutation,
+  deleteMutation,
+}: Props) {
+  return (
+    <ul className="flex flex-col gap-y-2">
+      {bookmarks.map((bookmark) => (
+        <li key={bookmark.id}>
+          <BookmarkItem
+            bookmark={bookmark}
+            createMutation={createMutation}
+            updateMutation={updateMutation}
+            deleteMutation={deleteMutation}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+------------------------------------------------------------
+bookmark-update-dialog.tsx
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Bookmark,
+  BookmarkDeleteMutation,
+  BookmarkRequest,
+  BookmarkUpdateMutation,
+} from '@/types';
+import React, { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+
+type Props = {
+  bookmark: Bookmark;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  updateMutation?: BookmarkUpdateMutation;
+  deleteMutation?: BookmarkDeleteMutation;
+};
+
+export default function BookmarkUpdateDialog({
+  bookmark,
+  isOpen,
+  setIsOpen,
+  updateMutation,
+  deleteMutation,
+}: Props) {
+  const [note, setNote] = useState('');
+
+  const ref = useRef<HTMLTextAreaElement | null>(null);
+
+  const location = useLocation();
+
+  const { confirmDialog } = useConfirmDialog();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOpen) {
+      setNote(bookmark.note);
+    }
+  }, [isOpen, bookmark.note]);
+
+  const handleAnimationStart = (e: React.AnimationEvent) => {
+    if (e.animationName === 'enter') {
+      ref.current?.focus();
+    }
+  };
+
+  const handleDelete = async () => {
+    const { isCancel } = await confirmDialog({
+      icon: '!',
+      title: 'このブックマークを削除しますか？',
+      message: 'ブックマークのメモも削除されます。',
+    });
+    if (isCancel) return;
+
+    deleteMutation?.mutate(bookmark.id, {
+      onSuccess: () => {
+        toast({ title: 'ブックマークを削除しました' });
+        setIsOpen(false);
+      },
+      onError: () => {
+        toast({
+          title: 'ブックマークの削除に失敗しました',
+          description: '管理者へ連絡してください。',
+          variant: 'destructive',
+          duration: 5000,
+        });
+        setIsOpen(false);
+      },
+    });
+  };
+
+  const handleUpdate = () => {
+    const requestBody: BookmarkRequest = {
+      bookId: bookmark.bookId,
+      chapterNumber: bookmark.chapterNumber,
+      pageNumber: bookmark.pageNumber,
+      note,
+    };
+    updateMutation?.mutate(
+      { id: bookmark.id, requestBody },
+      {
+        onSuccess: () => {
+          toast({ title: 'ブックマークのメモを更新しました' });
+          setIsOpen(false);
+        },
+        onError: () => {
+          toast({
+            title: 'ブックマークのメモを更新に失敗しました',
+            description: '管理者へ連絡してください。',
+            variant: 'destructive',
+            duration: 5000,
+          });
+          setIsOpen(false);
+        },
+      }
+    );
+  };
+
+  const handleCloseDialog = () => {
+    setIsOpen(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent
+        className="w-3/4 min-w-[360px] max-w-[600px] p-4 sm:p-6"
+        onEscapeKeyDown={handleCloseDialog}
+        onPointerDownOutside={handleCloseDialog}
+        onAnimationStart={handleAnimationStart}
+      >
+        <div>
+          <p className="font-semibold leading-10">ブックマーク</p>
+          <p className="text-xs text-muted-foreground sm:text-sm">
+            メモを編集できます。未入力でもブックマーク登録は消えません。
+          </p>
+        </div>
+
+        <Textarea
+          ref={ref}
+          spellCheck={false}
+          value={note}
+          onChange={(e) => setNote(e.currentTarget.value)}
+        />
+
+        <DialogFooter>
+          <Button
+            className="min-w-24 rounded-full"
+            variant="ghost"
+            onClick={handleCloseDialog}
+          >
+            キャンセル
+          </Button>
+          {location.pathname.includes('read') && (
+            <Button
+              className="min-w-24 rounded-full"
+              variant="outline"
+              onClick={handleDelete}
+            >
+              削除
+            </Button>
+          )}
+          <Button className="min-w-24 rounded-full" onClick={handleUpdate}>
+            更新
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+------------------------------------------------------------
+bookmarks.tsx
+
+import BookmarkList from '@/components/bookmarks/bookmark-list';
+import PaginationUrl from '@/components/pagination-url';
 import { useApiBookmark } from '@/hooks/api/use-api-bookmark';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { BookmarkIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { BookmarkRequest } from '@/types';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
 type Props = {
   page: number;
 };
 
-export default function BookmarkList({ page }: Props) {
-  const { getBookmarkPage } = useApiBookmark();
+export default function Bookmarks({ page }: Props) {
+  const navigate = useNavigate();
+  const { getBookmarkPage, updateBookmark, deleteBookmark } = useApiBookmark();
 
   const { data: bookmarkPage } = useSuspenseQuery({
     queryKey: ['getBookmarkPage', page],
     queryFn: () => getBookmarkPage(page),
   });
 
+  const queryClient = useQueryClient();
+
+  const onSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['getBookmarkPage', page] });
+    navigate('/bookmarks');
+  };
+
+  const onError = (error: Error) => {
+    console.error(error);
+  };
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, requestBody }: { id: number; requestBody: BookmarkRequest }) =>
+      updateBookmark(id, requestBody),
+    onSuccess,
+    onError,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (bookmarkId: number) => deleteBookmark(bookmarkId),
+    onSuccess,
+    onError,
+  });
+
   return (
-    <>
-      <div className="flex flex-col gap-y-4 pb-4">
-        <p className="text-right">
-          {bookmarkPage.totalItems}
-          <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-        </p>
-        <ul className="flex flex-col gap-y-2">
-          {bookmarkPage.bookmarks.map((bookmark) => (
-            <li key={bookmark.id}>
-              <Card>
-                <CardContent className="p-3">
-                  <Link
-                    to={`/read/${bookmark.bookId}/chapter/${bookmark.chapterNumber}/page/${bookmark.pageNumber}`}
-                    className="flex gap-x-2"
-                  >
-                    <div className="flex w-24 justify-center">
-                      <img
-                        className="h-20 rounded object-cover sm:h-24"
-                        src={bookmark.book.imageUrl}
-                        alt={bookmark.book.title}
-                      />
-                    </div>
-                    <div className="flex w-full flex-col justify-center gap-y-2">
-                      <div className="text-base font-semibold sm:text-xl">
-                        {bookmark.book.title}
-                        <div className="ml-2 inline-block">
-                          <BookmarkIcon
-                            className="size-4 text-primary"
-                            style={{ fill: 'hsl(var(--primary))' }}
-                          />
-                        </div>
-                      </div>
-                      <div className="px-2">
-                        <p className="mb-1 text-xs text-muted-foreground sm:text-sm">
-                          chapter {bookmark.chapterNumber}
-                        </p>
-                        <p className="mb-2 text-xs text-muted-foreground sm:text-sm">
-                          {bookmark.chapterTitle}（{bookmark.pageNumber}ページ目）
-                        </p>
-                        {bookmark.note && <p>「{bookmark.note}」</p>}
-                      </div>
-                    </div>
-                  </Link>
-                </CardContent>
-              </Card>
-            </li>
-          ))}
-        </ul>
-        <BookPagination totalPages={bookmarkPage.totalPages} />
-      </div>
-    </>
+    <div className="flex flex-col gap-y-4 pb-4">
+      <p className="text-right">
+        {bookmarkPage.totalItems}
+        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
+      </p>
+      <BookmarkList
+        bookmarks={bookmarkPage.bookmarks}
+        updateMutation={updateMutation}
+        deleteMutation={deleteMutation}
+      />
+      <PaginationUrl totalPages={bookmarkPage.totalPages} />
+    </div>
   );
 }
 
 ------------------------------------------------------------
-bookmark-button.tsx
+book-item.tsx
 
-import { Button } from '@/components/ui/button';
-import { useApiBookmark } from '@/hooks/api/use-api-bookmark';
-import { useAuth } from '@/hooks/use-auth';
-import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { cn } from '@/lib/util';
-import { Bookmark, BookmarkRequest } from '@/types';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookmarkIcon } from 'lucide-react';
-
-const BUTTON_SIZE = { sm: 'size-6', md: 'size-8' };
-const ICON_SIZE = { sm: 'size-3', md: 'size-4' };
+import AverageRatingIcon from '@/components/count-icon/average-rating-icon';
+import FavoriteCountIcon from '@/components/count-icon/favorite-count-icon';
+import ReviewCountIcon from '@/components/count-icon/review-count-icon';
+import { Card, CardContent } from '@/components/ui/card';
+import { formatDateJP } from '@/lib/util';
+import { Book } from '@/types';
+import { Link } from 'react-router-dom';
 
 type Props = {
-  bookmark?: Bookmark;
-  bookId: string;
-  chapterNumber: number;
-  pageNumber: number;
-  size?: 'sm' | 'md';
+  book: Book;
 };
 
-export default function BookmarkButton({
-  bookmark,
-  bookId,
-  chapterNumber,
-  pageNumber,
-  size = 'md',
+export default function BookItem({ book }: Props) {
+  return (
+    <Card className="border-card-foreground/5 bg-card/70">
+      <CardContent className="relative flex w-40 flex-col items-center px-3 pb-2 pt-4 sm:w-48 sm:px-4">
+        <Link to={`/book/${book.id}`} className="size-fit">
+          <img
+            className="h-44 rounded object-cover sm:h-52"
+            src={book.imageUrl}
+            alt={book.title}
+          />
+        </Link>
+        <Link
+          to={`/book/${book.id}`}
+          className="mt-1 flex h-8 w-full items-center justify-center text-xs hover:text-primary sm:h-10 sm:text-sm"
+        >
+          <p className="line-clamp-2 text-center">{book.title}</p>
+        </Link>
+        <div className="mt-1 flex w-full flex-col items-center gap-y-1">
+          <p className="text-xs tracking-wide text-muted-foreground">
+            {formatDateJP(book.publishedDate)}
+          </p>
+          <div className="flex justify-around gap-x-2 sm:gap-x-4">
+            <FavoriteCountIcon size="sm" bookId={book.id} />
+            <ReviewCountIcon size="sm" reviewCount={book.reviewCount} />
+            <AverageRatingIcon size="sm" averageRating={book.averageRating} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+------------------------------------------------------------
+book-list.tsx
+
+import BookItem from '@/components/books/book-item';
+import { Book } from '@/types';
+
+type Props = {
+  books: Book[];
+};
+
+export default function BookList({ books }: Props) {
+  if (!books.length) {
+    return (
+      <div className="flex h-32 items-center justify-center">
+        <p>見つかりませんでした</p>
+      </div>
+    );
+  }
+
+  return (
+    <ul className="grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
+      {books.map((book) => (
+        <li key={book.id}>
+          <BookItem book={book} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+------------------------------------------------------------
+books-discover.tsx
+
+import BookList from '@/components/books/book-list';
+import PaginationUrl from '@/components/pagination-url';
+import { useApiBook } from '@/hooks/api/use-api-book';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+type Props = {
+  genreIds: string;
+  condition: string;
+  page: number;
+};
+
+export default function BooksDiscover({ genreIds, condition, page }: Props) {
+  const { getBookPageByGenreId } = useApiBook();
+
+  const { data: bookPage } = useSuspenseQuery({
+    queryKey: ['getBookPageByGenreId', genreIds, condition, page],
+    queryFn: () => getBookPageByGenreId(genreIds, condition, page),
+  });
+
+  return (
+    <div className="flex flex-col gap-y-4 pb-4">
+      <p className="text-right">
+        {bookPage.totalItems}
+        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
+      </p>
+      <BookList books={bookPage.books} />
+      <PaginationUrl totalPages={bookPage.totalPages} />
+    </div>
+  );
+}
+
+------------------------------------------------------------
+books-new-releases.tsx
+
+import BookList from '@/components/books/book-list';
+import { useApiBook } from '@/hooks/api/use-api-book';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+export default function BooksNewReleases() {
+  const { getNewBooks } = useApiBook();
+
+  const { data: bookPage } = useSuspenseQuery({
+    queryKey: ['getNewBooks'],
+    queryFn: () => getNewBooks(),
+  });
+
+  return (
+    <div className="flex flex-col gap-y-4 pb-4">
+      <p className="text-right">
+        {bookPage.totalItems}
+        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
+      </p>
+      <BookList books={bookPage.books} />
+    </div>
+  );
+}
+
+------------------------------------------------------------
+books-search.tsx
+
+import BookList from '@/components/books/book-list';
+import PaginationUrl from '@/components/pagination-url';
+import { useApiBook } from '@/hooks/api/use-api-book';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+type Props = {
+  searchQuery: string;
+  page: number;
+};
+
+export default function BooksSearch({ searchQuery, page }: Props) {
+  const { getBookPageByQuery } = useApiBook();
+
+  const { data: bookPage } = useSuspenseQuery({
+    queryKey: ['getBookPageByQuery', searchQuery, page],
+    queryFn: () => getBookPageByQuery(searchQuery, page),
+  });
+
+  return (
+    <div className="flex flex-col gap-y-4 pb-4">
+      <p className="text-right">
+        {bookPage.totalItems}
+        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
+      </p>
+      <BookList books={bookPage.books} />
+      <PaginationUrl totalPages={bookPage.totalPages} />
+    </div>
+  );
+}
+
+------------------------------------------------------------
+favorite-item.tsx
+
+import { Card, CardContent } from '@/components/ui/card';
+import { formatDateJP, formatTime } from '@/lib/util';
+import { Favorite } from '@/types';
+import { HeartIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+type Props = {
+  favorite: Favorite;
+};
+
+export default function FavoriteItem({ favorite }: Props) {
+  return (
+    <Card>
+      <CardContent>
+        <div className="flex gap-x-4 p-4">
+          <div className="flex min-w-20 justify-center sm:min-w-24">
+            <Link to={`/book/${favorite.book.id}`} className="size-fit">
+              <img
+                className="h-24 rounded object-cover sm:h-28"
+                src={favorite.book.imageUrl}
+                alt={favorite.book.title}
+              />
+            </Link>
+          </div>
+          <div className="flex w-full flex-col justify-center">
+            <div className="mb-2 flex flex-col items-start gap-x-4 sm:flex-row sm:items-center">
+              <Link to={`/book/${favorite.book.id}`} className="size-fit">
+                <p className="text-base font-semibold hover:text-primary sm:text-xl">
+                  {favorite.book.title}
+                </p>
+              </Link>
+              <div className="flex items-center">
+                <HeartIcon
+                  className="size-4 text-primary"
+                  style={{ fill: 'hsl(var(--primary))' }}
+                />
+                <p className="mx-2 whitespace-nowrap text-xs leading-8 tracking-wide text-muted-foreground sm:text-sm">
+                  {formatDateJP(favorite.updatedAt)} {formatTime(favorite.updatedAt)}
+                </p>
+              </div>
+            </div>
+            <div className="mb-4 flex w-full flex-wrap items-center gap-x-3 text-muted-foreground">
+              <p className="text-xs">著者</p>
+              {favorite.book.authors.map((author) => (
+                <p className="text-sm" key={author}>
+                  {author}
+                </p>
+              ))}
+            </div>
+            <p className="text-muted-foreground">{favorite.book.description}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+------------------------------------------------------------
+favorite-list.tsx
+
+import FavoriteItem from '@/components/favorites/favorite-item';
+import { Favorite } from '@/types';
+
+type Props = {
+  favorites: Favorite[];
+};
+
+export default function FavoriteList({ favorites }: Props) {
+  return (
+    <ul className="flex flex-col gap-y-2">
+      {favorites.map((favorite, index) => (
+        <li key={index}>
+          <FavoriteItem favorite={favorite} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+------------------------------------------------------------
+favorites-skeleton.tsx
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FETCH_BOOKMARKS_MAX_RESULTS } from '@/constants/constants';
+
+export default function FavoritesSkeleton() {
+  return (
+    <div className="flex flex-col gap-y-4 pb-4">
+      <p className="text-right">
+        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
+      </p>
+      <ul className="flex flex-col gap-y-2">
+        {[...Array<number>(FETCH_BOOKMARKS_MAX_RESULTS)].map((_, index) => (
+          <li key={index}>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex gap-x-4">
+                  <div className="flex min-w-20 justify-center sm:min-w-24">
+                    <Skeleton className="h-24 w-20 rounded bg-muted-foreground/5 object-cover sm:h-28" />
+                  </div>
+                  <div className="flex w-full flex-col justify-center gap-y-2">
+                    <div className="sm:px-4">
+                      <Skeleton className="h-6 w-48 rounded-full bg-muted-foreground/5 sm:h-7" />
+                      <Skeleton className="my-1 h-4 w-16 rounded-full bg-muted-foreground/5" />
+                      <Skeleton className="my-1 h-4 w-32 rounded-full bg-muted-foreground/5" />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+------------------------------------------------------------
+favorites.tsx
+
+import FavoriteList from '@/components/favorites/favorite-list';
+import PaginationUrl from '@/components/pagination-url';
+import { useApiFavorite } from '@/hooks/api/use-api-favorite';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+type Props = {
+  page: number;
+};
+
+export default function Favorites({ page }: Props) {
+  const { getFavoritePage } = useApiFavorite();
+
+  const { data: bookPage } = useSuspenseQuery({
+    queryKey: ['getFavoritePage', page],
+    queryFn: () => getFavoritePage(page),
+  });
+
+  return (
+    <div className="flex flex-col gap-y-4 pb-4">
+      <p className="text-right">
+        {bookPage.totalItems}
+        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
+      </p>
+      <FavoriteList favorites={bookPage.favorites} />
+      <PaginationUrl totalPages={bookPage.totalPages} />
+    </div>
+  );
+}
+
+------------------------------------------------------------
+genre-item.tsx
+
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/util';
+import { Genre } from '@/types';
+import { CheckIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+type Props = {
+  genre: Genre;
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
+  isActive?: boolean;
+  onClick?: (genreId: number) => void;
+};
+
+export default function GenreItem({
+  genre,
+  variant = 'ghost',
+  isActive = false,
+  onClick,
 }: Props) {
-  const { confirmDialog } = useConfirmDialog();
-  const { user } = useAuth();
-  const { createBookmark, deleteBookmark } = useApiBookmark();
+  const navigate = useNavigate();
 
-  const queryClient = useQueryClient();
-
-  const { mutate: createMutation } = useMutation({
-    mutationFn: (requestBody: BookmarkRequest) => createBookmark(requestBody),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getBookmarkByBookId', bookId] });
-    },
-  });
-
-  const { mutate: deleteMutation } = useMutation({
-    mutationFn: (bookmarkId: number) => deleteBookmark(bookmarkId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getBookmarkByBookId', bookId] });
-    },
-  });
-
-  const handleClick = async () => {
-    if (!user) return;
-
-    if (bookmark) {
-      if (bookmark.note) {
-        const { isCancel } = await confirmDialog({
-          icon: '?',
-          title: 'このブックマークを削除しますか？',
-          message: 'ブックマークのメモも削除されます。',
-        });
-        if (isCancel) return;
-      }
-      deleteMutation(bookmark.id);
+  const handleClick = () => {
+    if (onClick) {
+      onClick(genre.id);
     } else {
-      const { text: note } = await confirmDialog({
-        icon: 'i',
-        title: 'ブックマーク',
-        message:
-          'このブックマークにメモを残せます。メモがなくてもブックマーク登録できます。',
-        showInput: true,
-        inputRows: 1,
-      });
-      const requestBody: BookmarkRequest = {
-        bookId,
-        chapterNumber,
-        pageNumber,
-        note,
-      };
-      createMutation(requestBody);
+      navigate(`/discover?genreIds=${genre.id}&condition=SINGLE`);
     }
   };
 
   return (
     <Button
       className={cn(
-        'rounded-full text-muted-foreground',
-        BUTTON_SIZE[size],
-        bookmark && 'text-primary bg-transparent'
+        'rounded-full m-1 text-muted-foreground text-xs sm:text-sm',
+        isActive && 'text-foreground',
+        variant === 'outline' && 'bg-transparent text-primary'
       )}
-      variant="ghost"
-      size="icon"
+      variant={isActive ? 'secondary' : variant}
+      size="sm"
       onClick={handleClick}
     >
-      <BookmarkIcon
-        className={ICON_SIZE[size]}
-        style={{
-          fill: bookmark ? 'hsl(var(--primary))' : '',
-        }}
-      />
+      {isActive && <CheckIcon className="mr-1 size-4" strokeWidth={4} />}
+      {genre.name}
     </Button>
   );
 }
 
 ------------------------------------------------------------
-genre-condition-selector.tsx
+genre-list.tsx
+
+import GenreItem from '@/components/genres/genre-item';
+import { Genre } from '@/types';
+
+type Props = {
+  genres: Genre[];
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
+  activeIds?: number[];
+  onClick?: (genreId: number) => void;
+};
+
+export default function GenreList({ genres, variant, activeIds, onClick }: Props) {
+  return (
+    <ul className="flex flex-wrap">
+      {genres.map((genre) => (
+        <li key={genre.id}>
+          <GenreItem
+            genre={genre}
+            variant={variant}
+            isActive={activeIds?.includes(genre.id)}
+            onClick={onClick}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+------------------------------------------------------------
+genres-condition-selector.tsx
 
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 
-export default function GenreConditionSelector() {
-  const CONDITIONS: string[] = ['SINGLE', 'AND', 'OR'];
+type Props = {
+  condition: string;
+  onConditionChange: (condition: string) => void;
+};
 
-  const location = useLocation();
-  const navigate = useNavigate();
+export default function GenresConditionSelector({ condition, onConditionChange }: Props) {
+  const CONDITIONS = [
+    { text: '単一選択', value: 'SINGLE' },
+    { text: 'AND条件', value: 'AND' },
+    { text: 'OR条件', value: 'OR' },
+  ];
 
-  const [selectedCondition, setSelectedCondition] = useState(CONDITIONS[0]);
+  const [selectedCondition, setSelectedCondition] = useState(condition);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const conditionQuery = params.get('condition') ?? '';
-
-    setSelectedCondition(conditionQuery);
-  }, [location.search]);
+    setSelectedCondition(condition);
+  }, [condition]);
 
   const handleChangeCondition = (condition: string) => {
     setSelectedCondition(condition);
-
-    const params = new URLSearchParams(location.search);
-
-    // SINGLE選択以外は複数ジャンル選択可能OKですが
-    // SINGLE選択の場合、複数ジャンルの中の最初の値（単一の値）とする
-    let genreIdsQuery = params.get('genreIds') ?? '';
-    if (condition === 'SINGLE') {
-      genreIdsQuery = genreIdsQuery.split(',')[0];
-    }
-
-    params.set('genreIds', genreIdsQuery);
-    params.set('condition', condition);
-    params.set('page', '1');
-    navigate(`/discover?${params.toString()}`);
+    onConditionChange(condition);
   };
 
   return (
@@ -880,10 +1392,16 @@ export default function GenreConditionSelector() {
       onValueChange={handleChangeCondition}
     >
       {CONDITIONS.map((condition) => (
-        <div className="flex items-center" key={condition}>
-          <RadioGroupItem value={condition} id={condition} />
-          <Label className="cursor-pointer select-none p-2" htmlFor={condition}>
-            {condition}
+        <div
+          className="flex flex-col-reverse items-center sm:flex-row"
+          key={condition.value}
+        >
+          <RadioGroupItem value={condition.value} id={condition.value} />
+          <Label
+            className="cursor-pointer select-none p-2 text-xs sm:text-sm"
+            htmlFor={condition.value}
+          >
+            {condition.text}
           </Label>
         </div>
       ))}
@@ -892,86 +1410,22 @@ export default function GenreConditionSelector() {
 }
 
 ------------------------------------------------------------
-genre-ids-selector.tsx
+genres-discover.tsx
 
-import GenreListSelector from '@/components/genre-list/genre-list-selector';
-import GenreListSkeleton from '@/components/genre-list/genre-list-skeleton';
-import ErrorElement from '@/routes/error-element';
-import { Suspense, useEffect, useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useLocation, useNavigate } from 'react-router-dom';
-
-export default function GenreIdsSelector() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const genreIdsQuery = params.get('genreIds') ?? '';
-
-    const ids = genreIdsQuery.split(',').map((genreId) => Number(genreId));
-    setSelectedGenreIds(ids);
-  }, [location.search]);
-
-  const handleClickGenre = (genreId: number) => {
-    let newGenreIds = selectedGenreIds.includes(genreId)
-      ? selectedGenreIds.filter((id) => id !== genreId)
-      : [...selectedGenreIds, genreId].sort((a, b) => a - b);
-
-    const params = new URLSearchParams(location.search);
-
-    // 最後の一つをクリックした場合、空配列になるので必ず１つは選択になるようにする
-    // SINGLE選択に関しても同じ
-    const isSingleCondition = params.get('condition') === 'SINGLE';
-    if (newGenreIds.length === 0 || isSingleCondition) {
-      newGenreIds = [genreId];
-    }
-
-    setSelectedGenreIds(newGenreIds);
-
-    const genreIdsQuery = newGenreIds.join(',');
-
-    params.set('genreIds', genreIdsQuery);
-    params.set('page', '1');
-    navigate(`/discover?${params.toString()}`);
-  };
-
-  return (
-    <ErrorBoundary fallback={<ErrorElement />}>
-      <Suspense fallback={<GenreListSkeleton />}>
-        <GenreListSelector activeIds={selectedGenreIds} onClick={handleClickGenre} />
-      </Suspense>
-    </ErrorBoundary>
-  );
-}
-
-------------------------------------------------------------
-genre-list-skeleton.tsx
-
-import { Skeleton } from '@/components/ui/skeleton';
-
-export default function GenreListSkeleton() {
-  return (
-    <ul className="flex flex-wrap gap-x-2">
-      {[...Array<number>(3)].map((_, index) => (
-        <li key={index}>
-          <Skeleton className="h-9 w-24 rounded-full bg-muted-foreground/5" />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-------------------------------------------------------------
-genre-list-top-page.tsx
-
-import GenreList from '@/components/genre-list/genre-list';
+import GenreList from '@/components/genres/genre-list';
 import { useApiGenre } from '@/hooks/api/use-api-genre';
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
-export default function GenreListTopPage() {
+type Props = {
+  genreIds: string;
+  condition: string;
+  onGenreIdsChange: (genreIds: string) => void;
+};
+
+export default function GenresDiscover({ genreIds, condition, onGenreIdsChange }: Props) {
+  const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
+
   const { getGenres } = useApiGenre();
 
   const { data: genres } = useSuspenseQuery({
@@ -979,39 +1433,40 @@ export default function GenreListTopPage() {
     queryFn: () => getGenres(),
   });
 
-  return <GenreList genres={genres} variant="ghost" />;
+  useEffect(() => {
+    const ids = genreIds.split(',').map((genreId) => Number(genreId));
+    setSelectedGenreIds(ids);
+  }, [genreIds]);
+
+  const handleClick = (genreId: number) => {
+    let newGenreIds = selectedGenreIds.includes(genreId)
+      ? selectedGenreIds.filter((id) => id !== genreId)
+      : [...selectedGenreIds, genreId].sort((a, b) => a - b);
+
+    // 最後の一つをクリックした場合、空配列になるので必ず１つは選択になるようにする
+    // SINGLE選択に関しては必ず１つの選択になる
+    if (newGenreIds.length === 0 || condition === 'SINGLE') {
+      newGenreIds = [genreId];
+    }
+    setSelectedGenreIds(newGenreIds);
+    onGenreIdsChange(newGenreIds.join(','));
+  };
+
+  return <GenreList genres={genres} activeIds={selectedGenreIds} onClick={handleClick} />;
 }
 
 ------------------------------------------------------------
-genre-list.tsx
+genres-skeleton.tsx
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/util';
-import { Genre } from '@/types';
-import { Link } from 'react-router-dom';
+import { Skeleton } from '@/components/ui/skeleton';
 
-type Props = {
-  genres: Genre[];
-  className?: string;
-  filterList?: number[];
-  variant?: 'default' | 'outline' | 'secondary' | 'ghost';
-};
-
-export default function GenreList({ genres, className, variant = 'default' }: Props) {
+export default function GenresSkeleton() {
   return (
-    <ul className={cn('flex flex-wrap', className)}>
-      {genres.map((genre) => (
-        <li key={genre.id}>
-          <Button
-            className={cn('rounded-full', variant === 'outline' && 'bg-transparent')}
-            variant={variant}
-            size="sm"
-            asChild
-          >
-            <Link to={`/discover?genreIds=${genre.id}&condition=SINGLE`}>
-              {genre.name}
-            </Link>
-          </Button>
+    <ul className="flex flex-wrap">
+      {[...Array<number>(12)].map((_, index) => (
+        <li key={index}>
+          {/* 背景色を bg-muted-foreground/5 にしてスケルトン見せるより、高さだけズレないように透明のほうがよい */}
+          <Skeleton className="m-1 h-9 w-24 rounded-full bg-muted-foreground/5" />
         </li>
       ))}
     </ul>
@@ -1019,376 +1474,238 @@ export default function GenreList({ genres, className, variant = 'default' }: Pr
 }
 
 ------------------------------------------------------------
-footer.tsx
+genres-top-page.tsx
 
-import Logo from '@/components/layout/logo';
+import GenreList from '@/components/genres/genre-list';
+import { useApiGenre } from '@/hooks/api/use-api-genre';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+export default function GenresTopPage() {
+  const { getGenres } = useApiGenre();
+
+  const { data: genres } = useSuspenseQuery({
+    queryKey: ['getGenres'],
+    queryFn: () => getGenres(),
+  });
+
+  return <GenreList genres={genres} />;
+}
+
+------------------------------------------------------------
+my-review-item.tsx
+
+import Rating from '@/components/rating';
+import ReviewUpdateDialog from '@/components/reviews/review-update-dialog';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/util';
-import { FacebookIcon, InstagramIcon, TwitterIcon, YoutubeIcon } from 'lucide-react';
-
-type Props = {
-  className?: string;
-};
-
-export default function Footer({ className }: Props) {
-  return (
-    <footer className={cn('bg-card', className)}>
-      <div className="mx-auto max-w-7xl px-3 sm:px-6">
-        <div className="grid items-center justify-center py-2 sm:grid-cols-3">
-          <div>
-            <Button className="rounded-full" variant="ghost" size="icon">
-              <YoutubeIcon className="size-5" />
-            </Button>
-            <Button className="rounded-full" variant="ghost" size="icon">
-              <TwitterIcon className="size-5" />
-            </Button>
-            <Button className="rounded-full" variant="ghost" size="icon">
-              <InstagramIcon className="size-5" />
-            </Button>
-            <Button className="rounded-full" variant="ghost" size="icon">
-              <FacebookIcon className="size-5" />
-            </Button>
-          </div>
-          <p className="grid h-7 place-items-center text-sm">© 2025 Xxxxx, Inc.</p>
-          <div className="flex justify-center sm:justify-end">
-            <Logo size="sm" />
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-------------------------------------------------------------
-header.tsx
-
-import NavList from '@/components/layout/nav-list';
-import SearchInput from '@/components/layout/search-input';
-import ThemeToggleButton from '@/components/layout/theme-toggle-button';
-import UserIconButton from '@/components/layout/user-icon-button';
-import { cn } from '@/lib/util';
-
-type Props = {
-  className?: string;
-};
-
-export default function Header({ className }: Props) {
-  return (
-    <header
-      className={cn('w-screen max-w-full bg-background/30 backdrop-blur-lg', className)}
-    >
-      <div className="mx-auto max-w-7xl px-3 sm:px-6">
-        <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-top-10 fill-mode-both">
-          <div className="flex h-16 w-full items-center sm:gap-x-2">
-            <NavList />
-            <span className="flex-1"></span>
-            <SearchInput />
-            <UserIconButton />
-            <ThemeToggleButton />
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-------------------------------------------------------------
-hero.tsx
-
-import imgUrl from '@/assets/main-visual.png';
-import SearchInput from '@/components/layout/search-input';
-
-export default function Hero() {
-  return (
-    <div className="relative mb-8 flex h-[460px] w-full items-center gap-3 sm:mb-0 sm:gap-4 lg:h-[500px]">
-      <div className="z-10 flex w-3/4 flex-col justify-between lg:w-3/5">
-        <div>
-          <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
-            <h1 className="w-fit text-5xl font-bold sm:text-6xl xl:text-7xl">
-              Let’s search for <span className="text-primary">Books</span> to discover new
-              knowledge.
-            </h1>
-          </div>
-          <div className="delay-150 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
-            <p className="my-6 w-full break-words text-sm text-muted-foreground">
-              本の探索サイトへようこそ。多様なコレクションから、新しい知識を発見しましょう。厳選された書籍で、あなたの次の読書を見つけてください。知識の旅に一緒に出かけましょう。
-            </p>
-          </div>
-        </div>
-        <div className="delay-300 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
-          <div className="flex h-full max-w-96 items-center">
-            <SearchInput />
-          </div>
-        </div>
-      </div>
-      <div className="absolute right-0 top-10 w-[400px] opacity-25 sm:right-5 sm:w-[400px] lg:w-[450px] lg:opacity-100">
-        <div className="delay-500 duration-500 animate-in fade-in-0 slide-in-from-right-10 fill-mode-both">
-          <img src={imgUrl} alt="main-visual-image" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-logo.tsx
-
-import { LOGO_TITLE } from '@/constants/constants';
-import { cn } from '@/lib/util';
+import { Card, CardContent } from '@/components/ui/card';
+import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { formatDateJP, formatTime } from '@/lib/util';
+import {
+  Review,
+  ReviewCreateMutation,
+  ReviewDeleteMutation,
+  ReviewUpdateMutation,
+} from '@/types';
+import { SquarePenIcon, Trash2Icon } from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 type Props = {
-  size?: 'sm' | 'md' | 'lg';
-  disableLink?: boolean;
+  review: Review;
+  createMutation?: ReviewCreateMutation;
+  updateMutation?: ReviewUpdateMutation;
+  deleteMutation?: ReviewDeleteMutation;
 };
 
-export default function Logo({ size = 'md', disableLink = false }: Props) {
-  const SIZE = {
-    sm: 'text-xl',
-    md: 'text-3xl',
-    lg: 'text-5xl',
-  };
-
-  return (
-    <h1>
-      <Link
-        to="/"
-        className={cn(
-          "select-none whitespace-nowrap font-['Alfa_Slab_One'] tracking-tighter text-primary",
-          'px-4 py-2 ',
-          disableLink && 'cursor-default pointer-events-none',
-          SIZE[size]
-        )}
-        aria-disabled={disableLink}
-      >
-        {LOGO_TITLE}
-      </Link>
-    </h1>
-  );
-}
-
-------------------------------------------------------------
-nav-list.tsx
-
-import Logo from '@/components/layout/logo';
-import MenuList from '@/components/layout/menu-list';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useWindowSize } from '@/hooks/use-window-size';
-import { MenuIcon } from 'lucide-react';
-import { useState } from 'react';
-
-export default function NavList() {
+export default function MyReviewItem({ review, updateMutation, deleteMutation }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const DEBOUNCED_DELAY = 100;
-  const { width } = useWindowSize(DEBOUNCED_DELAY);
-
-  const TABLET_WIDTH = 1024;
-  if (isOpen && width >= TABLET_WIDTH) {
-    setIsOpen(false);
-  }
-
-  return (
-    <>
-      <div className="hidden lg:flex lg:items-center lg:gap-x-8">
-        <Logo />
-        <MenuList />
-      </div>
-
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild>
-          <Button className="rounded-full lg:hidden" variant="ghost" size="icon">
-            <MenuIcon className="size-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent className="w-fit p-8" side="left">
-          <div className="mb-8" onClick={() => setIsOpen(false)}>
-            <Logo />
-          </div>
-          <MenuList onClick={() => setIsOpen(false)} />
-        </SheetContent>
-      </Sheet>
-    </>
-  );
-}
-
-------------------------------------------------------------
-search-input.tsx
-
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-import { FormEvent, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-
-export default function SearchInput() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [query, setQuery] = useState('');
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const query = params.get('q') ?? '';
-    setQuery(query);
-  }, [location.search]);
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!query) return;
-
-    const params = new URLSearchParams();
-    params.set('q', query);
-    params.set('page', '1');
-    navigate(`/search?${params.toString()}`, { replace: true });
-  };
-
-  return (
-    <div className="w-44 sm:w-64">
-      <form className="relative h-10 w-full" onSubmit={handleSubmit}>
-        <Input
-          className="rounded-full border-foreground/20 bg-background/20 pl-10 pr-4"
-          type="search"
-          placeholder="タイトルで検索"
-          name="query"
-          autoComplete="off"
-          spellCheck="false"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <Search className="absolute left-2.5 top-2.5 size-5" />
-      </form>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-user-icon-button.tsx
-
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { MENU_LIST } from '@/constants/constants';
-import { useApiUser } from '@/hooks/api/use-api-user';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { useMutation } from '@tanstack/react-query';
-import { LogOutIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-
-export default function UserIconButton() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const { accessToken, user, setUser, logout } = useAuth();
-  const { getCurrentUser } = useApiUser();
   const { toast } = useToast();
+  const { confirmDialog } = useConfirmDialog();
 
-  const logoutMutation = useMutation({
-    mutationFn: () => logout(),
-    onError: (error) => {
-      console.error(error);
-    },
-  });
+  const handleClickUpdate = () => {
+    setIsOpen(true);
+  };
 
-  useEffect(() => {
-    const init = async () => {
-      if (accessToken && !user) {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
-      }
-    };
-    init();
-  }, [accessToken, getCurrentUser, setUser, user]);
+  const handleClickDelete = async () => {
+    const { isCancel } = await confirmDialog({
+      icon: '!',
+      title: '削除しますか？',
+      message: '削除すると元に戻りません。',
+      actionLabel: '削除',
+    });
+    if (isCancel) return;
 
-  const handleClickLogout = async () => {
-    logoutMutation.mutate(undefined, {
+    deleteMutation?.mutate(review.id, {
       onSuccess: () => {
-        toast({ title: 'ログアウトしました' });
-        setIsOpen(false);
-        navigate('/');
+        toast({ title: 'レビューを削除しました' });
       },
     });
   };
 
-  const handleClickMenuItem = (href: string) => {
-    navigate(href);
-    setIsOpen(false);
+  return (
+    <Card>
+      <CardContent>
+        <div className="flex gap-x-4 p-4">
+          <div className="flex min-w-20 justify-center sm:min-w-24">
+            <Link to={`/book/${review.book.id}`} className="size-fit">
+              <img
+                className="h-24 rounded object-cover sm:h-28"
+                src={review.book.imageUrl}
+                alt={review.book.title}
+              />
+            </Link>
+          </div>
+          <div className="flex w-full flex-col justify-center">
+            <Link to={`/book/${review.book.id}`} className="size-fit">
+              <p className="text-base font-semibold hover:text-primary sm:text-xl">
+                {review.book.title}
+              </p>
+            </Link>
+            <div className="mb-2 flex flex-col items-start sm:flex-row sm:items-center">
+              <div className="mr-2">
+                <Rating rating={review.rating} readOnly />
+              </div>
+              <div className="flex flex-wrap items-center">
+                <p className="mr-2 whitespace-nowrap text-xs leading-8 tracking-wide text-muted-foreground sm:text-sm">
+                  {formatDateJP(review.updatedAt)} {formatTime(review.updatedAt)}
+                </p>
+                <Button
+                  className="size-8 rounded-full text-muted-foreground"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClickUpdate}
+                >
+                  <SquarePenIcon className="size-4" />
+                </Button>
+                <ReviewUpdateDialog
+                  review={review}
+                  isOpen={isOpen}
+                  setIsOpen={setIsOpen}
+                  updateMutation={updateMutation}
+                />
+                <Button
+                  className="size-8 rounded-full text-muted-foreground"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClickDelete}
+                >
+                  <Trash2Icon className="size-4" />
+                </Button>
+              </div>
+            </div>
+            <p className="text-muted-foreground">{review.comment}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+------------------------------------------------------------
+my-review-list.tsx
+
+import MyReviewItem from '@/components/my-reviews/my-review-item';
+import {
+  Review,
+  ReviewCreateMutation,
+  ReviewDeleteMutation,
+  ReviewUpdateMutation,
+} from '@/types';
+
+type Props = {
+  reviews: Review[];
+  createMutation?: ReviewCreateMutation;
+  updateMutation?: ReviewUpdateMutation;
+  deleteMutation?: ReviewDeleteMutation;
+};
+
+export default function MyReviewList({
+  reviews,
+  createMutation,
+  updateMutation,
+  deleteMutation,
+}: Props) {
+  return (
+    <ul className="flex flex-col gap-y-2">
+      {reviews.map((review) => (
+        <li key={review.id}>
+          <MyReviewItem
+            review={review}
+            createMutation={createMutation}
+            updateMutation={updateMutation}
+            deleteMutation={deleteMutation}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+------------------------------------------------------------
+my-reviews.tsx
+
+import MyReviewList from '@/components/my-reviews/my-review-list';
+import PaginationUrl from '@/components/pagination-url';
+import { useApiReview } from '@/hooks/api/use-api-review';
+import { ReviewRequest } from '@/types';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+
+type Props = {
+  page: number;
+};
+
+export default function MyReviews({ page }: Props) {
+  const navigate = useNavigate();
+
+  const { getReviewPageByUser, updateReview, deleteReview } = useApiReview();
+
+  const { data: reviewPage } = useSuspenseQuery({
+    queryKey: ['getReviewPageByUser', page],
+    queryFn: () => getReviewPageByUser(page),
+  });
+
+  const queryClient = useQueryClient();
+
+  const onSuccess = () => {
+    queryClient.invalidateQueries({
+      queryKey: ['getReviewPageByUser', page],
+    });
+    navigate('/my-reviews');
   };
 
-  if (!user)
-    return (
-      <Button className="rounded-full" variant="ghost" asChild>
-        <Link to="/login" state={{ from: location }}>
-          ログイン
-        </Link>
-      </Button>
-    );
+  const onError = (error: Error) => {
+    console.error(error);
+  };
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, requestBody }: { id: number; requestBody: ReviewRequest }) =>
+      updateReview(id, requestBody),
+    onSuccess,
+    onError,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteReview(id),
+    onSuccess,
+    onError,
+  });
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger className="ml-2 flex items-center justify-center" asChild>
-        <Button className="rounded-full" variant="ghost" size="icon">
-          <Avatar>
-            <AvatarImage
-              className="bg-primary/50"
-              src={user.avatarUrl}
-              alt="avatar-image"
-            />
-            <AvatarFallback className="text-lg font-semibold">
-              {user.name.slice(0, 1)}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-48 p-2" side="bottom" align="end">
-        <DropdownMenuLabel>
-          <div className="flex items-center gap-x-2">
-            <Avatar className="size-8">
-              <AvatarImage
-                className="bg-primary/50"
-                src={user.avatarUrl}
-                alt="avatar-image"
-              />
-              <AvatarFallback className="font-semibold">
-                {user.name.slice(0, 1)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 overflow-hidden">
-              <p className="truncate">{user.name}</p>
-              <p className="truncate text-xs font-normal text-muted-foreground">
-                {user.email}
-              </p>
-            </div>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {MENU_LIST.map((item) => (
-          <DropdownMenuItem
-            onClick={() => handleClickMenuItem(item.href)}
-            key={item.href}
-          >
-            <item.icon className="mr-1" />
-            {item.title}
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleClickLogout}>
-          <LogOutIcon className="mr-1" />
-          ログアウト
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex flex-col gap-y-4 pb-4">
+      <p className="text-right">
+        {reviewPage.totalItems}
+        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
+      </p>
+      <MyReviewList
+        reviews={reviewPage.reviews}
+        updateMutation={updateMutation}
+        deleteMutation={deleteMutation}
+      />
+      <PaginationUrl totalPages={reviewPage.totalPages} />
+    </div>
   );
 }
 
@@ -1399,11 +1716,9 @@ import Rating from '@/components/rating';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { useApiRevew } from '@/hooks/api/use-api-review';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { ReviewRequest } from '@/types';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { ReviewCreateMutation, ReviewRequest } from '@/types';
 import React, { useEffect, useRef, useState } from 'react';
 
 type Props = {
@@ -1411,30 +1726,22 @@ type Props = {
   page: number;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  createMutation?: ReviewCreateMutation;
 };
 
-export default function ReviewCreateDialog({ bookId, page, isOpen, setIsOpen }: Props) {
+export default function ReviewCreateDialog({
+  bookId,
+  isOpen,
+  setIsOpen,
+  createMutation,
+}: Props) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
 
   const ref = useRef<HTMLTextAreaElement | null>(null);
 
-  const { createReview } = useApiRevew();
   const { toast } = useToast();
   const { confirmDialog } = useConfirmDialog();
-
-  const queryClient = useQueryClient();
-  const createMutation = useMutation({
-    mutationFn: (reqestBody: ReviewRequest) => createReview(reqestBody),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getReviewPage', bookId, page] });
-      queryClient.invalidateQueries({ queryKey: ['getBookDetailsById', bookId] });
-      queryClient.invalidateQueries({ queryKey: ['checkSelfReviewExists', bookId] });
-    },
-    onError: (error) => {
-      console.error(error);
-    },
-  });
 
   useEffect(() => {
     if (isOpen) {
@@ -1449,19 +1756,19 @@ export default function ReviewCreateDialog({ bookId, page, isOpen, setIsOpen }: 
     }
   };
 
-  const handlePost = async () => {
+  const handleClickPost = async () => {
     if (rating === 0) {
       const { isCancel } = await confirmDialog({
         icon: '?',
         title: 'このまま投稿しますか？',
         message: '星の数が「0」のままです。',
-        actionLabel: '投稿する',
+        actionLabel: '投稿',
       });
       if (isCancel) return;
     }
 
     const requestBody: ReviewRequest = { bookId, comment, rating };
-    createMutation.mutate(requestBody, {
+    createMutation?.mutate(requestBody, {
       onSuccess: () => {
         toast({ title: 'レビューを投稿しました' });
         setIsOpen(false);
@@ -1478,13 +1785,12 @@ export default function ReviewCreateDialog({ bookId, page, isOpen, setIsOpen }: 
     });
   };
 
-  const handleCloseDialog = async () => {
+  const handleClickCancel = async () => {
     if (comment) {
       const { isCancel } = await confirmDialog({
         icon: '?',
-        title: '本当に閉じますか？',
+        title: 'キャンセルして閉じますか？',
         message: 'コメントはまだ投稿していません。',
-        actionLabel: '閉じる',
         persistent: true,
       });
       if (isCancel) return;
@@ -1496,8 +1802,8 @@ export default function ReviewCreateDialog({ bookId, page, isOpen, setIsOpen }: 
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
         className="w-3/4 min-w-[360px] max-w-[600px] p-4 sm:p-6"
-        onEscapeKeyDown={handleCloseDialog}
-        onPointerDownOutside={handleCloseDialog}
+        onEscapeKeyDown={handleClickCancel}
+        onPointerDownOutside={handleClickCancel}
         onAnimationStart={handleAnimationStart}
       >
         <div className="flex items-start justify-between">
@@ -1523,15 +1829,19 @@ export default function ReviewCreateDialog({ bookId, page, isOpen, setIsOpen }: 
         />
 
         <DialogFooter>
-          <Button className="rounded-full" variant="ghost" onClick={handleCloseDialog}>
-            閉じる
+          <Button
+            className="min-w-24 rounded-full"
+            variant="ghost"
+            onClick={handleClickCancel}
+          >
+            キャンセル
           </Button>
           <Button
-            className="rounded-full"
-            disabled={comment === '' ? true : false}
-            onClick={handlePost}
+            className="min-w-24 rounded-full"
+            disabled={comment === ''}
+            onClick={handleClickPost}
           >
-            投稿する
+            投稿
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1543,55 +1853,50 @@ export default function ReviewCreateDialog({ bookId, page, isOpen, setIsOpen }: 
 review-item.tsx
 
 import Rating from '@/components/rating';
-import ReviewUpdateDialog from '@/components/review-list/review-update-dialog';
+import ReviewUpdateDialog from '@/components/reviews/review-update-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { useApiRevew } from '@/hooks/api/use-api-review';
 import { useAuth } from '@/hooks/use-auth';
 import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { formatDateJP, formatTime } from '@/lib/util';
-import { Review } from '@/types';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Review,
+  ReviewCreateMutation,
+  ReviewDeleteMutation,
+  ReviewUpdateMutation,
+} from '@/types';
 import { SquarePenIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 
 type Props = {
   review: Review;
-  bookId: string;
-  page: number;
+  createMutation?: ReviewCreateMutation;
+  updateMutation?: ReviewUpdateMutation;
+  deleteMutation?: ReviewDeleteMutation;
 };
 
-export default function ReviewItem({ review, bookId, page }: Props) {
+export default function ReviewItem({ review, updateMutation, deleteMutation }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+
   const { user } = useAuth();
-  const { deleteReview } = useApiRevew();
   const { toast } = useToast();
   const { confirmDialog } = useConfirmDialog();
 
-  const queryClient = useQueryClient();
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteReview(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getReviewPage', bookId, page] });
-      queryClient.invalidateQueries({ queryKey: ['getBookDetailsById', bookId] });
-      queryClient.invalidateQueries({ queryKey: ['checkSelfReviewExists', bookId] });
-    },
-    onError: (error) => {
-      console.error(error);
-    },
-  });
+  const handleClickUpdate = () => {
+    setIsOpen(true);
+  };
 
   const handleClickDelete = async () => {
     const { isCancel } = await confirmDialog({
       icon: '!',
       title: '削除しますか？',
       message: '削除すると元に戻りません。',
-      actionLabel: '削除する',
+      actionLabel: '削除',
     });
     if (isCancel) return;
 
-    deleteMutation.mutate(review.id, {
+    deleteMutation?.mutate(review.id, {
       onSuccess: () => {
         toast({ title: 'レビューを削除しました' });
       },
@@ -1599,60 +1904,61 @@ export default function ReviewItem({ review, bookId, page }: Props) {
   };
 
   return (
-    <div className="p-4">
-      <div className="flex flex-col items-center justify-between sm:flex-row">
-        <div className="flex w-full items-center gap-x-4">
-          <Avatar className="size-16">
-            <AvatarImage
-              className="bg-primary/50"
-              src={review.avatarUrl}
-              alt="avatar-image"
-            />
-            <AvatarFallback className="font-semibold">
-              {review.name.slice(0, 1)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="-mb-1 text-lg font-semibold">{review.name}</p>
-            <div className="flex items-center">
-              <p className="whitespace-nowrap text-sm leading-8 tracking-wide text-muted-foreground">
-                {formatDateJP(review.updatedAt)} {formatTime(review.updatedAt)}
-              </p>
-              <div className="ml-2 flex w-16">
-                {user?.id === review.userId && (
-                  <>
-                    <Button
-                      className="size-8 rounded-full text-muted-foreground"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => user && setIsOpen(true)}
-                    >
-                      <SquarePenIcon className="size-4" />
-                    </Button>
-                    <ReviewUpdateDialog
-                      bookId={bookId}
-                      page={page}
-                      review={review}
-                      isOpen={isOpen}
-                      setIsOpen={setIsOpen}
-                    />
-                    <Button
-                      className="size-8 rounded-full text-muted-foreground"
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleClickDelete}
-                    >
-                      <Trash2Icon className="size-4" />
-                    </Button>
-                  </>
-                )}
+    <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-top-2 fill-mode-both">
+      <div className="p-4">
+        <div className="flex flex-col items-center justify-between sm:flex-row">
+          <div className="flex w-full items-center gap-x-4">
+            <Avatar className="size-16">
+              <AvatarImage
+                className="bg-primary/50"
+                src={review.avatarUrl}
+                alt="avatar-image"
+              />
+              <AvatarFallback className="font-semibold">
+                {review.name.slice(0, 1)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="-mb-1 text-lg font-semibold">{review.name}</p>
+              <div className="flex items-center">
+                <p className="whitespace-nowrap text-sm leading-8 tracking-wide text-muted-foreground">
+                  {formatDateJP(review.updatedAt)} {formatTime(review.updatedAt)}
+                </p>
+                <div className="ml-2 flex w-16">
+                  {user?.id === review.userId && (
+                    <>
+                      <Button
+                        className="size-8 rounded-full text-muted-foreground"
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleClickUpdate}
+                      >
+                        <SquarePenIcon className="size-4" />
+                      </Button>
+                      <ReviewUpdateDialog
+                        review={review}
+                        isOpen={isOpen}
+                        setIsOpen={setIsOpen}
+                        updateMutation={updateMutation}
+                      />
+                      <Button
+                        className="size-8 rounded-full text-muted-foreground"
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleClickDelete}
+                      >
+                        <Trash2Icon className="size-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
+          <Rating rating={review.rating} readOnly />
         </div>
-        <Rating rating={review.rating} readOnly />
+        <p className="mt-2 text-muted-foreground sm:pl-20">{review.comment}</p>
       </div>
-      <p className="mt-2 text-muted-foreground sm:pl-20">{review.comment}</p>
     </div>
   );
 }
@@ -1660,35 +1966,211 @@ export default function ReviewItem({ review, bookId, page }: Props) {
 ------------------------------------------------------------
 review-list.tsx
 
-import Pagination from '@/components/pagination';
-import ReviewCreateDialog from '@/components/review-list/review-create-dialog';
-import ReviewItem from '@/components/review-list/review-item';
-import { Button } from '@/components/ui/button';
+import ReviewItem from '@/components/reviews/review-item';
 import { Separator } from '@/components/ui/separator';
+import {
+  Review,
+  ReviewCreateMutation,
+  ReviewDeleteMutation,
+  ReviewUpdateMutation,
+} from '@/types';
+
+type Props = {
+  reviews: Review[];
+  createMutation?: ReviewCreateMutation;
+  updateMutation?: ReviewUpdateMutation;
+  deleteMutation?: ReviewDeleteMutation;
+};
+
+export default function ReviewList({
+  reviews,
+  createMutation,
+  updateMutation,
+  deleteMutation,
+}: Props) {
+  return (
+    <ul className="flex flex-col p-3 sm:p-6">
+      {reviews.map((review) => (
+        <li key={review.id}>
+          <Separator className="bg-foreground/10" />
+          <ReviewItem
+            review={review}
+            createMutation={createMutation}
+            updateMutation={updateMutation}
+            deleteMutation={deleteMutation}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+------------------------------------------------------------
+review-update-dialog.tsx
+
+import Rating from '@/components/rating';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { Review, ReviewRequest, ReviewUpdateMutation } from '@/types';
+import React, { useEffect, useRef, useState } from 'react';
+
+type Props = {
+  review: Review;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  updateMutation?: ReviewUpdateMutation;
+};
+
+export default function ReviewUpdateDialog({
+  review,
+  isOpen,
+  setIsOpen,
+  updateMutation,
+}: Props) {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+
+  const ref = useRef<HTMLTextAreaElement | null>(null);
+
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOpen) {
+      setRating(review.rating);
+      setComment(review.comment);
+    }
+  }, [isOpen, review.comment, review.rating]);
+
+  const handleAnimationStart = (e: React.AnimationEvent) => {
+    if (e.animationName === 'enter') {
+      ref.current?.focus();
+    }
+  };
+
+  const handleClickUpdate = () => {
+    const requestBody: ReviewRequest = { bookId: review.bookId, comment, rating };
+    updateMutation?.mutate(
+      { id: review.id, requestBody },
+      {
+        onSuccess: () => {
+          toast({ title: 'レビューを更新しました' });
+          setIsOpen(false);
+        },
+        onError: () => {
+          toast({
+            title: 'レビューの更新に失敗しました',
+            description: '管理者へ連絡してください。',
+            variant: 'destructive',
+            duration: 5000,
+          });
+          setIsOpen(false);
+        },
+      }
+    );
+  };
+
+  const handleClickCancel = async () => {
+    setIsOpen(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent
+        className="w-3/4 min-w-[360px] max-w-[600px] p-4 sm:p-6"
+        onEscapeKeyDown={handleClickCancel}
+        onPointerDownOutside={handleClickCancel}
+        onAnimationStart={handleAnimationStart}
+      >
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="font-semibold leading-10">レビュー</p>
+            <p className="text-xs text-muted-foreground sm:text-sm">
+              レビュー内容を編集できます。
+            </p>
+          </div>
+          <div>
+            <Rating rating={rating} onChange={setRating} />
+            <p className="text-center text-xs text-muted-foreground sm:text-sm">
+              星をクリックして決定
+            </p>
+          </div>
+        </div>
+
+        <Textarea
+          ref={ref}
+          spellCheck={false}
+          value={comment}
+          onChange={(e) => setComment(e.currentTarget.value)}
+        />
+
+        <DialogFooter>
+          <Button
+            className="min-w-24 rounded-full"
+            variant="ghost"
+            onClick={handleClickCancel}
+          >
+            キャンセル
+          </Button>
+          <Button
+            className="min-w-24 rounded-full"
+            disabled={comment === ''}
+            onClick={handleClickUpdate}
+          >
+            更新
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+------------------------------------------------------------
+reviews-book-detail.tsx
+
+import ReviewCreateDialog from '@/components/reviews/review-create-dialog';
+import ReviewList from '@/components/reviews/review-list';
+import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useApiRevew } from '@/hooks/api/use-api-review';
+import { useApiReview } from '@/hooks/api/use-api-review';
 import { useAuth } from '@/hooks/use-auth';
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { Review, ReviewRequest } from '@/types';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
 type Props = {
   bookId: string;
 };
 
-export default function ReviewList({ bookId }: Props) {
-  const [page, setPage] = useState(1);
+export default function ReviewsBookDetail({ bookId }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { user } = useAuth();
-  const { getReviewPage, checkSelfReviewExists } = useApiRevew();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [totalPages, setTotalPages] = useState(0);
 
-  const { data: reviewPage } = useSuspenseQuery({
-    queryKey: ['getReviewPage', bookId, page],
-    queryFn: () => getReviewPage(bookId, page),
+  const { user } = useAuth();
+  const {
+    getReviewPage,
+    checkSelfReviewExists,
+    createReview,
+    updateReview,
+    deleteReview,
+  } = useApiReview();
+
+  const { data: initialReviewPage } = useSuspenseQuery({
+    queryKey: ['getReviewPage', bookId, 1],
+    queryFn: () => getReviewPage(bookId, 1),
   });
 
-  // enabledオプションを使って、ログインしていない場合は
-  // queryFnを呼び出さない（この指定はuseSuspenseQueryでは出来ない模様）
+  // ログインしていない場合は、enabledオプションを指定して
+  // queryFnを呼び出さないようにする（この指定はuseSuspenseQueryでは出来ない模様）
   const { data: reviewExists = false } = useQuery({
     queryKey: ['checkSelfReviewExists', bookId],
     queryFn: () => checkSelfReviewExists(bookId),
@@ -1696,10 +2178,56 @@ export default function ReviewList({ bookId }: Props) {
     retry: false,
   });
 
+  const queryClient = useQueryClient();
+
+  const onSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['getReviewPage', bookId, 1] });
+    queryClient.invalidateQueries({ queryKey: ['getBookDetailsById', bookId] });
+    queryClient.invalidateQueries({ queryKey: ['checkSelfReviewExists', bookId] });
+  };
+
+  const onError = (error: Error) => {
+    console.error(error);
+  };
+
+  const createMutation = useMutation({
+    mutationFn: (reqestBody: ReviewRequest) => createReview(reqestBody),
+    onSuccess,
+    onError,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, requestBody }: { id: number; requestBody: ReviewRequest }) =>
+      updateReview(id, requestBody),
+    onSuccess,
+    onError,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteReview(id),
+    onSuccess,
+    onError,
+  });
+
+  useEffect(() => {
+    if (initialReviewPage) {
+      setCurrentPage(1);
+      setReviews(initialReviewPage.reviews);
+      setTotalPages(initialReviewPage.totalPages);
+    }
+  }, [initialReviewPage]);
+
+  const loadMoreReviews = async () => {
+    const nextPage = currentPage + 1;
+    const nextReviewPage = await getReviewPage(bookId, nextPage);
+    setReviews((prevReviews) => [...prevReviews, ...nextReviewPage.reviews]);
+    setCurrentPage(nextPage);
+  };
+
   return (
-    <div className="mx-auto w-full lg:w-3/4">
+    <div className="mx-auto w-full pb-4 lg:w-3/4">
       <div className="flex flex-col-reverse items-center justify-end gap-y-4 sm:flex-row sm:gap-x-4 sm:px-6">
-        <p>レビュー {reviewPage.totalItems} 件</p>
+        <p>レビュー {initialReviewPage.totalItems} 件</p>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -1719,393 +2247,83 @@ export default function ReviewList({ bookId }: Props) {
         </Tooltip>
         <ReviewCreateDialog
           bookId={bookId}
-          page={page}
+          page={currentPage}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
+          createMutation={createMutation}
         />
       </div>
 
-      <ul className="flex flex-col p-3 sm:p-6">
-        {reviewPage.reviews.map((review) => (
-          <li key={review.userId}>
-            <Separator className="bg-foreground/10" />
-            <ReviewItem review={review} bookId={bookId} page={page} />
-          </li>
-        ))}
-      </ul>
+      <ReviewList
+        reviews={reviews}
+        updateMutation={updateMutation}
+        deleteMutation={deleteMutation}
+      />
 
-      <div className="mb-4 flex justify-center">
-        {reviewPage.totalPages > 1 && (
-          <Pagination total={reviewPage.totalPages} page={page} onChangePage={setPage} />
-        )}
-      </div>
+      {currentPage < totalPages && (
+        <div className="flex justify-center">
+          <Button
+            className="w-44 rounded-full text-muted-foreground"
+            variant="ghost"
+            onClick={loadMoreReviews}
+          >
+            もっと見る
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
 
 ------------------------------------------------------------
-review-update-dialog.tsx
+profile-counts.tsx
 
-import Rating from '@/components/rating';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { useApiRevew } from '@/hooks/api/use-api-review';
-import { useToast } from '@/hooks/use-toast';
-import { Review, ReviewRequest } from '@/types';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import React, { useEffect, useRef, useState } from 'react';
+import CountUpNumber from '@/components/count-up-number';
+import { useApiUser } from '@/hooks/api/use-api-user';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 
-type Props = {
-  bookId: string;
-  page: number;
-  review: Review;
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-};
+export default function ProfileCounts() {
+  const { getProfileCounts } = useApiUser();
 
-export default function ReviewUpdateDialog({
-  bookId,
-  page,
-  review,
-  isOpen,
-  setIsOpen,
-}: Props) {
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
-
-  const ref = useRef<HTMLTextAreaElement | null>(null);
-
-  const { updateReview } = useApiRevew();
-  const { toast } = useToast();
-
-  const queryClient = useQueryClient();
-  const updateMutation = useMutation({
-    mutationFn: ({ id, requestBody }: { id: number; requestBody: ReviewRequest }) =>
-      updateReview(id, requestBody),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getReviewPage', bookId, page] });
-      queryClient.invalidateQueries({ queryKey: ['getBookDetailsById', bookId] });
-    },
-    onError: (error) => {
-      console.error(error);
-    },
+  const { data: profileCounts } = useSuspenseQuery({
+    queryKey: ['getProfileCounts'],
+    queryFn: () => getProfileCounts(),
   });
 
-  useEffect(() => {
-    if (isOpen) {
-      setRating(review.rating);
-      setComment(review.comment);
-    }
-  }, [isOpen, review.comment, review.rating]);
-
-  const handleAnimationStart = (e: React.AnimationEvent) => {
-    if (e.animationName === 'enter') {
-      ref.current?.focus();
-    }
-  };
-
-  const handlePost = async () => {
-    const requestBody: ReviewRequest = { bookId, comment, rating };
-    updateMutation.mutate(
-      { id: review.id, requestBody },
-      {
-        onSuccess: () => {
-          toast({ title: 'レビューを投稿しました' });
-          setIsOpen(false);
-        },
-        onError: () => {
-          toast({
-            title: 'レビュー投稿に失敗しました',
-            description: '管理者へ連絡してください。',
-            variant: 'destructive',
-            duration: 5000,
-          });
-          setIsOpen(false);
-        },
-      }
-    );
-  };
-
-  const handleCloseDialog = async () => {
-    setIsOpen(false);
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent
-        className="w-3/4 min-w-[360px] max-w-[600px] p-4 sm:p-6"
-        onEscapeKeyDown={handleCloseDialog}
-        onPointerDownOutside={handleCloseDialog}
-        onAnimationStart={handleAnimationStart}
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="font-semibold leading-10">レビュー</p>
-            <p className="text-xs text-muted-foreground sm:text-sm">
-              素敵な感想を伝えましょう！
+    <div className="flex justify-between pt-8">
+      <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
+        <Link to={'/favorites'}>
+          <div className="w-24 text-center">
+            <p className="text-xl font-bold">
+              <CountUpNumber end={profileCounts.favoriteCount} delay={300} />
             </p>
+            <p className="text-sm">お気に入り</p>
           </div>
-          <div>
-            <Rating rating={rating} onChange={setRating} />
-            <p className="text-center text-xs text-muted-foreground sm:text-sm">
-              星をクリックして決定
-            </p>
-          </div>
-        </div>
-
-        <Textarea
-          ref={ref}
-          spellCheck={false}
-          value={comment}
-          onChange={(e) => setComment(e.currentTarget.value)}
-        />
-
-        <DialogFooter>
-          <Button className="rounded-full" variant="ghost" onClick={handleCloseDialog}>
-            閉じる
-          </Button>
-          <Button
-            className="rounded-full"
-            disabled={comment === '' ? true : false}
-            onClick={handlePost}
-          >
-            投稿する
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-------------------------------------------------------------
-avatar-carousel.tsx
-
-import SwipeArea from '@/components/settings/swipe-area';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { AVATER_IMAGE_MAX_COIUNT, AVATER_IMAGE_URL } from '@/constants/constants';
-import { cn } from '@/lib/util';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-
-const AVATARS = Array.from({ length: AVATER_IMAGE_MAX_COIUNT }, (_, index) => ({
-  index,
-  avatarUrl: `${AVATER_IMAGE_URL}/avatar${String(index).padStart(2, '0')}.png`,
-}));
-
-type Props = {
-  value: string;
-  onChange: (avatarUrl: string) => void;
-  itemWidth?: number;
-  frameWidth?: number;
-  paddingItem?: number;
-};
-
-export default function AvatarCarousel({
-  value,
-  onChange,
-  itemWidth = 70,
-  frameWidth = 192,
-  paddingItem = 2,
-}: Props) {
-  // 配列の最初と最後の切れ目部分にアイテムを追加しておく
-  // 循環参照するときの見た目の調整のため
-  const extendedItems = [
-    ...AVATARS.slice(-paddingItem),
-    ...AVATARS,
-    ...AVATARS.slice(0, paddingItem),
-  ];
-
-  // カルーセルの位置調整用
-  const marginLeft = Math.floor(frameWidth / 2) - Math.floor(itemWidth / 2);
-
-  // インデックス番号でカルーセルを制御
-  // innerIndexは内部的なインデックスとして使用（スクロールアニメーション用）
-  const defaultIndex =
-    AVATARS.find((avater) => avater.avatarUrl === value)?.index || AVATARS[0].index;
-  const [currentIndex, setCurrentIndex] = useState(defaultIndex);
-  const [innerIndex, setInnerIndex] = useState(defaultIndex);
-
-  const [isScrolling, setIsScrolling] = useState(false);
-  const carouselRef = useRef<HTMLUListElement>(null);
-
-  // 初期値がない（空文字）の場合は０番のアバターをデフォルトとする
-  useEffect(() => {
-    if (value === '') {
-      onChange(AVATARS[0].avatarUrl);
-    }
-  }, [onChange, value]);
-
-  const handlePrev = () => {
-    if (isScrolling) return;
-    setIsScrolling(true);
-    setInnerIndex(innerIndex - 1);
-
-    const prevIndex = (currentIndex - 1 + AVATARS.length) % AVATARS.length;
-    setCurrentIndex(prevIndex);
-    onChange(AVATARS[prevIndex].avatarUrl);
-  };
-
-  const handleNext = () => {
-    if (isScrolling) return;
-    setIsScrolling(true);
-    setInnerIndex(innerIndex + 1);
-
-    const nextIndex = (currentIndex + 1) % AVATARS.length;
-    setCurrentIndex(nextIndex);
-    onChange(AVATARS[nextIndex].avatarUrl);
-  };
-
-  const handleTransitonEnd = () => {
-    setIsScrolling(false);
-    setInnerIndex(currentIndex);
-
-    // 循環スクロールのために、先頭から終端などに座標を変化させるとスクロールの
-    // ちらつきが発生してしまうので、切れ目の変化ではアニメーションをいったんOffにする
-    if (currentIndex === 0 || currentIndex === AVATARS.length - 1) {
-      setIsScrolling(true);
-      carouselRef.current!.style.transitionProperty = 'none';
-      setTimeout(() => {
-        carouselRef.current!.style.transitionProperty = 'transform';
-        setIsScrolling(false);
-      }, 75);
-    }
-  };
-
-  return (
-    <div className="flex items-center justify-center">
-      <Button
-        className="rounded-full"
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={handlePrev}
-      >
-        <ChevronLeft className="size-4" />
-      </Button>
-
-      <div
-        className="relative w-full select-none overflow-hidden"
-        style={{ width: `${frameWidth}px` }}
-      >
-        <ul
-          ref={carouselRef}
-          className="flex transition-transform duration-200"
-          style={{
-            transform: `translateX(-${(innerIndex + paddingItem) * itemWidth}px)`,
-            marginLeft: `${marginLeft}px`,
-          }}
-          onTransitionEnd={handleTransitonEnd}
-        >
-          {extendedItems.map((item, index) => (
-            <li
-              key={index}
-              className={`flex shrink-0 items-center justify-center`}
-              style={{ width: `${itemWidth}px` }}
-            >
-              <div className="relative flex h-24 items-center">
-                <Avatar
-                  className={cn(
-                    'transition-all duration-200',
-                    'size-12 opacity-25 scale-100',
-                    currentIndex === item.index &&
-                      'opacity-100 scale-150 outline-1 outline-offset-1 outline outline-primary'
-                  )}
-                >
-                  <AvatarImage
-                    className="bg-primary"
-                    src={item.avatarUrl}
-                    alt="avatar-image"
-                    draggable={false}
-                  />
-                </Avatar>
-              </div>
-            </li>
-          ))}
-        </ul>
-        <SwipeArea
-          className="absolute left-0 top-0 h-24 w-full"
-          onSwipeLeft={handleNext}
-          onSwipeRight={handlePrev}
-        />
+        </Link>
       </div>
-
-      <Button
-        className="rounded-full"
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={handleNext}
-      >
-        <ChevronRight className="size-4" />
-      </Button>
+      <div className="delay-100 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
+        <Link to={'/bookmarks'}>
+          <div className="w-24 text-center">
+            <p className="text-xl font-bold">
+              <CountUpNumber end={profileCounts.bookmarkCount} delay={400} />
+            </p>
+            <p className="text-sm">ブックマーク</p>
+          </div>
+        </Link>
+      </div>
+      <div className="delay-200 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
+        <Link to={'/my-reviews'}>
+          <div className="w-24 text-center">
+            <p className="text-xl font-bold">
+              <CountUpNumber end={profileCounts.reviewCount} delay={500} />
+            </p>
+            <p className="text-sm">マイレビュー</p>
+          </div>
+        </Link>
+      </div>
     </div>
-  );
-}
-
-------------------------------------------------------------
-swipe-area.tsx
-
-import { useState } from 'react';
-
-type Props = {
-  className?: string;
-  onSwipeUp?: () => void;
-  onSwipeDown?: () => void;
-  onSwipeLeft?: () => void;
-  onSwipeRight?: () => void;
-};
-
-export default function SwipeArea({
-  className,
-  onSwipeUp,
-  onSwipeDown,
-  onSwipeLeft,
-  onSwipeRight,
-}: Props) {
-  const [startX, setStartX] = useState(0);
-  const [startY, setStartY] = useState(0);
-
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    setStartX(touch.clientX);
-    setStartY(touch.clientY);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!startX || !startY) {
-      return;
-    }
-
-    const touch = e.touches[0];
-    const diffX = touch.clientX - startX;
-    const diffY = touch.clientY - startY;
-
-    if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 0) {
-        onSwipeRight?.();
-      } else {
-        onSwipeLeft?.();
-      }
-    } else {
-      if (diffY > 0) {
-        onSwipeDown?.();
-      } else {
-        onSwipeUp?.();
-      }
-    }
-
-    setStartX(0);
-    setStartY(0);
-  };
-
-  return (
-    <div
-      className={className}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-    />
   );
 }
 
@@ -2277,12 +2495,16 @@ const ConfirmDialog = () => {
 
         <DialogFooter className="flex justify-end">
           {!options.actionOnly && (
-            <Button className="rounded-full" variant="ghost" onClick={handleClickCancel}>
+            <Button
+              className="min-w-24 rounded-full"
+              variant="ghost"
+              onClick={handleClickCancel}
+            >
               キャンセル
             </Button>
           )}
           <Button
-            className={cn('rounded-full', options.actionLabel === 'OK' && 'sm:w-20')}
+            className={cn('min-w-24 rounded-full')}
             variant={iconTypes[options.icon].variant || 'default'}
             onClick={handleClickAction}
           >
@@ -2297,285 +2519,53 @@ const ConfirmDialog = () => {
 export { ConfirmDialog };
 
 ------------------------------------------------------------
-rating.tsx
+constants.ts
 
-import { cn } from '@/lib/util';
-import { StarHalfIcon, StarIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import {
+  BookCopyIcon,
+  BookmarkIcon,
+  HeartIcon,
+  MessageSquareIcon,
+  SettingsIcon,
+} from 'lucide-react';
 
-type Props = {
-  rating: number;
-  max?: number;
-  readOnly?: boolean;
-  onChange?: (rating: number) => void;
-};
+// ロゴ
+export const LOGO_TITLE = 'My Books';
 
-export default function Rating({ rating, max = 5, readOnly = false, onChange }: Props) {
-  const [currentRating, setCurrentRating] = useState(0);
-  const [dispRating, setDispRating] = useState(0);
+// メニュー一覧
+export const MENU_LIST = [
+  {
+    href: '/discover?genreIds=1&condition=SINGLE',
+    title: 'ジャンル',
+    icon: BookCopyIcon,
+  },
+  { href: '/favorites', title: 'お気に入り', icon: HeartIcon },
+  { href: '/bookmarks', title: 'ブックマーク', icon: BookmarkIcon },
+  { href: '/my-reviews', title: 'マイレビュー', icon: MessageSquareIcon },
+  { href: '/settings/profile', title: '設定', icon: SettingsIcon },
+];
 
-  useEffect(() => {
-    const initRating = rating > max ? max : rating;
-    setDispRating(initRating);
-    setCurrentRating(initRating);
-  }, [max, rating]);
+// API Endpoits
+// export const BOOKS_API_ENDPOINT = 'https://vsv-emerald/my-books/api/v1';
+export const BOOKS_API_ENDPOINT = 'https://localhost/my-books/api/v1';
 
-  const handleMouseClick = (newDispRating: number) => {
-    if (readOnly) return;
+// export const AVATAR_BASE_URL = 'https://vsv-emerald/images/avatars';
+export const AVATAR_BASE_URL = 'https://localhost/images/avatars';
+export const AVATAR_URLS = [...Array(41)].map(
+  (_, index) => `${AVATAR_BASE_URL}/avatar${String(index).padStart(2, '0')}.png`
+);
 
-    setDispRating(newDispRating);
-    setCurrentRating(newDispRating);
-    if (onChange) {
-      onChange(newDispRating);
-    }
-  };
+export const FETCH_BOOKS_MAX_RESULTS = 20;
+export const FETCH_REVIEWS_MAX_RESULTS = 3;
 
-  const handleMouseEnter = (newDispRating: number) => {
-    if (readOnly) return;
-    setDispRating(newDispRating);
-  };
-
-  const handleMouseLeave = () => {
-    if (readOnly) return;
-    setDispRating(currentRating);
-  };
-
-  return (
-    <div className="flex h-10 items-center text-foreground">
-      <p
-        className={cn(
-          'w-8',
-          currentRating !== dispRating
-            ? 'text-muted-foreground/50'
-            : 'text-muted-foreground',
-          !readOnly && 'cursor-pointer'
-        )}
-        onClick={() => handleMouseClick(0)}
-        onMouseEnter={() => handleMouseEnter(0)}
-        onMouseLeave={() => handleMouseLeave()}
-      >
-        {dispRating.toFixed(1)}
-      </p>
-
-      <div className="relative">
-        <div className="flex">
-          {[...Array<number>(max)].map((_, index) => (
-            <StarIcon
-              key={index}
-              style={{ fill: 'hsl(var(--foreground) / 0.1)' }}
-              strokeWidth={0}
-            />
-          ))}
-        </div>
-
-        <div className="absolute left-0 top-0 flex">
-          {[...Array<number>(Math.floor(dispRating))].map((_, index) => (
-            <StarIcon
-              key={index}
-              style={{ fill: 'hsl(var(--primary))' }}
-              strokeWidth={0}
-            />
-          ))}
-          {!Number.isInteger(dispRating) && (
-            <StarHalfIcon style={{ fill: 'hsl(var(--primary))' }} strokeWidth={0} />
-          )}
-        </div>
-
-        <div className="absolute left-0 top-0 flex">
-          {[...Array<number>(max)].map((_, index) => (
-            <div className="flex" key={index}>
-              <div
-                className={cn('w-3 h-6 bg-transparent', !readOnly && 'cursor-pointer')}
-                onClick={() => handleMouseClick(index + 1 - 0.5)}
-                onMouseEnter={() => handleMouseEnter(index + 1 - 0.5)}
-                onMouseLeave={() => handleMouseLeave()}
-              />
-              <div
-                className={cn('w-3 h-6 bg-transparent', !readOnly && 'cursor-pointer')}
-                onClick={() => handleMouseClick(index + 1)}
-                onMouseEnter={() => handleMouseEnter(index + 1)}
-                onMouseLeave={() => handleMouseLeave()}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-use-api-book.ts
-
-import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
-import { useApi } from '@/hooks/api/use-api';
-import { BookContentPage, BookDetails, BookPage, BookTableOfContents } from '@/types';
-
-export const useApiBook = () => {
-  const { fetcher, fetcherWithAuth } = useApi();
-
-  const getBookDetailsById = async (bookId: string) => {
-    try {
-      const url = `/books/${bookId}`;
-      const book = await fetcher<BookDetails>(url);
-      return book;
-    } catch (error) {
-      throw new Error('書籍情報の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const getBookPageByQuery = async (query: string, page: number = 0) => {
-    try {
-      const basePage = page > 0 ? page - 1 : 0;
-      const url = `/books/search?q=${query}&page=${basePage}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
-      const bookPage = await fetcher<BookPage>(url);
-      return bookPage;
-    } catch (error) {
-      throw new Error('書籍検索が失敗しました。' + error);
-    }
-  };
-
-  const getBookPageByGenreId = async (
-    genreIdsQuery: string,
-    conditionQuery: string,
-    page: number = 0
-  ) => {
-    try {
-      const basePage = page > 0 ? page - 1 : 0;
-      const url = `/books/discover?genreIds=${genreIdsQuery}&condition=${conditionQuery}&page=${basePage}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
-      const bookPage = await fetcher<BookPage>(url);
-      return bookPage;
-    } catch (error) {
-      throw new Error('ジャンル検索が失敗しました。' + error);
-    }
-  };
-
-  const getNewBooks = async () => {
-    try {
-      const url = `/books/new-books`;
-      const bookPage = await fetcher<BookPage>(url);
-      return bookPage;
-    } catch (error) {
-      throw new Error('ニューリリース一覧の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const getBookTableOfContents = async (bookId: string) => {
-    try {
-      const url = `/books/${bookId}/table-of-contents`;
-      const bookTableOfContents = await fetcher<BookTableOfContents>(url);
-      return bookTableOfContents;
-    } catch (error) {
-      throw new Error('書籍の目次の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const getBookContentPage = async (
-    bookId: string,
-    chapterNumber: number,
-    pageNumber: number
-  ) => {
-    try {
-      const url = `/read/books/${bookId}/chapters/${chapterNumber}/pages/${pageNumber}`;
-      const bookContentPage = await fetcherWithAuth<BookContentPage>(url);
-      return bookContentPage;
-    } catch (error) {
-      throw new Error('書籍のページ情報の読み込みが失敗しました。' + error);
-    }
-  };
-
-  return {
-    getBookDetailsById,
-    getBookPageByQuery,
-    getBookPageByGenreId,
-    getNewBooks,
-    getBookTableOfContents,
-    getBookContentPage,
-  };
-};
-
-------------------------------------------------------------
-use-api-bookmark.ts
-
-import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
-import { useApi } from '@/hooks/api/use-api';
-import { Bookmark, BookmarkPage, BookmarkRequest } from '@/types';
-
-export const useApiBookmark = () => {
-  const { fetcherWithAuth, mutationWithAuth } = useApi();
-
-  const getBookmarkByBookId = async (bookId: string) => {
-    try {
-      const url = `/bookmarks/${bookId}`;
-      const bookmarks = await fetcherWithAuth<Bookmark[]>(url);
-      return bookmarks;
-    } catch (error) {
-      throw new Error('ブックマークの読み込みが失敗しました。' + error);
-    }
-  };
-
-  const getBookmarkPage = async (page: number = 0) => {
-    try {
-      const basePage = page > 0 ? page - 1 : 0;
-      const url = `/bookmarks?&page=${basePage}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
-      const bookmarkPage = await fetcherWithAuth<BookmarkPage>(url);
-      return bookmarkPage;
-    } catch (error) {
-      throw new Error('ブックマーク一覧の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const createBookmark = async (reqestBody: BookmarkRequest) => {
-    try {
-      const url = `/bookmarks`;
-      const options: RequestInit = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqestBody),
-      };
-      await mutationWithAuth(url, options);
-    } catch (error) {
-      throw new Error('ブックマークの作成に失敗しました。' + error);
-    }
-  };
-
-  const updateBookmark = async (id: number, reqestBody: BookmarkRequest) => {
-    try {
-      const url = `/bookmarks/${id}`;
-      const options: RequestInit = {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqestBody),
-      };
-      await mutationWithAuth(url, options);
-    } catch (error) {
-      throw new Error('ブックマークの更新に失敗しました。' + error);
-    }
-  };
-
-  const deleteBookmark = async (id: number) => {
-    try {
-      const url = `/bookmarks/${id}`;
-      const options: RequestInit = { method: 'DELETE' };
-      await mutationWithAuth(url, options);
-    } catch (error) {
-      throw new Error('ブックマークの削除に失敗しました。' + error);
-    }
-  };
-
-  return {
-    getBookmarkByBookId,
-    getBookmarkPage,
-    createBookmark,
-    updateBookmark,
-    deleteBookmark,
-  };
-};
+export const FETCH_FAVORITES_MAX_RESULTS = 5;
+export const FETCH_MY_REVIEWS_MAX_RESULTS = 5;
+export const FETCH_BOOKMARKS_MAX_RESULTS = 5;
 
 ------------------------------------------------------------
 use-api-favorite.ts
 
-import { FETCH_BOOKS_MAX_RESULTS } from '@/constants/constants';
+import { FETCH_FAVORITES_MAX_RESULTS } from '@/constants/constants';
 import { useApi } from '@/hooks/api/use-api';
 import { Favorite, FavoriteInfo, FavoritePage, FavoriteRequest } from '@/types';
 
@@ -2595,7 +2585,7 @@ export const useApiFavorite = () => {
   const getFavoritePage = async (page: number = 0) => {
     try {
       const basePage = page > 0 ? page - 1 : 0;
-      const url = `/favorites?&page=${basePage}&maxResults=${FETCH_BOOKS_MAX_RESULTS}`;
+      const url = `/favorites?&page=${basePage}&maxResults=${FETCH_FAVORITES_MAX_RESULTS}`;
       const favoritePage = await fetcherWithAuth<FavoritePage>(url);
       return favoritePage;
     } catch (error) {
@@ -2650,11 +2640,14 @@ export const useApiFavorite = () => {
 ------------------------------------------------------------
 use-api-review.ts
 
-import { FETCH_REVIEWS_MAX_RESULTS } from '@/constants/constants';
+import {
+  FETCH_MY_REVIEWS_MAX_RESULTS,
+  FETCH_REVIEWS_MAX_RESULTS,
+} from '@/constants/constants';
 import { useApi } from '@/hooks/api/use-api';
 import { ReviewPage, ReviewRequest, ReviewSummary, SelfReviewExists } from '@/types';
 
-export const useApiRevew = () => {
+export const useApiReview = () => {
   const { fetcher, fetcherWithAuth, mutationWithAuth } = useApi();
 
   const getReviewPage = async (bookId: string, page: number = 0) => {
@@ -2685,6 +2678,17 @@ export const useApiRevew = () => {
       return data.exists;
     } catch (error) {
       throw new Error('レビューの存在チェックに失敗しました。' + error);
+    }
+  };
+
+  const getReviewPageByUser = async (page: number = 0) => {
+    try {
+      const basePage = page > 0 ? page - 1 : 0;
+      const url = `/reviews?&page=${basePage}&maxResults=${FETCH_MY_REVIEWS_MAX_RESULTS}`;
+      const reviewPage = await fetcherWithAuth<ReviewPage>(url);
+      return reviewPage;
+    } catch (error) {
+      throw new Error('マイレビュー一覧の読み込みが失敗しました。' + error);
     }
   };
 
@@ -2732,6 +2736,7 @@ export const useApiRevew = () => {
     getReviewPage,
     getReviewSummary,
     checkSelfReviewExists,
+    getReviewPageByUser,
     createReview,
     updateReview,
     deleteReview,
@@ -2739,39 +2744,47 @@ export const useApiRevew = () => {
 };
 
 ------------------------------------------------------------
-bookmarks/
+use-discover-queries.ts
 
-import BookmarkList from '@/components/bookmark/bookmark-list';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-export default function Page() {
-  const [searchParams] = useSearchParams();
+export const useDiscoverQueries = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const searchParams = new URLSearchParams(location.search);
+  const genreIds = searchParams.get('genreIds') || '';
+  const condition = searchParams.get('condition') || '';
   const page = Number(searchParams.get('page') || '1');
 
-  return (
-    <>
-      <div className="m-4 flex h-10 items-center">
-        <p>ブックマーク一覧</p>
-      </div>
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <BookmarkList page={page} />
-        </Suspense>
-      </ErrorBoundary>
-    </>
-  );
-}
+  const updateQueryParams = (params: {
+    genreIds?: string;
+    condition?: string;
+    page?: number;
+  }) => {
+    const newParams = new URLSearchParams(location.search);
+
+    if (params.genreIds !== undefined) {
+      newParams.set('genreIds', params.genreIds);
+    }
+    if (params.condition !== undefined) {
+      newParams.set('condition', params.condition);
+    }
+    if (params.page !== undefined) {
+      newParams.set('page', params.page.toString());
+    }
+
+    navigate(`/discover?${newParams.toString()}`);
+  };
+
+  return { genreIds, condition, page, updateQueryParams };
+};
 
 ------------------------------------------------------------
-discover/
+bookmarks
 
-import BookListByGenreId from '@/components/book-list/book-list-by-genre-id';
-import BookListSkeleton from '@/components/book-list/book-list-skeleton';
-import GenreConditionSelector from '@/components/genre-list/genre-condition-selector';
-import GenreIdsSelector from '@/components/genre-list/genre-ids-selector';
+import Bookmarks from '@/components/bookmarks/bookmarks';
+import BookmarksSkeleton from '@/components/bookmarks/bookmarks-skeleton';
 import { Separator } from '@/components/ui/separator';
 import ErrorElement from '@/routes/error-element';
 import { Suspense } from 'react';
@@ -2780,30 +2793,19 @@ import { useSearchParams } from 'react-router-dom';
 
 export default function Page() {
   const [searchParams] = useSearchParams();
-  const genreIdsQuery = searchParams.get('genreIds') || '';
-  const conditionQuery = searchParams.get('condition') || '';
   const page = Number(searchParams.get('page') || '1');
 
   return (
     <>
-      <div className="m-4 flex h-10 items-center justify-between">
-        <p>ジャンル</p>
-        <GenreConditionSelector />
+      <div className="m-4 flex h-10 items-center">
+        <p className="font-bold">ブックマーク</p>
       </div>
 
       <Separator className="my-4 bg-foreground/10" />
 
-      <GenreIdsSelector />
-
-      <Separator className="my-4 bg-foreground/10" />
-
       <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<BookListSkeleton />}>
-          <BookListByGenreId
-            genreIdsQuery={genreIdsQuery}
-            conditionQuery={conditionQuery}
-            page={page}
-          />
+        <Suspense fallback={<BookmarksSkeleton />}>
+          <Bookmarks page={page} />
         </Suspense>
       </ErrorBoundary>
     </>
@@ -2811,10 +2813,72 @@ export default function Page() {
 }
 
 ------------------------------------------------------------
-favorites/
+discover
 
-import BookListFavorites from '@/components/book-list/book-list-favorites';
-import BookListSkeleton from '@/components/book-list/book-list-skeleton';
+import BooksDiscover from '@/components/books/books-discover';
+import BooksSkeleton from '@/components/books/books-skeleton';
+import GenresConditionSelector from '@/components/genres/genres-condition-selector';
+import GenresDiscover from '@/components/genres/genres-discover';
+import GenresSkeleton from '@/components/genres/genres-skeleton';
+import { Separator } from '@/components/ui/separator';
+import { useDiscoverQueries } from '@/hooks/use-discover-queries';
+import ErrorElement from '@/routes/error-element';
+import { Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+
+export default function Page() {
+  const { genreIds, condition, page, updateQueryParams } = useDiscoverQueries();
+
+  const handleConditionChange = (condition: string) => {
+    // SINGLE選択以外は複数ジャンル選択可能OKだが
+    // SINGLE選択の場合、複数ジャンルの中の最初の値（単一の値）とする
+    const ids = condition === 'SINGLE' ? genreIds.split(',')[0] : undefined;
+    updateQueryParams({ genreIds: ids, condition, page: 1 });
+  };
+
+  const handleGenreIdsChange = (genreIds: string) => {
+    updateQueryParams({ genreIds, page: 1 });
+  };
+
+  return (
+    <>
+      <div className="m-4 flex h-10 items-center justify-between">
+        <p className="font-bold">ジャンル</p>
+        <GenresConditionSelector
+          condition={condition}
+          onConditionChange={handleConditionChange}
+        />
+      </div>
+
+      <Separator className="my-4 bg-foreground/10" />
+
+      <ErrorBoundary fallback={<ErrorElement />}>
+        <Suspense fallback={<GenresSkeleton />}>
+          <GenresDiscover
+            genreIds={genreIds}
+            condition={condition}
+            onGenreIdsChange={handleGenreIdsChange}
+          />
+        </Suspense>
+      </ErrorBoundary>
+
+      <Separator className="my-4 bg-foreground/10" />
+
+      <ErrorBoundary fallback={<ErrorElement />}>
+        <Suspense fallback={<BooksSkeleton />}>
+          <BooksDiscover genreIds={genreIds} condition={condition} page={page} />
+        </Suspense>
+      </ErrorBoundary>
+    </>
+  );
+}
+
+------------------------------------------------------------
+favorites
+
+import Favorites from '@/components/favorites/favorites';
+import FavoritesSkeleton from '@/components/favorites/favorites-skeleton';
+import { Separator } from '@/components/ui/separator';
 import ErrorElement from '@/routes/error-element';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -2827,12 +2891,14 @@ export default function Page() {
   return (
     <>
       <div className="m-4 flex h-10 items-center">
-        <p>お気に入り一覧</p>
+        <p className="font-bold">お気に入り</p>
       </div>
 
+      <Separator className="my-4 bg-foreground/10" />
+
       <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<BookListSkeleton />}>
-          <BookListFavorites page={page} />
+        <Suspense fallback={<FavoritesSkeleton />}>
+          <Favorites page={page} />
         </Suspense>
       </ErrorBoundary>
     </>
@@ -2840,202 +2906,11 @@ export default function Page() {
 }
 
 ------------------------------------------------------------
-login/
+my-reviews
 
-import Logo from '@/components/layout/logo';
-import PasswordInput from '@/components/settings/password-input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useApiUser } from '@/hooks/api/use-api-user';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { LoginRequest } from '@/types';
-import { useMutation } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
-import React, { useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-
-export default function Page() {
-  const emailRef = useRef<HTMLInputElement | null>(null);
-
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { login, setUser } = useAuth();
-  const { getCurrentUser } = useApiUser();
-  const { toast } = useToast();
-
-  const loginMutation = useMutation({
-    mutationFn: (requestBody: LoginRequest) => login(requestBody),
-    onSuccess: async () => {
-      const user = await getCurrentUser();
-      setUser(user);
-    },
-    onError: (error) => {
-      console.error(error);
-    },
-  });
-
-  useEffect(() => {
-    emailRef.current?.focus();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = new FormData(e.currentTarget);
-    const email = form.get('email') as string;
-    const password = form.get('password') as string;
-
-    const requestBody: LoginRequest = { email, password };
-    loginMutation.mutate(requestBody, {
-      onSuccess: () => {
-        const pathname = location.state?.from?.pathname || '/';
-        const query = location.state?.from?.search || '';
-        navigate(pathname + query, { replace: true });
-      },
-      onError: () => {
-        toast({
-          title: 'ログインできませんでした',
-          description: 'メールアドレスまたはパスワードが違います。',
-          variant: 'destructive',
-          duration: 5000,
-        });
-      },
-    });
-  };
-
-  return (
-    <div className="my-6 flex flex-col place-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <p className="font-semibold">ログイン</p>
-      <Card className="w-80 rounded-3xl sm:w-96">
-        <CardContent className="p-6 sm:px-10">
-          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
-            <div>
-              <Label className="text-xs" htmlFor="email">
-                メールアドレス
-              </Label>
-              <Input
-                ref={emailRef}
-                className="my-2 rounded-full"
-                id="email"
-                name="email"
-                autoComplete="off"
-                spellCheck="false"
-              />
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="password">
-                パスワード
-              </Label>
-              <PasswordInput
-                className="my-2 rounded-full"
-                id="password"
-                name="password"
-              />
-            </div>
-
-            <Button
-              className="mt-6 w-full rounded-full"
-              type="submit"
-              disabled={loginMutation.isPending}
-            >
-              {loginMutation.isPending ? (
-                <Loader2Icon className="animate-spin" />
-              ) : (
-                'ログイン'
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 flex justify-center gap-x-1 text-xs">
-            <p className="text-muted-foreground">アカウントをお持ちでない方はこちら</p>
-            <Link to={'/signup'} className="text-primary hover:underline">
-              新規登録
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-read/[bookId]/chapter/[pageNumber]
-
-import BookReadBackground from '@/components/book-read/book-read-background';
-import BookReadContent from '@/components/book-read/book-read-content';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useParams } from 'react-router-dom';
-
-export default function Page() {
-  const params = useParams();
-  const bookId = params.bookId || '';
-  const chapterNumber = Number(params.chapterNumber) || 0;
-  const pageNumber = Number(params.pageNumber) || 1;
-
-  return (
-    <>
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={null}>
-          <BookReadBackground bookId={bookId} />
-        </Suspense>
-      </ErrorBoundary>
-
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={null}>
-          <BookReadContent
-            bookId={bookId}
-            chapterNumber={chapterNumber}
-            pageNumber={pageNumber}
-          />
-        </Suspense>
-      </ErrorBoundary>
-    </>
-  );
-}
-
-------------------------------------------------------------
-table-of-contents/
-
-import BookReadBackground from '@/components/book-read/book-read-background';
-import BookTableOfContents from '@/components/book-read/book-table-of-contents';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useParams } from 'react-router-dom';
-
-export default function Page() {
-  const params = useParams();
-  const bookId = params.bookId || '';
-
-  return (
-    <>
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={null}>
-          <BookReadBackground bookId={bookId} />
-        </Suspense>
-      </ErrorBoundary>
-
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={null}>
-          <BookTableOfContents bookId={bookId} />
-        </Suspense>
-      </ErrorBoundary>
-    </>
-  );
-}
-
-------------------------------------------------------------
-search/
-
-import BookListByQuery from '@/components/book-list/book-list-by-query';
-import BookListSkeleton from '@/components/book-list/book-list-skeleton';
+import MyReviews from '@/components/my-reviews/my-reviews';
+import MyReviewsSkeleton from '@/components/my-reviews/my-reviews-skeleton';
+import { Separator } from '@/components/ui/separator';
 import ErrorElement from '@/routes/error-element';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -3043,20 +2918,55 @@ import { useSearchParams } from 'react-router-dom';
 
 export default function Page() {
   const [searchParams] = useSearchParams();
-  const query = searchParams.get('q') || '';
+  const page = Number(searchParams.get('page') || '1');
+
+  return (
+    <>
+      <div className="m-4 flex h-10 items-center">
+        <p className="font-bold">マイレビュー</p>
+      </div>
+
+      <Separator className="my-4 bg-foreground/10" />
+
+      <ErrorBoundary fallback={<ErrorElement />}>
+        <Suspense fallback={<MyReviewsSkeleton />}>
+          <MyReviews page={page} />
+        </Suspense>
+      </ErrorBoundary>
+    </>
+  );
+}
+
+------------------------------------------------------------
+search
+
+import BooksSearch from '@/components/books/books-search';
+import BooksSkeleton from '@/components/books/books-skeleton';
+import { Separator } from '@/components/ui/separator';
+import ErrorElement from '@/routes/error-element';
+import { Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { useSearchParams } from 'react-router-dom';
+
+export default function Page() {
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
   const page = Number(searchParams.get('page') || '1');
 
   return (
     <>
       <div className="m-4 flex h-10 items-center">
         <p>
-          「 {query} 」<span className="text-sm text-muted-foreground">の検索結果</span>
+          「 {searchQuery} 」
+          <span className="text-sm text-muted-foreground">の検索結果</span>
         </p>
       </div>
 
+      <Separator className="my-4 bg-foreground/10" />
+
       <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<BookListSkeleton />}>
-          <BookListByQuery query={query} page={page} />
+        <Suspense fallback={<BooksSkeleton />}>
+          <BooksSearch searchQuery={searchQuery} page={page} />
         </Suspense>
       </ErrorBoundary>
     </>
@@ -3064,900 +2974,12 @@ export default function Page() {
 }
 
 ------------------------------------------------------------
-change-email/
-
-import Logo from '@/components/layout/logo';
-import PasswordInput from '@/components/settings/password-input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useApiUser } from '@/hooks/api/use-api-user';
-import { useAuth } from '@/hooks/use-auth';
-import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/util';
-import { ChangeEmail } from '@/types';
-import { useMutation } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-
-export default function Page() {
-  const [emailErrorMessage, setEmailErrorMessage] = useState('');
-  const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
-
-  const emailRef = useRef<HTMLInputElement | null>(null);
-  const passwordRef = useRef<HTMLInputElement | null>(null);
-
-  const navigate = useNavigate();
-  const { changeEmail } = useApiUser();
-  const { toast } = useToast();
-
-  const { user, logout } = useAuth();
-  const { confirmDialog } = useConfirmDialog();
-
-  const updateMutation = useMutation({
-    mutationFn: (requestBody: ChangeEmail) => changeEmail(requestBody),
-    onSuccess: async () => {
-      await logout();
-    },
-    onError: (error) => {
-      console.error(error);
-    },
-  });
-
-  useEffect(() => {
-    emailRef.current?.focus();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = new FormData(e.currentTarget);
-    const email = form.get('email') as string;
-    const password = form.get('password') as string;
-
-    const isEmailValid = validateEmail();
-    const isPasswordValid = validatePassword();
-
-    if (!isEmailValid || !isPasswordValid) {
-      return;
-    }
-
-    const { isCancel } = await confirmDialog({
-      icon: '?',
-      title: '本当に変更しますか？',
-      message: 'メールアドレス変更後、一度ログアウトします。',
-    });
-    if (isCancel) return;
-
-    const requestBody: ChangeEmail = { email, password };
-    updateMutation.mutate(requestBody, {
-      onSuccess: async () => {
-        toast({ title: 'メールアドレスを変更し、ログアウトしました', duration: 5000 });
-        navigate('/login');
-      },
-      onError: () => {
-        toast({
-          title: 'メールアドレスを変更できませんでした',
-          description: '入力内容を確認してください。',
-          variant: 'destructive',
-          duration: 5000,
-        });
-      },
-    });
-  };
-
-  const validateEmail = () => {
-    const email = emailRef.current?.value as string;
-    setEmailErrorMessage('');
-
-    if (email === '') {
-      setEmailErrorMessage('メールアドレスは必須です。');
-      return false;
-    }
-
-    const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
-      setEmailErrorMessage('無効なメールアドレスです。');
-      return false;
-    }
-
-    return true;
-  };
-
-  const validatePassword = () => {
-    const password = passwordRef.current?.value as string;
-    setPasswordErrorMessage('');
-
-    if (password === '') {
-      setPasswordErrorMessage('パスワードは必須です。');
-      return false;
-    }
-
-    return true;
-  };
-
-  return (
-    <div className="my-6 flex flex-col place-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <p className="font-semibold">メールアドレス変更</p>
-      <Card className="w-80 rounded-3xl sm:w-96">
-        <CardContent className="p-6 sm:px-10">
-          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                現在のメールアドレス
-              </Label>
-              <p className="my-2 rounded-full border border-transparent px-3 py-2 text-sm">
-                {user?.email}
-              </p>
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                新しいメールアドレス
-              </Label>
-              <Input
-                ref={emailRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  emailErrorMessage && 'border-destructive'
-                )}
-                id="email"
-                name="email"
-                autoComplete="off"
-                spellCheck="false"
-              />
-              {emailErrorMessage && (
-                <p className="text-xs text-destructive">{emailErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="password">
-                現在のパスワード
-              </Label>
-              <PasswordInput
-                ref={passwordRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  passwordErrorMessage && 'border-destructive'
-                )}
-                id="password"
-                name="password"
-              />
-              {passwordErrorMessage && (
-                <p className="text-xs text-destructive">{passwordErrorMessage}</p>
-              )}
-            </div>
-
-            <Button
-              className="mt-6 w-full rounded-full"
-              type="submit"
-              disabled={updateMutation.isPending}
-            >
-              {updateMutation.isPending ? (
-                <Loader2Icon className="animate-spin" />
-              ) : (
-                '変更'
-              )}
-            </Button>
-
-            <Button
-              className="w-full rounded-full bg-transparent"
-              type="button"
-              variant="outline"
-              asChild
-            >
-              <Link to="/settings/profile">キャンセル</Link>
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-change-password/
-
-import Logo from '@/components/layout/logo';
-import PasswordInput from '@/components/settings/password-input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { useApiUser } from '@/hooks/api/use-api-user';
-import { useConfirmDialog } from '@/hooks/use-confirm-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/util';
-import { ChangePassword } from '@/types';
-import { useMutation } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-
-export default function Page() {
-  const [currentPasswordErrorMessage, setCurrentPasswordErrorMessage] = useState('');
-  const [newPasswordErrorMessage, setNewPasswordErrorMessage] = useState('');
-  const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] = useState('');
-
-  const currentPasswordRef = useRef<HTMLInputElement | null>(null);
-  const newPasswordRef = useRef<HTMLInputElement | null>(null);
-  const confirmPasswordRef = useRef<HTMLInputElement | null>(null);
-
-  const navigate = useNavigate();
-  const { changePassword } = useApiUser();
-  const { toast } = useToast();
-
-  const { confirmDialog } = useConfirmDialog();
-
-  const updateMutation = useMutation({
-    mutationFn: (requestBody: ChangePassword) => changePassword(requestBody),
-    onError: (error) => {
-      console.error(error);
-    },
-  });
-
-  useEffect(() => {
-    currentPasswordRef.current?.focus();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = new FormData(e.currentTarget);
-    const currentPassword = form.get('current-password') as string;
-    const newPassword = form.get('new-password') as string;
-    const confirmPassword = form.get('confirm-password') as string;
-
-    const isCurrentPasswrdValid = validateCurrentPassword();
-    const isNewPasswrdValid = validateNewPassword();
-    const isConfirmPasswrdValid = validateConfirmPassword();
-
-    if (!isCurrentPasswrdValid || !isNewPasswrdValid || !isConfirmPasswrdValid) {
-      return;
-    }
-
-    const { isCancel } = await confirmDialog({
-      icon: '?',
-      title: '本当に変更しますか？',
-      message: 'パスワードを変更します。',
-    });
-    if (isCancel) return;
-
-    const requestBody: ChangePassword = {
-      currentPassword,
-      newPassword,
-      confirmPassword,
-    };
-    updateMutation.mutate(requestBody, {
-      onSuccess: () => {
-        toast({ title: 'パスワードを変更しました' });
-        navigate('/settings/profile');
-      },
-      onError: () => {
-        toast({
-          title: 'パスワードを変更できませんでした',
-          description: '入力内容を確認してください。',
-          variant: 'destructive',
-          duration: 5000,
-        });
-      },
-    });
-  };
-
-  const validateCurrentPassword = () => {
-    setCurrentPasswordErrorMessage('');
-    const password = currentPasswordRef.current?.value as string;
-
-    if (password === '') {
-      setCurrentPasswordErrorMessage('パスワードは必須です。');
-      return false;
-    }
-
-    return true;
-  };
-
-  const validateNewPassword = () => {
-    setNewPasswordErrorMessage('');
-    const password = newPasswordRef.current?.value as string;
-
-    if (password === '') {
-      setNewPasswordErrorMessage('パスワードは必須です。');
-      return false;
-    }
-
-    if (password.length < 4) {
-      setNewPasswordErrorMessage('パスワードは4文字以上で設定してください。');
-      return false;
-    }
-
-    return true;
-  };
-
-  const validateConfirmPassword = () => {
-    setConfirmPasswordErrorMessage('');
-    const newPassword = newPasswordRef.current?.value as string;
-    const confirmPassword = confirmPasswordRef.current?.value as string;
-
-    if (newPassword !== confirmPassword) {
-      setConfirmPasswordErrorMessage(
-        '新しいパスワードと確認用パスワードが一致していません。'
-      );
-      return false;
-    }
-
-    return true;
-  };
-
-  return (
-    <div className="my-6 flex flex-col place-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <p className="font-semibold">パスワード変更</p>
-      <Card className="w-80 rounded-3xl sm:w-96">
-        <CardContent className="p-6 sm:px-10">
-          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
-            <div>
-              <Label className="text-xs" htmlFor="current-password">
-                現在のパスワード
-              </Label>
-              <PasswordInput
-                ref={currentPasswordRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  currentPasswordErrorMessage && 'border-destructive'
-                )}
-                id="current-password"
-                name="current-password"
-              />
-              {currentPasswordErrorMessage && (
-                <p className="text-xs text-destructive">{currentPasswordErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="new-password">
-                新しいパスワード
-              </Label>
-              <PasswordInput
-                ref={newPasswordRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  newPasswordErrorMessage && 'border-destructive'
-                )}
-                id="new-password"
-                name="new-password"
-              />
-              {newPasswordErrorMessage && (
-                <p className="text-xs text-destructive">{newPasswordErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="confirm-password">
-                新しいパスワード（確認用）
-              </Label>
-              <PasswordInput
-                ref={confirmPasswordRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  confirmPasswordErrorMessage && 'border-destructive'
-                )}
-                id="confirm-password"
-                name="confirm-password"
-              />
-              {confirmPasswordErrorMessage && (
-                <p className="text-xs text-destructive">{confirmPasswordErrorMessage}</p>
-              )}
-            </div>
-
-            <Button
-              className="mt-6 w-full rounded-full"
-              type="submit"
-              disabled={updateMutation.isPending}
-            >
-              {updateMutation.isPending ? (
-                <Loader2Icon className="animate-spin" />
-              ) : (
-                '変更'
-              )}
-            </Button>
-
-            <Button
-              className="w-full rounded-full bg-transparent"
-              type="button"
-              variant="outline"
-              asChild
-            >
-              <Link to="/settings/profile">キャンセル</Link>
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-change-user-info/
-
-import Logo from '@/components/layout/logo';
-import AvatarCarousel from '@/components/settings/avatar-carousel';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useApiUser } from '@/hooks/api/use-api-user';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/util';
-import { UpdateCurrentUser } from '@/types';
-import { useMutation } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-
-export default function Page() {
-  const [nameErrorMessage, setNameErrorMessage] = useState('');
-
-  const nameRef = useRef<HTMLInputElement | null>(null);
-
-  const navigate = useNavigate();
-  const { updateCurrentUser } = useApiUser();
-  const { toast } = useToast();
-
-  const { user, setUser } = useAuth();
-
-  const [avatarUrl, setAvaterUrl] = useState(user?.avatarUrl || '');
-
-  const updateMutation = useMutation({
-    mutationFn: (requestBody: UpdateCurrentUser) => updateCurrentUser(requestBody),
-    onError: (error) => {
-      console.error(error);
-    },
-  });
-
-  useEffect(() => {
-    if (nameRef.current && user) {
-      nameRef.current.focus();
-      nameRef.current.value = user.name || '';
-    }
-  }, [user]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = new FormData(e.currentTarget);
-    const name = form.get('name') as string;
-
-    const isNameValid = validateName();
-
-    if (!isNameValid) {
-      return;
-    }
-
-    const requestBody: UpdateCurrentUser = { name, avatarUrl };
-    updateMutation.mutate(requestBody, {
-      onSuccess: () => {
-        // 名前とアバターURLだけなので楽観的に更新しておく
-        const newUser = user ? { ...user, name, avatarUrl } : null;
-        setUser(newUser);
-
-        toast({ title: 'ユーザー情報を変更しました' });
-        navigate('/settings/profile');
-      },
-      onError: () => {
-        toast({
-          title: 'ユーザー情報を変更できませんでした',
-          description: '入力内容を確認してください。',
-          variant: 'destructive',
-          duration: 5000,
-        });
-      },
-    });
-  };
-
-  const validateName = () => {
-    const name = nameRef.current?.value as string;
-    setNameErrorMessage('');
-
-    if (name === '') {
-      setNameErrorMessage('ユーザー名は必須です。');
-      return false;
-    }
-
-    return true;
-  };
-
-  return (
-    <div className="my-6 flex flex-col place-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <p className="font-semibold">ユーザー情報の編集</p>
-      <Card className="w-80 rounded-3xl sm:w-96">
-        <CardContent className="p-6 sm:px-10">
-          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                ユーザー名
-              </Label>
-              <Input
-                ref={nameRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  nameErrorMessage && 'border-destructive'
-                )}
-                id="name"
-                name="name"
-                autoComplete="off"
-                spellCheck="false"
-              />
-              {nameErrorMessage && (
-                <p className="text-xs text-destructive">{nameErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                アバター画像
-              </Label>
-              <AvatarCarousel value={avatarUrl} onChange={setAvaterUrl} />
-            </div>
-
-            <Button
-              className="w-full rounded-full"
-              type="submit"
-              disabled={updateMutation.isPending}
-            >
-              {updateMutation.isPending ? (
-                <Loader2Icon className="animate-spin" />
-              ) : (
-                '変更'
-              )}
-            </Button>
-
-            <Button
-              className="w-full rounded-full bg-transparent"
-              type="button"
-              variant="outline"
-              asChild
-            >
-              <Link to="/settings/profile">キャンセル</Link>
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-profile/
-
-import Logo from '@/components/layout/logo';
-import ProfileCounts from '@/components/settings/profile-counts';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { useAuth } from '@/hooks/use-auth';
-import ErrorElement from '@/routes/error-element';
-import { KeyRoundIcon, MailIcon, UserRoundIcon } from 'lucide-react';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { Link } from 'react-router-dom';
-
-export default function Page() {
-  const { user } = useAuth();
-
-  if (!user) return null;
-
-  return (
-    <div className="my-6 flex flex-col place-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <p className="font-semibold">プロフィール</p>
-
-      <Card className="w-80 overflow-hidden rounded-3xl sm:w-96">
-        <CardHeader className="h-80 w-full bg-gradient-to-tr from-secondary to-primary">
-          <div className="flex flex-col items-center pt-8">
-            <Avatar className="mb-4 size-24">
-              <AvatarImage
-                className="bg-primary"
-                src={user.avatarUrl}
-                alt="avatar-image"
-              />
-              <AvatarFallback className="bg-primary text-5xl font-semibold">
-                {user.name.slice(0, 1)}
-              </AvatarFallback>
-            </Avatar>
-            <p className="text-xl font-semibold">{user.name}</p>
-            <p className="text-sm">{user.email}</p>
-          </div>
-
-          <ErrorBoundary fallback={<ErrorElement />}>
-            <Suspense fallback={null}>
-              <ProfileCounts />
-            </Suspense>
-          </ErrorBoundary>
-        </CardHeader>
-
-        <CardContent className="relative p-6">
-          <ul>
-            <li className="flex items-center p-2">
-              <UserRoundIcon className="mr-4" />
-              <p>ユーザー情報</p>
-              <div className="flex-1"></div>
-              <Button className="rounded-full bg-transparent" variant="outline" asChild>
-                <Link to="/settings/change-user-info">変更</Link>
-              </Button>
-            </li>
-            <li className="flex items-center p-2">
-              <MailIcon className="mr-4" />
-              <p>メールアドレス</p>
-              <div className="flex-1"></div>
-              <Button className="rounded-full bg-transparent" variant="outline" asChild>
-                <Link to="/settings/change-email">変更</Link>
-              </Button>
-            </li>
-            <li className="flex items-center p-2">
-              <KeyRoundIcon className="mr-4" />
-              <p>パスワード</p>
-              <div className="flex-1"></div>
-              <Button className="rounded-full bg-transparent" variant="outline" asChild>
-                <Link to="/settings/change-password">変更</Link>
-              </Button>
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-signup/
-
-import Logo from '@/components/layout/logo';
-import AvatarCarousel from '@/components/settings/avatar-carousel';
-import PasswordInput from '@/components/settings/password-input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useApiUser } from '@/hooks/api/use-api-user';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/util';
-import { SignupRequest } from '@/types';
-import { useMutation } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-
-export default function Page() {
-  const [emailErrorMessage, setEmailErrorMessage] = useState('');
-  const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
-  const [nameErrorMessage, setNameErrorMessage] = useState('');
-
-  const emailRef = useRef<HTMLInputElement | null>(null);
-  const passwordRef = useRef<HTMLInputElement | null>(null);
-  const nameRef = useRef<HTMLInputElement | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState('');
-
-  const navigate = useNavigate();
-  const { signup, setUser } = useAuth();
-  const { getCurrentUser } = useApiUser();
-  const { toast } = useToast();
-
-  const signupMutation = useMutation({
-    mutationFn: (requestBody: SignupRequest) => signup(requestBody),
-    onSuccess: async () => {
-      const user = await getCurrentUser();
-      setUser(user);
-    },
-    onError: (error) => {
-      console.error(error);
-    },
-  });
-
-  useEffect(() => {
-    emailRef.current?.focus();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = new FormData(e.currentTarget);
-    const email = form.get('email') as string;
-    const password = form.get('password') as string;
-    const name = form.get('name') as string;
-
-    const isEmailValid = validateEmail();
-    const isPasswordValid = validatePassword();
-    const isNameValid = validateName();
-
-    if (!isEmailValid || !isPasswordValid || !isNameValid) {
-      return;
-    }
-
-    const requestBody: SignupRequest = { email, password, name, avatarUrl };
-    signupMutation.mutate(requestBody, {
-      onSuccess: () => {
-        navigate('/');
-      },
-      onError: () => {
-        toast({
-          title: '新規登録できませんでした',
-          description: '入力内容を確認してください。',
-          variant: 'destructive',
-          duration: 5000,
-        });
-      },
-    });
-  };
-
-  const validateEmail = () => {
-    const email = emailRef.current?.value as string;
-    setEmailErrorMessage('');
-
-    if (email === '') {
-      setEmailErrorMessage('メールアドレスは必須です。');
-      return false;
-    }
-
-    const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
-      setEmailErrorMessage('無効なメールアドレスです。');
-      return false;
-    }
-
-    return true;
-  };
-
-  const validatePassword = () => {
-    const password = passwordRef.current?.value as string;
-    setPasswordErrorMessage('');
-
-    if (password === '') {
-      setPasswordErrorMessage('パスワードは必須です。');
-      return false;
-    }
-
-    if (password.length < 4) {
-      setPasswordErrorMessage('パスワードは4文字以上で設定してください。');
-      return false;
-    }
-
-    return true;
-  };
-
-  const validateName = () => {
-    const name = nameRef.current?.value as string;
-    setNameErrorMessage('');
-
-    if (name === '') {
-      setNameErrorMessage('ユーザー名は必須です。');
-      return false;
-    }
-
-    return true;
-  };
-
-  return (
-    <div className="my-6 flex flex-col place-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <p className="font-semibold">アカウントの作成</p>
-      <Card className="w-80 rounded-3xl sm:w-96">
-        <CardContent className="p-6 sm:px-10">
-          <form className="flex w-full flex-col gap-y-4" onSubmit={handleSubmit}>
-            <div>
-              <Label className="text-xs" htmlFor="email">
-                メールアドレス
-              </Label>
-              <Input
-                ref={emailRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  emailErrorMessage && 'border-destructive'
-                )}
-                id="email"
-                name="email"
-                autoComplete="off"
-                spellCheck="false"
-              />
-              {emailErrorMessage && (
-                <p className="text-xs text-destructive">{emailErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="password">
-                パスワード
-              </Label>
-              <PasswordInput
-                ref={passwordRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  passwordErrorMessage && 'border-destructive'
-                )}
-                id="password"
-                name="password"
-              />
-              {passwordErrorMessage && (
-                <p className="text-xs text-destructive">{passwordErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                ユーザー名
-              </Label>
-              <Input
-                ref={nameRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  nameErrorMessage && 'border-destructive'
-                )}
-                id="name"
-                name="name"
-                autoComplete="off"
-                spellCheck="false"
-              />
-              {nameErrorMessage && (
-                <p className="text-xs text-destructive">{nameErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                アバター画像
-              </Label>
-              <AvatarCarousel value={avatarUrl} onChange={setAvatarUrl} />
-            </div>
-
-            <Button
-              className="w-full rounded-full"
-              type="submit"
-              disabled={signupMutation.isPending}
-            >
-              {signupMutation.isPending ? (
-                <Loader2Icon className="animate-spin" />
-              ) : (
-                '新規登録'
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 flex justify-center gap-x-1 text-xs">
-            <p className="text-muted-foreground">アカウントをお持ちですか？</p>
-            <Link to={'/login'} className="text-primary hover:underline">
-              ログイン
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-error-element.tsx
-
-export default function ErrorElement() {
-  return (
-    <div className="flex h-24 w-full items-center justify-center">
-      <p>読み込みエラー</p>
-    </div>
-  );
-}
-
-------------------------------------------------------------
 page.tsx
 
-import BookListNewReleases from '@/components/book-list/book-list-new-releases';
-import BookListSkeleton from '@/components/book-list/book-list-skeleton';
-import GenreListSkeleton from '@/components/genre-list/genre-list-skeleton';
-import GenreListTopPage from '@/components/genre-list/genre-list-top-page';
+import BooksNewReleases from '@/components/books/books-new-releases';
+import BooksSkeleton from '@/components/books/books-skeleton';
+import GenresSkeleton from '@/components/genres/genres-skeleton';
+import GenresTopPage from '@/components/genres/genres-top-page';
 import Hero from '@/components/layout/hero';
 import ErrorElement from '@/routes/error-element';
 import { Suspense } from 'react';
@@ -3968,52 +2990,28 @@ export default function Page() {
     <>
       <Hero />
 
-      <div className="flex flex-col">
-        <p className="font-bold text-primary">ジャンル</p>
+      <div className="mb-4 flex flex-col gap-y-4">
+        <p className="font-bold">ジャンル</p>
 
-        <div className="my-4">
-          <ErrorBoundary fallback={<ErrorElement />}>
-            <Suspense fallback={<GenreListSkeleton />}>
-              <GenreListTopPage />
-            </Suspense>
-          </ErrorBoundary>
-        </div>
+        <ErrorBoundary fallback={<ErrorElement />}>
+          <Suspense fallback={<GenresSkeleton />}>
+            <GenresTopPage />
+          </Suspense>
+        </ErrorBoundary>
       </div>
 
       <div className="flex flex-col">
-        <p className="mb-4 font-bold text-primary">ニューリリース</p>
+        <p className="font-bold">ニューリリース</p>
+
         <ErrorBoundary fallback={<ErrorElement />}>
-          <Suspense fallback={<BookListSkeleton />}>
-            <BookListNewReleases />
+          <Suspense fallback={<BooksSkeleton />}>
+            <BooksNewReleases />
           </Suspense>
         </ErrorBoundary>
       </div>
     </>
   );
 }
-
-------------------------------------------------------------
-protected-route.tsx
-
-import { useAuth } from '@/hooks/use-auth';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-
-export const ProtectedRoute = () => {
-  const location = useLocation();
-  const { accessToken, isLoading } = useAuth();
-
-  if (isLoading) return null;
-
-  return (
-    <>
-      {accessToken ? (
-        <Outlet />
-      ) : (
-        <Navigate to="/login" state={{ from: location }} replace />
-      )}
-    </>
-  );
-};
 
 ------------------------------------------------------------
 route.tsx
@@ -4024,6 +3022,7 @@ import DiscoverPage from '@/routes/discover/page';
 import FavoritesPage from '@/routes/favorites/page';
 import RootLayout from '@/routes/layout';
 import LoginPage from '@/routes/login/page';
+import MyReviewsPage from '@/routes/my-reviews/page';
 import RootPage from '@/routes/page';
 import { ProtectedRoute } from '@/routes/protected-route';
 import BookReadPage from '@/routes/read/[bookId]/chapter/[chapterNumber]/page/[pageNumber]/page';
@@ -4043,6 +3042,7 @@ export const router = createBrowserRouter(
         <Route index element={<RootPage />} />
 
         <Route path="book/:bookId" element={<BookDetailPage />} />
+        <Route path="book/:bookId/reviews" element={<BookDetailPage />} />
 
         <Route path="read/:bookId">
           <Route path="table-of-contents" element={<BookReadTableOfContentsPage />} />
@@ -4070,6 +3070,10 @@ export const router = createBrowserRouter(
             <Route index element={<FavoritesPage />} />
           </Route>
 
+          <Route path="my-reviews">
+            <Route index element={<MyReviewsPage />} />
+          </Route>
+
           <Route path="bookmarks">
             <Route index element={<BookmarksPage />} />
           </Route>
@@ -4093,174 +3097,10 @@ export const router = createBrowserRouter(
 );
 
 ------------------------------------------------------------
-auth-provider.tsx
-
-import { BOOKS_API_ENDPOINT } from '@/constants/constants';
-import { AccessToken, ErrorResponse, LoginRequest, SignupRequest, User } from '@/types';
-import { createContext, useEffect, useState } from 'react';
-
-type ContextType = {
-  accessToken: string | null;
-  isLoading: boolean;
-  user: User | null;
-  setUser: (user: User | null) => void;
-  login: (requestBody: LoginRequest) => Promise<void>;
-  signup: (requestBody: SignupRequest) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshAccessToken: () => Promise<string | null>;
-};
-
-const AuthContext = createContext<ContextType | undefined>(undefined);
-
-const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const login = async ({ email, password }: LoginRequest) => {
-    try {
-      const url = `${BOOKS_API_ENDPOINT}/login`;
-      const options: RequestInit = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include',
-      };
-
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        const data = (await response.json()) as ErrorResponse;
-        throw new Error(
-          `[STATUS] ${response.status} [MESSAGE] ${data.message} [URL] ${url}`
-        );
-      }
-
-      const data = (await response.json()) as AccessToken;
-      setAccessToken(data.accessToken);
-    } catch (error) {
-      setAccessToken(null);
-      setUser(null);
-      throw new Error('ログインできませんでした。' + error);
-    }
-  };
-
-  const signup = async ({ email, password, name, avatarUrl }: SignupRequest) => {
-    try {
-      const url = `${BOOKS_API_ENDPOINT}/signup`;
-      const options: RequestInit = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, avatarUrl }),
-        credentials: 'include',
-      };
-
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        const data = (await response.json()) as ErrorResponse;
-        throw new Error(
-          `[STATUS] ${response.status} [MESSAGE] ${data.message} [URL] ${url}`
-        );
-      }
-
-      const data = (await response.json()) as AccessToken;
-      setAccessToken(data.accessToken);
-    } catch (error) {
-      setAccessToken(null);
-      setUser(null);
-      throw new Error('サインアップできませんでした。' + error);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      const url = `${BOOKS_API_ENDPOINT}/logout`;
-      const options: RequestInit = {
-        method: 'POST',
-        credentials: 'include',
-      };
-
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        const data = (await response.json()) as ErrorResponse;
-        throw new Error(
-          `[STATUS] ${response.status} [MESSAGE] ${data.message} [URL] ${url}`
-        );
-      }
-
-      setAccessToken(null);
-      setUser(null);
-    } catch (error) {
-      setAccessToken(null);
-      setUser(null);
-      throw new Error('ログアウトに失敗しました。' + error);
-    }
-  };
-
-  const refreshAccessToken = async () => {
-    const accessToken = await fetchAccessToken();
-    setAccessToken(accessToken);
-    if (!accessToken) {
-      alert('セッションが切れたため、自動ログアウトしました。');
-      setUser(null);
-    }
-    return accessToken;
-  };
-
-  const fetchAccessToken = async () => {
-    try {
-      const url = `${BOOKS_API_ENDPOINT}/refresh-token`;
-      const options: RequestInit = {
-        method: 'POST',
-        credentials: 'include',
-      };
-
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        throw new Error('Failed to refresh token');
-      }
-
-      const data = (await response.json()) as AccessToken;
-      return data.accessToken;
-    } catch {
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    // リロードするとアクセストークンがメモリから消えてしまうので
-    // 初期読み込み時にリフレッシュトークンを使って再取得する
-    const init = async () => {
-      const accessToken = await fetchAccessToken();
-      setAccessToken(accessToken);
-      setIsLoading(false);
-    };
-    init();
-  }, []);
-
-  return (
-    <AuthContext.Provider
-      value={{
-        accessToken,
-        isLoading,
-        user,
-        setUser,
-        login,
-        signup,
-        logout,
-        refreshAccessToken,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export { AuthContext, AuthProvider };
-
-------------------------------------------------------------
 bookmark.ts
 
 import { Book } from '@/types/book';
+import { UseMutationResult } from '@tanstack/react-query';
 
 export interface Bookmark {
   id: number;
@@ -4288,10 +3128,30 @@ export interface BookmarkRequest {
   note: string;
 }
 
+export type BookmarkCreateMutation = UseMutationResult<
+  void,
+  Error,
+  BookmarkRequest,
+  unknown
+>;
+
+export type BookmarkUpdateMutation = UseMutationResult<
+  void,
+  Error,
+  {
+    id: number;
+    requestBody: BookmarkRequest;
+  },
+  unknown
+>;
+
+export type BookmarkDeleteMutation = UseMutationResult<void, Error, number, unknown>;
+
 ------------------------------------------------------------
 review.ts
 
 import { Book } from '@/types';
+import { UseMutationResult } from '@tanstack/react-query';
 
 export interface Review {
   id: number;
@@ -4329,58 +3189,79 @@ export interface SelfReviewExists {
   exists: boolean;
 }
 
-------------------------------------------------------------
-user.ts
+export type ReviewCreateMutation = UseMutationResult<void, Error, ReviewRequest, unknown>;
 
-export interface User {
-  id: number;
-  email: string;
-  roles: string[];
-  name: string;
-  avatarUrl: string;
-}
+export type ReviewUpdateMutation = UseMutationResult<
+  void,
+  Error,
+  {
+    id: number;
+    requestBody: ReviewRequest;
+  },
+  unknown
+>;
 
-export interface ProfileCounts {
-  favoriteCount: number;
-  bookmarkCount: number;
-  reviewCount: number;
-}
-
-export interface UserDetails {
-  user: User;
-  profieleCounts: ProfileCounts;
-}
-
-export interface SimpleUserInfo {
-  id: number;
-  name: string;
-  avatarUrl: string;
-}
-
-export interface UpdateCurrentUser {
-  name: string;
-  avatarUrl: string;
-}
-
-export interface ChangePassword {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
-export interface ChangeEmail {
-  email: string;
-  password: string;
-}
+export type ReviewDeleteMutation = UseMutationResult<void, Error, number, unknown>;
 
 ------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
+package.json
 
+{
+  "name": "my-books-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.64.2",
+    "@types/react-router-dom": "^5.3.3",
+    "clsx": "^2.1.1",
+    "html-react-parser": "^5.1.16",
+    "lucide-react": "^0.445.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-error-boundary": "^5.0.0",
+    "react-router-dom": "^6.26.2",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss-animate": "^1.0.7",
+    "use-debounce": "^10.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@types/eslint-plugin-react-refresh": "^0.4.0",
+    "@types/eslint-plugin-tailwindcss": "^3.17.0",
+    "@types/node": "^22.5.5",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.9.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-refresh": "^0.4.9",
+    "eslint-plugin-tailwindcss": "^3.17.4",
+    "globals": "^15.9.0",
+    "postcss": "^8.4.47",
+    "prettier": "^3.5.3",
+    "prettier-plugin-organize-imports": "^4.0.0",
+    "tailwindcss": "^3.4.11",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.1",
+    "vite": "^5.4.1"
+  }
+}
 
-book-read-skeleton.tsx
-book-read.tsx
-book-read-of-contents-skeleton.tsx
-genre-selector.tsx
-login-button.tsx
+------------------------------------------------------------
+※package-look.json
+
+bookmark-button.tsx
+book-card.tsx
+books-favorites.tsx
+genre-list-selector.tsx
+
 
