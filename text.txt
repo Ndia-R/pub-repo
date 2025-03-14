@@ -1,32 +1,4 @@
-５３ファイル
-
-------------------------------------------------------------
-devcontainer.json
-
-{
-  "name": "my-books-frontend",
-  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
-  "service": "app",
-  "workspaceFolder": "/my-books-frontend",
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "formulahendry.auto-rename-tag",
-        "streetsidesoftware.code-spell-checker",
-        "dsznajder.es7-react-js-snippets",
-        "dbaeumer.vscode-eslint",
-        "mhutchie.git-graph",
-        "ecmel.vscode-html-css",
-        "oderwat.indent-rainbow",
-        "christian-kohler.path-intellisense",
-        "esbenp.prettier-vscode",
-        "bradlc.vscode-tailwindcss",
-        "shardulm94.trailing-spaces",
-        "mosapride.zenkaku"
-      ]
-    }
-  }
-}
+２７ファイル
 
 ------------------------------------------------------------
 book-detail.tsx
@@ -64,11 +36,11 @@ export default function BookDetail({ bookId }: Props) {
           />
         </Link>
         <div className="mt-2 flex flex-col items-center justify-around sm:w-[440px] sm:flex-row">
-          <div className="flex justify-center gap-x-2">
-            <FavoriteCountIcon bookId={bookId} />
-            <ReviewCountIcon reviewCount={book.reviewCount} />
-          </div>
           <Rating rating={book.averageRating} readOnly />
+          <div className="flex justify-center gap-x-2">
+            <ReviewCountIcon reviewCount={book.reviewCount} />
+            <FavoriteCountIcon bookId={bookId} showCount={true} />
+          </div>
         </div>
         <div className="my-4 flex items-center">
           <Button className="w-44 rounded-full bg-transparent" variant="outline" asChild>
@@ -155,8 +127,8 @@ type Props = {
 };
 
 export default function BookReadContent({ bookId, chapterNumber, pageNumber }: Props) {
-  const [isOpenCreateDialog, setIsOpenCreateDialog] = useState(false);
-  const [isOpenUpdateDialog, setIsOpenUpdateDialog] = useState(false);
+  const [isOpenBookmarkCreateDialog, setIsOpenBookmarkCreateDialog] = useState(false);
+  const [isOpenBookmarkUpdateDialog, setIsOpenBookmarkUpdateDialog] = useState(false);
 
   const { getBookTableOfContents, getBookContentPage } = useApiBook();
   const { getBookmarkByBookId, createBookmark, updateBookmark, deleteBookmark } =
@@ -217,11 +189,11 @@ export default function BookReadContent({ bookId, chapterNumber, pageNumber }: P
   });
 
   const handleClickCreate = () => {
-    setIsOpenCreateDialog(true);
+    setIsOpenBookmarkCreateDialog(true);
   };
 
   const handleClickUpdate = () => {
-    setIsOpenUpdateDialog(true);
+    setIsOpenBookmarkUpdateDialog(true);
   };
 
   const currentPageText = getCurrentPageText(
@@ -268,11 +240,13 @@ export default function BookReadContent({ bookId, chapterNumber, pageNumber }: P
                   className="size-8 rounded-full"
                   variant="ghost"
                   size="icon"
+                  aria-label="目次に戻る"
                   asChild
                 >
                   <Link
                     to={`/read/${bookId}/table-of-contents`}
                     className="flex items-center gap-x-2"
+                    aria-label="目次に戻る"
                   >
                     <TableOfContentsIcon className="size-4" />
                   </Link>
@@ -291,6 +265,7 @@ export default function BookReadContent({ bookId, chapterNumber, pageNumber }: P
                       )}
                       variant="ghost"
                       size="icon"
+                      aria-label="ブックマーク"
                       onClick={handleClickUpdate}
                     >
                       <BookmarkIcon
@@ -302,8 +277,8 @@ export default function BookReadContent({ bookId, chapterNumber, pageNumber }: P
                     </Button>
                     <BookmarkUpdateDialog
                       bookmark={bookmark}
-                      isOpen={isOpenUpdateDialog}
-                      setIsOpen={setIsOpenUpdateDialog}
+                      isOpen={isOpenBookmarkUpdateDialog}
+                      setIsOpen={setIsOpenBookmarkUpdateDialog}
                       updateMutation={updateMutation}
                       deleteMutation={deleteMutation}
                     />
@@ -314,6 +289,7 @@ export default function BookReadContent({ bookId, chapterNumber, pageNumber }: P
                       className="size-8 rounded-full text-muted-foreground"
                       variant="ghost"
                       size="icon"
+                      aria-label="ブックマーク"
                       onClick={handleClickCreate}
                     >
                       <BookmarkIcon className="size-4" />
@@ -322,8 +298,8 @@ export default function BookReadContent({ bookId, chapterNumber, pageNumber }: P
                       bookId={bookId}
                       chapterNumber={chapterNumber}
                       pageNumber={pageNumber}
-                      isOpen={isOpenCreateDialog}
-                      setIsOpen={setIsOpenCreateDialog}
+                      isOpen={isOpenBookmarkCreateDialog}
+                      setIsOpen={setIsOpenBookmarkCreateDialog}
                       createMutation={createMutation}
                     />
                   </>
@@ -432,7 +408,7 @@ export default function BookTableOfContents({ bookId }: Props) {
           <ul className="flex w-full flex-col gap-y-8">
             {bookTableOfContents.chapters.map((chapter) => (
               <li className="w-full text-center sm:text-left" key={chapter.chapterNumber}>
-                <p className="text-xs text-muted-foreground/70 sm:text-sm">{`第 ${chapter.chapterNumber} 章`}</p>
+                <p className="text-xs text-muted-foreground sm:text-sm">{`第 ${chapter.chapterNumber} 章`}</p>
                 <Link
                   to={`/read/${bookId}/chapter/${chapter.chapterNumber}/page/1`}
                   className={cn(
@@ -548,7 +524,7 @@ export default function BookmarkCreateDialog({
           onChange={(e) => setNote(e.currentTarget.value)}
         />
 
-        <DialogFooter>
+        <DialogFooter className="gap-y-4 sm:gap-y-0">
           <Button
             className="min-w-24 rounded-full"
             variant="ghost"
@@ -624,7 +600,7 @@ export default function BookmarkItem({
   return (
     <Card>
       <CardContent>
-        <div className="flex gap-x-4 p-4">
+        <div className="flex gap-x-4 px-3 py-4">
           <div className="flex min-w-20 justify-center sm:min-w-24">
             <Link
               to={`/read/${bookmark.bookId}/chapter/${bookmark.chapterNumber}/page/${bookmark.pageNumber}`}
@@ -648,17 +624,20 @@ export default function BookmarkItem({
                 </p>
               </Link>
               <div className="flex flex-wrap items-center">
-                <BookmarkIcon
-                  className="size-4 text-primary"
-                  style={{ fill: 'hsl(var(--primary))' }}
-                />
-                <p className="mx-2 whitespace-nowrap text-xs leading-8 tracking-wide text-muted-foreground sm:text-sm">
+                <div className="flex size-8 items-center justify-center">
+                  <BookmarkIcon
+                    className="size-4 text-primary"
+                    style={{ fill: 'hsl(var(--primary))' }}
+                  />
+                </div>
+                <p className="mr-2 whitespace-nowrap text-xs leading-8 tracking-wide text-muted-foreground sm:text-sm">
                   {formatDateJP(bookmark.updatedAt)} {formatTime(bookmark.updatedAt)}
                 </p>
                 <Button
                   className="size-8 rounded-full text-muted-foreground"
                   variant="ghost"
                   size="icon"
+                  aria-label="レビューを編集"
                   onClick={handleClickUpdate}
                 >
                   <SquarePenIcon className="size-4" />
@@ -673,6 +652,7 @@ export default function BookmarkItem({
                   className="size-8 rounded-full text-muted-foreground"
                   variant="ghost"
                   size="icon"
+                  aria-label="レビューを削除"
                   onClick={handleClickDelete}
                 >
                   <Trash2Icon className="size-4" />
@@ -690,46 +670,6 @@ export default function BookmarkItem({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-------------------------------------------------------------
-bookmark-list.tsx
-
-import BookmarkItem from '@/components/bookmarks/bookmark-item';
-import {
-  Bookmark,
-  BookmarkCreateMutation,
-  BookmarkDeleteMutation,
-  BookmarkUpdateMutation,
-} from '@/types';
-
-type Props = {
-  bookmarks: Bookmark[];
-  createMutation?: BookmarkCreateMutation;
-  updateMutation?: BookmarkUpdateMutation;
-  deleteMutation?: BookmarkDeleteMutation;
-};
-
-export default function BookmarkList({
-  bookmarks,
-  createMutation,
-  updateMutation,
-  deleteMutation,
-}: Props) {
-  return (
-    <ul className="flex flex-col gap-y-2">
-      {bookmarks.map((bookmark) => (
-        <li key={bookmark.id}>
-          <BookmarkItem
-            bookmark={bookmark}
-            createMutation={createMutation}
-            updateMutation={updateMutation}
-            deleteMutation={deleteMutation}
-          />
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -853,7 +793,7 @@ export default function BookmarkUpdateDialog({
         <div>
           <p className="font-semibold leading-10">ブックマーク</p>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            メモを編集できます。未入力でもブックマーク登録は消えません。
+            メモを編集できます。メモが未入力でもブックマーク登録は消えません。
           </p>
         </div>
 
@@ -864,7 +804,7 @@ export default function BookmarkUpdateDialog({
           onChange={(e) => setNote(e.currentTarget.value)}
         />
 
-        <DialogFooter>
+        <DialogFooter className="gap-y-4 sm:gap-y-0">
           <Button
             className="min-w-24 rounded-full"
             variant="ghost"
@@ -891,73 +831,9 @@ export default function BookmarkUpdateDialog({
 }
 
 ------------------------------------------------------------
-bookmarks.tsx
-
-import BookmarkList from '@/components/bookmarks/bookmark-list';
-import PaginationUrl from '@/components/pagination-url';
-import { useApiBookmark } from '@/hooks/api/use-api-bookmark';
-import { BookmarkRequest } from '@/types';
-import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-
-type Props = {
-  page: number;
-};
-
-export default function Bookmarks({ page }: Props) {
-  const navigate = useNavigate();
-  const { getBookmarkPage, updateBookmark, deleteBookmark } = useApiBookmark();
-
-  const { data: bookmarkPage } = useSuspenseQuery({
-    queryKey: ['getBookmarkPage', page],
-    queryFn: () => getBookmarkPage(page),
-  });
-
-  const queryClient = useQueryClient();
-
-  const onSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['getBookmarkPage', page] });
-    navigate('/bookmarks');
-  };
-
-  const onError = (error: Error) => {
-    console.error(error);
-  };
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, requestBody }: { id: number; requestBody: BookmarkRequest }) =>
-      updateBookmark(id, requestBody),
-    onSuccess,
-    onError,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (bookmarkId: number) => deleteBookmark(bookmarkId),
-    onSuccess,
-    onError,
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <p className="text-right">
-        {bookmarkPage.totalItems}
-        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-      </p>
-      <BookmarkList
-        bookmarks={bookmarkPage.bookmarks}
-        updateMutation={updateMutation}
-        deleteMutation={deleteMutation}
-      />
-      <PaginationUrl totalPages={bookmarkPage.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
 book-item.tsx
 
 import AverageRatingIcon from '@/components/count-icon/average-rating-icon';
-import FavoriteCountIcon from '@/components/count-icon/favorite-count-icon';
 import ReviewCountIcon from '@/components/count-icon/review-count-icon';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatDateJP } from '@/lib/util';
@@ -989,10 +865,9 @@ export default function BookItem({ book }: Props) {
           <p className="text-xs tracking-wide text-muted-foreground">
             {formatDateJP(book.publishedDate)}
           </p>
-          <div className="flex justify-around gap-x-2 sm:gap-x-4">
-            <FavoriteCountIcon size="sm" bookId={book.id} />
-            <ReviewCountIcon size="sm" reviewCount={book.reviewCount} />
+          <div className="flex gap-x-2">
             <AverageRatingIcon size="sm" averageRating={book.averageRating} />
+            <ReviewCountIcon size="sm" reviewCount={book.reviewCount} />
           </div>
         </div>
       </CardContent>
@@ -1001,124 +876,133 @@ export default function BookItem({ book }: Props) {
 }
 
 ------------------------------------------------------------
-book-list.tsx
+favorite-count-icon.tsx
 
-import BookItem from '@/components/books/book-item';
-import { Book } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useApiFavorite } from '@/hooks/api/use-api-favorite';
+import { useAuth } from '@/hooks/use-auth';
+import { cn } from '@/lib/util';
+import { FavoriteInfo, FavoriteRequest } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { HeartIcon } from 'lucide-react';
 
-type Props = {
-  books: Book[];
-};
-
-export default function BookList({ books }: Props) {
-  if (!books.length) {
-    return (
-      <div className="flex h-32 items-center justify-center">
-        <p>見つかりませんでした</p>
-      </div>
-    );
-  }
-
-  return (
-    <ul className="grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
-      {books.map((book) => (
-        <li key={book.id}>
-          <BookItem book={book} />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-------------------------------------------------------------
-books-discover.tsx
-
-import BookList from '@/components/books/book-list';
-import PaginationUrl from '@/components/pagination-url';
-import { useApiBook } from '@/hooks/api/use-api-book';
-import { useSuspenseQuery } from '@tanstack/react-query';
+const BUTTON_SIZE = { sm: 'size-6', md: 'size-8' };
+const ICON_SIZE = { sm: 'size-3', md: 'size-4' };
+const TEXT_SIZE = { sm: 'text-xs', md: 'text-sm' };
 
 type Props = {
-  genreIds: string;
-  condition: string;
-  page: number;
+  bookId: string;
+  size?: 'sm' | 'md';
+  showCount?: boolean;
 };
 
-export default function BooksDiscover({ genreIds, condition, page }: Props) {
-  const { getBookPageByGenreId } = useApiBook();
+export default function FavoriteCountIcon({
+  bookId,
+  size = 'md',
+  showCount = false,
+}: Props) {
+  const { user } = useAuth();
+  const { getFavoriteInfo, createFavorite, deleteFavorite } = useApiFavorite();
 
-  const { data: bookPage } = useSuspenseQuery({
-    queryKey: ['getBookPageByGenreId', genreIds, condition, page],
-    queryFn: () => getBookPageByGenreId(genreIds, condition, page),
+  const queryClient = useQueryClient();
+
+  const queryKey = ['getFavoriteInfo', bookId, user?.id];
+  const { data: favoriteInfo = { isFavorite: false, favoriteCount: 0 } } = useQuery({
+    queryKey,
+    queryFn: () => getFavoriteInfo(bookId, user?.id),
   });
 
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <p className="text-right">
-        {bookPage.totalItems}
-        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-      </p>
-      <BookList books={bookPage.books} />
-      <PaginationUrl totalPages={bookPage.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-books-new-releases.tsx
-
-import BookList from '@/components/books/book-list';
-import { useApiBook } from '@/hooks/api/use-api-book';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-export default function BooksNewReleases() {
-  const { getNewBooks } = useApiBook();
-
-  const { data: bookPage } = useSuspenseQuery({
-    queryKey: ['getNewBooks'],
-    queryFn: () => getNewBooks(),
+  const {
+    mutate: toggleMutation,
+    variables,
+    isPending,
+  } = useMutation({
+    mutationFn: async (newFavorite: FavoriteInfo) => {
+      if (newFavorite.isFavorite) {
+        const requestBody: FavoriteRequest = { bookId };
+        await createFavorite(requestBody);
+      } else {
+        await deleteFavorite(bookId);
+      }
+    },
+    onMutate: async (newFavoriteInfo: FavoriteInfo) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousFavoriteInfo = queryClient.getQueryData(queryKey);
+      queryClient.setQueryData(queryKey, newFavoriteInfo);
+      return { previousFavoriteInfo };
+    },
+    onSettled: (_newFavoriteInfo, error, _variables, context) => {
+      if (error) {
+        queryClient.setQueryData(queryKey, context?.previousFavoriteInfo);
+      }
+      queryClient.invalidateQueries({ queryKey });
+    },
+    onError: (error) => {
+      console.error(error);
+    },
   });
 
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <p className="text-right">
-        {bookPage.totalItems}
-        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-      </p>
-      <BookList books={bookPage.books} />
-    </div>
-  );
-}
+  const handleClick = () => {
+    if (!user) return;
 
-------------------------------------------------------------
-books-search.tsx
+    const newFavoriteInfo: FavoriteInfo = {
+      isFavorite: !favoriteInfo.isFavorite,
+      favoriteCount: favoriteInfo.isFavorite
+        ? favoriteInfo.favoriteCount - 1
+        : favoriteInfo.favoriteCount + 1,
+    };
+    toggleMutation(newFavoriteInfo);
+  };
 
-import BookList from '@/components/books/book-list';
-import PaginationUrl from '@/components/pagination-url';
-import { useApiBook } from '@/hooks/api/use-api-book';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-type Props = {
-  searchQuery: string;
-  page: number;
-};
-
-export default function BooksSearch({ searchQuery, page }: Props) {
-  const { getBookPageByQuery } = useApiBook();
-
-  const { data: bookPage } = useSuspenseQuery({
-    queryKey: ['getBookPageByQuery', searchQuery, page],
-    queryFn: () => getBookPageByQuery(searchQuery, page),
-  });
+  const optimisticData = isPending ? variables : favoriteInfo;
 
   return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <p className="text-right">
-        {bookPage.totalItems}
-        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-      </p>
-      <BookList books={bookPage.books} />
-      <PaginationUrl totalPages={bookPage.totalPages} />
+    <div className="flex items-center">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            className={cn(
+              'rounded-full text-muted-foreground',
+              BUTTON_SIZE[size],
+              optimisticData?.isFavorite && 'text-primary bg-transparent'
+            )}
+            variant="ghost"
+            size="icon"
+            aria-label={
+              optimisticData?.isFavorite ? 'お気に入りから削除' : 'お気に入りに追加'
+            }
+            onClick={handleClick}
+          >
+            <HeartIcon
+              className={ICON_SIZE[size]}
+              style={{
+                fill: optimisticData?.isFavorite ? 'hsl(var(--primary))' : '',
+              }}
+            />
+          </Button>
+        </TooltipTrigger>
+        {user ? (
+          <TooltipContent>
+            {optimisticData?.isFavorite ? 'お気に入りから削除' : 'お気に入りに追加'}
+          </TooltipContent>
+        ) : (
+          <TooltipContent>
+            ログインしてこの本を「お気に入り」に加えましょう
+          </TooltipContent>
+        )}
+      </Tooltip>
+
+      {showCount && (
+        <p
+          className={cn(
+            'flex min-w-4 text-muted-foreground justify-center',
+            TEXT_SIZE[size]
+          )}
+        >
+          {optimisticData?.favoriteCount}
+        </p>
+      )}
     </div>
   );
 }
@@ -1126,10 +1010,10 @@ export default function BooksSearch({ searchQuery, page }: Props) {
 ------------------------------------------------------------
 favorite-item.tsx
 
+import FavoriteCountIcon from '@/components/count-icon/favorite-count-icon';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatDateJP, formatTime } from '@/lib/util';
 import { Favorite } from '@/types';
-import { HeartIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 type Props = {
@@ -1140,7 +1024,7 @@ export default function FavoriteItem({ favorite }: Props) {
   return (
     <Card>
       <CardContent>
-        <div className="flex gap-x-4 p-4">
+        <div className="flex gap-x-4 px-3 py-4">
           <div className="flex min-w-20 justify-center sm:min-w-24">
             <Link to={`/book/${favorite.book.id}`} className="size-fit">
               <img
@@ -1158,11 +1042,8 @@ export default function FavoriteItem({ favorite }: Props) {
                 </p>
               </Link>
               <div className="flex items-center">
-                <HeartIcon
-                  className="size-4 text-primary"
-                  style={{ fill: 'hsl(var(--primary))' }}
-                />
-                <p className="mx-2 whitespace-nowrap text-xs leading-8 tracking-wide text-muted-foreground sm:text-sm">
+                <FavoriteCountIcon bookId={favorite.bookId} />
+                <p className="mr-2 whitespace-nowrap text-xs leading-8 tracking-wide text-muted-foreground sm:text-sm">
                   {formatDateJP(favorite.updatedAt)} {formatTime(favorite.updatedAt)}
                 </p>
               </div>
@@ -1184,311 +1065,341 @@ export default function FavoriteItem({ favorite }: Props) {
 }
 
 ------------------------------------------------------------
-favorite-list.tsx
+footer.tsx
 
-import FavoriteItem from '@/components/favorites/favorite-item';
-import { Favorite } from '@/types';
-
-type Props = {
-  favorites: Favorite[];
-};
-
-export default function FavoriteList({ favorites }: Props) {
-  return (
-    <ul className="flex flex-col gap-y-2">
-      {favorites.map((favorite, index) => (
-        <li key={index}>
-          <FavoriteItem favorite={favorite} />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-------------------------------------------------------------
-favorites-skeleton.tsx
-
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { FETCH_BOOKMARKS_MAX_RESULTS } from '@/constants/constants';
-
-export default function FavoritesSkeleton() {
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <p className="text-right">
-        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-      </p>
-      <ul className="flex flex-col gap-y-2">
-        {[...Array<number>(FETCH_BOOKMARKS_MAX_RESULTS)].map((_, index) => (
-          <li key={index}>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex gap-x-4">
-                  <div className="flex min-w-20 justify-center sm:min-w-24">
-                    <Skeleton className="h-24 w-20 rounded bg-muted-foreground/5 object-cover sm:h-28" />
-                  </div>
-                  <div className="flex w-full flex-col justify-center gap-y-2">
-                    <div className="sm:px-4">
-                      <Skeleton className="h-6 w-48 rounded-full bg-muted-foreground/5 sm:h-7" />
-                      <Skeleton className="my-1 h-4 w-16 rounded-full bg-muted-foreground/5" />
-                      <Skeleton className="my-1 h-4 w-32 rounded-full bg-muted-foreground/5" />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-------------------------------------------------------------
-favorites.tsx
-
-import FavoriteList from '@/components/favorites/favorite-list';
-import PaginationUrl from '@/components/pagination-url';
-import { useApiFavorite } from '@/hooks/api/use-api-favorite';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-type Props = {
-  page: number;
-};
-
-export default function Favorites({ page }: Props) {
-  const { getFavoritePage } = useApiFavorite();
-
-  const { data: bookPage } = useSuspenseQuery({
-    queryKey: ['getFavoritePage', page],
-    queryFn: () => getFavoritePage(page),
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <p className="text-right">
-        {bookPage.totalItems}
-        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-      </p>
-      <FavoriteList favorites={bookPage.favorites} />
-      <PaginationUrl totalPages={bookPage.totalPages} />
-    </div>
-  );
-}
-
-------------------------------------------------------------
-genre-item.tsx
-
+import Logo from '@/components/layout/logo';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/util';
-import { Genre } from '@/types';
-import { CheckIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { FacebookIcon, InstagramIcon, TwitterIcon, YoutubeIcon } from 'lucide-react';
 
 type Props = {
-  genre: Genre;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
-  isActive?: boolean;
-  onClick?: (genreId: number) => void;
+  className?: string;
 };
 
-export default function GenreItem({
-  genre,
-  variant = 'ghost',
-  isActive = false,
+export default function Footer({ className }: Props) {
+  return (
+    <footer className={cn('bg-card', className)}>
+      <div className="mx-auto max-w-7xl px-3 sm:px-6">
+        <div className="grid items-center justify-center py-2 sm:grid-cols-3">
+          <div>
+            <Button
+              className="rounded-full"
+              variant="ghost"
+              size="icon"
+              aria-label="Youtube"
+            >
+              <YoutubeIcon className="size-5" />
+            </Button>
+            <Button
+              className="rounded-full"
+              variant="ghost"
+              size="icon"
+              aria-label="Twitter"
+            >
+              <TwitterIcon className="size-5" />
+            </Button>
+            <Button
+              className="rounded-full"
+              variant="ghost"
+              size="icon"
+              aria-label="Instagram"
+            >
+              <InstagramIcon className="size-5" />
+            </Button>
+            <Button
+              className="rounded-full"
+              variant="ghost"
+              size="icon"
+              aria-label="Facebook"
+            >
+              <FacebookIcon className="size-5" />
+            </Button>
+          </div>
+          <p className="grid h-7 place-items-center text-sm">© 2025 Xxxxx, Inc.</p>
+          <div className="flex justify-center sm:justify-end">
+            <Logo size="sm" />
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+------------------------------------------------------------
+logo.tsx
+
+import { LOGO_TITLE } from '@/constants/constants';
+import { cn } from '@/lib/util';
+import { Link } from 'react-router-dom';
+
+type Props = {
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+  disableLink?: boolean;
+  onClick?: () => void;
+};
+
+export default function Logo({
+  className,
+  size = 'md',
+  disableLink = false,
   onClick,
 }: Props) {
-  const navigate = useNavigate();
+  const SIZE = {
+    sm: 'text-xl',
+    md: 'text-3xl',
+    lg: 'text-5xl',
+  };
+
+  return (
+    <h1 className={className}>
+      <Link
+        to="/"
+        className={cn(
+          "select-none whitespace-nowrap font-['Alfa_Slab_One'] tracking-tighter text-primary",
+          'px-4 py-2 ',
+          disableLink && 'cursor-default pointer-events-none',
+          SIZE[size]
+        )}
+        aria-disabled={disableLink}
+        onClick={onClick}
+      >
+        {LOGO_TITLE}
+      </Link>
+    </h1>
+  );
+}
+
+------------------------------------------------------------
+nav-list.tsx
+
+import Logo from '@/components/layout/logo';
+import MenuList from '@/components/layout/menu-list';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useWindowSize } from '@/hooks/use-window-size';
+import { MenuIcon } from 'lucide-react';
+import { useState } from 'react';
+
+export default function NavList() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const DEBOUNCED_DELAY = 100;
+  const { width } = useWindowSize(DEBOUNCED_DELAY);
+
+  const TABLET_WIDTH = 1024;
+  if (isOpen && width >= TABLET_WIDTH) {
+    setIsOpen(false);
+  }
+
+  return (
+    <>
+      <div className="hidden lg:flex lg:items-center lg:gap-x-8">
+        <Logo />
+        <MenuList />
+      </div>
+
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button
+            className="rounded-full lg:hidden"
+            variant="ghost"
+            size="icon"
+            aria-label="メニュー"
+          >
+            <MenuIcon className="size-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="w-fit p-8" side="left">
+          <Logo className="mb-8" onClick={() => setIsOpen(false)} />
+          <MenuList onClick={() => setIsOpen(false)} />
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}
+
+------------------------------------------------------------
+theme-toggle-button.tsx
+
+import { Button } from '@/components/ui/button';
+import { MoonIcon, SunIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+export default function ThemeToggleButton() {
+  const [theme, setTheme] = useState('');
+
+  useEffect(() => {
+    const body = document.querySelector('body');
+    if (body?.classList.contains('dark')) {
+      setTheme('dark');
+    } else {
+      setTheme('light');
+    }
+  }, []);
 
   const handleClick = () => {
-    if (onClick) {
-      onClick(genre.id);
-    } else {
-      navigate(`/discover?genreIds=${genre.id}&condition=SINGLE`);
-    }
+    setTheme(theme === 'light' ? 'dark' : 'light');
+    const body = document.querySelector('body');
+    body?.classList.toggle('light');
+    body?.classList.toggle('dark');
   };
 
   return (
     <Button
-      className={cn(
-        'rounded-full m-1 text-muted-foreground text-xs sm:text-sm',
-        isActive && 'text-foreground',
-        variant === 'outline' && 'bg-transparent text-primary'
-      )}
-      variant={isActive ? 'secondary' : variant}
-      size="sm"
+      className="rounded-full"
+      variant="ghost"
+      size="icon"
+      aria-label={theme === 'light' ? 'ダークモードに切り替え' : 'ライトモードに切り替え'}
       onClick={handleClick}
     >
-      {isActive && <CheckIcon className="mr-1 size-4" strokeWidth={4} />}
-      {genre.name}
+      {theme === 'light' ? (
+        <MoonIcon className="size-5" />
+      ) : (
+        <SunIcon className="size-5" />
+      )}
     </Button>
   );
 }
 
 ------------------------------------------------------------
-genre-list.tsx
+user-icon-button.tsx
 
-import GenreItem from '@/components/genres/genre-item';
-import { Genre } from '@/types';
-
-type Props = {
-  genres: Genre[];
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
-  activeIds?: number[];
-  onClick?: (genreId: number) => void;
-};
-
-export default function GenreList({ genres, variant, activeIds, onClick }: Props) {
-  return (
-    <ul className="flex flex-wrap">
-      {genres.map((genre) => (
-        <li key={genre.id}>
-          <GenreItem
-            genre={genre}
-            variant={variant}
-            isActive={activeIds?.includes(genre.id)}
-            onClick={onClick}
-          />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-------------------------------------------------------------
-genres-condition-selector.tsx
-
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MENU_LIST } from '@/constants/constants';
+import { useApiUser } from '@/hooks/api/use-api-user';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/util';
+import { useMutation } from '@tanstack/react-query';
+import { LogOutIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-type Props = {
-  condition: string;
-  onConditionChange: (condition: string) => void;
-};
+export default function UserIconButton() {
+  const [isOpen, setIsOpen] = useState(false);
 
-export default function GenresConditionSelector({ condition, onConditionChange }: Props) {
-  const CONDITIONS = [
-    { text: '単一選択', value: 'SINGLE' },
-    { text: 'AND条件', value: 'AND' },
-    { text: 'OR条件', value: 'OR' },
-  ];
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pathname = location.pathname;
 
-  const [selectedCondition, setSelectedCondition] = useState(condition);
+  const { accessToken, user, setUser, logout } = useAuth();
+  const { getCurrentUser } = useApiUser();
+  const { toast } = useToast();
+
+  const logoutMutation = useMutation({
+    mutationFn: () => logout(),
+    onError: (error) => {
+      console.error(error);
+    },
+  });
 
   useEffect(() => {
-    setSelectedCondition(condition);
-  }, [condition]);
+    const init = async () => {
+      if (accessToken && !user) {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      }
+    };
+    init();
+  }, [accessToken, getCurrentUser, setUser, user]);
 
-  const handleChangeCondition = (condition: string) => {
-    setSelectedCondition(condition);
-    onConditionChange(condition);
+  const handleClickLogout = async () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast({ title: 'ログアウトしました' });
+        setIsOpen(false);
+        navigate('/');
+      },
+    });
   };
 
+  const handleClickMenuItem = (href: string) => {
+    navigate(href);
+    setIsOpen(false);
+  };
+
+  if (!user)
+    return (
+      <Button className="rounded-full" variant="ghost" asChild>
+        <Link to="/login" state={{ from: location }}>
+          ログイン
+        </Link>
+      </Button>
+    );
+
   return (
-    <RadioGroup
-      className="flex gap-x-4"
-      value={selectedCondition}
-      onValueChange={handleChangeCondition}
-    >
-      {CONDITIONS.map((condition) => (
-        <div
-          className="flex flex-col-reverse items-center sm:flex-row"
-          key={condition.value}
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger className="ml-2 flex items-center justify-center" asChild>
+        <Button
+          className="rounded-full"
+          variant="ghost"
+          size="icon"
+          aria-label="アバター画像"
         >
-          <RadioGroupItem value={condition.value} id={condition.value} />
-          <Label
-            className="cursor-pointer select-none p-2 text-xs sm:text-sm"
-            htmlFor={condition.value}
+          <Avatar>
+            <AvatarImage
+              className="bg-primary/50"
+              src={user.avatarUrl}
+              alt="avatar-image"
+            />
+            <AvatarFallback className="text-lg font-semibold">
+              {user.name.slice(0, 1)}
+            </AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-48 p-2" side="bottom" align="end">
+        <DropdownMenuLabel>
+          <div className="flex items-center gap-x-2">
+            <Avatar className="size-8">
+              <AvatarImage
+                className="bg-primary/50"
+                src={user.avatarUrl}
+                alt="avatar-image"
+              />
+              <AvatarFallback className="font-semibold">
+                {user.name.slice(0, 1)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 overflow-hidden">
+              <p className="truncate">{user.name}</p>
+              <p className="truncate text-xs font-normal text-muted-foreground">
+                {user.email}
+              </p>
+            </div>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {MENU_LIST.map((item) => (
+          <DropdownMenuItem
+            className={cn(
+              pathname !== '/' && item.href.includes(pathname) && 'text-primary'
+            )}
+            key={item.href}
+            onClick={() => handleClickMenuItem(item.href)}
           >
-            {condition.text}
-          </Label>
-        </div>
-      ))}
-    </RadioGroup>
+            <item.icon className="mr-1" />
+            {item.title}
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleClickLogout}>
+          <LogOutIcon className="mr-1" />
+          ログアウト
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
-}
-
-------------------------------------------------------------
-genres-discover.tsx
-
-import GenreList from '@/components/genres/genre-list';
-import { useApiGenre } from '@/hooks/api/use-api-genre';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
-
-type Props = {
-  genreIds: string;
-  condition: string;
-  onGenreIdsChange: (genreIds: string) => void;
-};
-
-export default function GenresDiscover({ genreIds, condition, onGenreIdsChange }: Props) {
-  const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
-
-  const { getGenres } = useApiGenre();
-
-  const { data: genres } = useSuspenseQuery({
-    queryKey: ['getGenres'],
-    queryFn: () => getGenres(),
-  });
-
-  useEffect(() => {
-    const ids = genreIds.split(',').map((genreId) => Number(genreId));
-    setSelectedGenreIds(ids);
-  }, [genreIds]);
-
-  const handleClick = (genreId: number) => {
-    let newGenreIds = selectedGenreIds.includes(genreId)
-      ? selectedGenreIds.filter((id) => id !== genreId)
-      : [...selectedGenreIds, genreId].sort((a, b) => a - b);
-
-    // 最後の一つをクリックした場合、空配列になるので必ず１つは選択になるようにする
-    // SINGLE選択に関しては必ず１つの選択になる
-    if (newGenreIds.length === 0 || condition === 'SINGLE') {
-      newGenreIds = [genreId];
-    }
-    setSelectedGenreIds(newGenreIds);
-    onGenreIdsChange(newGenreIds.join(','));
-  };
-
-  return <GenreList genres={genres} activeIds={selectedGenreIds} onClick={handleClick} />;
-}
-
-------------------------------------------------------------
-genres-skeleton.tsx
-
-import { Skeleton } from '@/components/ui/skeleton';
-
-export default function GenresSkeleton() {
-  return (
-    <ul className="flex flex-wrap">
-      {[...Array<number>(12)].map((_, index) => (
-        <li key={index}>
-          {/* 背景色を bg-muted-foreground/5 にしてスケルトン見せるより、高さだけズレないように透明のほうがよい */}
-          <Skeleton className="m-1 h-9 w-24 rounded-full bg-muted-foreground/5" />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-------------------------------------------------------------
-genres-top-page.tsx
-
-import GenreList from '@/components/genres/genre-list';
-import { useApiGenre } from '@/hooks/api/use-api-genre';
-import { useSuspenseQuery } from '@tanstack/react-query';
-
-export default function GenresTopPage() {
-  const { getGenres } = useApiGenre();
-
-  const { data: genres } = useSuspenseQuery({
-    queryKey: ['getGenres'],
-    queryFn: () => getGenres(),
-  });
-
-  return <GenreList genres={genres} />;
 }
 
 ------------------------------------------------------------
@@ -1547,7 +1458,7 @@ export default function MyReviewItem({ review, updateMutation, deleteMutation }:
   return (
     <Card>
       <CardContent>
-        <div className="flex gap-x-4 p-4">
+        <div className="flex gap-x-4 px-3 py-4">
           <div className="flex min-w-20 justify-center sm:min-w-24">
             <Link to={`/book/${review.book.id}`} className="size-fit">
               <img
@@ -1575,6 +1486,7 @@ export default function MyReviewItem({ review, updateMutation, deleteMutation }:
                   className="size-8 rounded-full text-muted-foreground"
                   variant="ghost"
                   size="icon"
+                  aria-label="レビューを編集"
                   onClick={handleClickUpdate}
                 >
                   <SquarePenIcon className="size-4" />
@@ -1589,6 +1501,7 @@ export default function MyReviewItem({ review, updateMutation, deleteMutation }:
                   className="size-8 rounded-full text-muted-foreground"
                   variant="ghost"
                   size="icon"
+                  aria-label="レビューを削除"
                   onClick={handleClickDelete}
                 >
                   <Trash2Icon className="size-4" />
@@ -1600,112 +1513,6 @@ export default function MyReviewItem({ review, updateMutation, deleteMutation }:
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-------------------------------------------------------------
-my-review-list.tsx
-
-import MyReviewItem from '@/components/my-reviews/my-review-item';
-import {
-  Review,
-  ReviewCreateMutation,
-  ReviewDeleteMutation,
-  ReviewUpdateMutation,
-} from '@/types';
-
-type Props = {
-  reviews: Review[];
-  createMutation?: ReviewCreateMutation;
-  updateMutation?: ReviewUpdateMutation;
-  deleteMutation?: ReviewDeleteMutation;
-};
-
-export default function MyReviewList({
-  reviews,
-  createMutation,
-  updateMutation,
-  deleteMutation,
-}: Props) {
-  return (
-    <ul className="flex flex-col gap-y-2">
-      {reviews.map((review) => (
-        <li key={review.id}>
-          <MyReviewItem
-            review={review}
-            createMutation={createMutation}
-            updateMutation={updateMutation}
-            deleteMutation={deleteMutation}
-          />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-------------------------------------------------------------
-my-reviews.tsx
-
-import MyReviewList from '@/components/my-reviews/my-review-list';
-import PaginationUrl from '@/components/pagination-url';
-import { useApiReview } from '@/hooks/api/use-api-review';
-import { ReviewRequest } from '@/types';
-import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-
-type Props = {
-  page: number;
-};
-
-export default function MyReviews({ page }: Props) {
-  const navigate = useNavigate();
-
-  const { getReviewPageByUser, updateReview, deleteReview } = useApiReview();
-
-  const { data: reviewPage } = useSuspenseQuery({
-    queryKey: ['getReviewPageByUser', page],
-    queryFn: () => getReviewPageByUser(page),
-  });
-
-  const queryClient = useQueryClient();
-
-  const onSuccess = () => {
-    queryClient.invalidateQueries({
-      queryKey: ['getReviewPageByUser', page],
-    });
-    navigate('/my-reviews');
-  };
-
-  const onError = (error: Error) => {
-    console.error(error);
-  };
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, requestBody }: { id: number; requestBody: ReviewRequest }) =>
-      updateReview(id, requestBody),
-    onSuccess,
-    onError,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteReview(id),
-    onSuccess,
-    onError,
-  });
-
-  return (
-    <div className="flex flex-col gap-y-4 pb-4">
-      <p className="text-right">
-        {reviewPage.totalItems}
-        <span className="ml-1 mr-4 text-sm text-muted-foreground">件</span>
-      </p>
-      <MyReviewList
-        reviews={reviewPage.reviews}
-        updateMutation={updateMutation}
-        deleteMutation={deleteMutation}
-      />
-      <PaginationUrl totalPages={reviewPage.totalPages} />
-    </div>
   );
 }
 
@@ -1828,7 +1635,7 @@ export default function ReviewCreateDialog({
           onChange={(e) => setComment(e.currentTarget.value)}
         />
 
-        <DialogFooter>
+        <DialogFooter className="gap-y-4 sm:gap-y-0">
           <Button
             className="min-w-24 rounded-full"
             variant="ghost"
@@ -1931,6 +1738,7 @@ export default function ReviewItem({ review, updateMutation, deleteMutation }: P
                         className="size-8 rounded-full text-muted-foreground"
                         variant="ghost"
                         size="icon"
+                        aria-label="レビューを編集"
                         onClick={handleClickUpdate}
                       >
                         <SquarePenIcon className="size-4" />
@@ -1945,6 +1753,7 @@ export default function ReviewItem({ review, updateMutation, deleteMutation }: P
                         className="size-8 rounded-full text-muted-foreground"
                         variant="ghost"
                         size="icon"
+                        aria-label="レビューを削除"
                         onClick={handleClickDelete}
                       >
                         <Trash2Icon className="size-4" />
@@ -1960,48 +1769,6 @@ export default function ReviewItem({ review, updateMutation, deleteMutation }: P
         <p className="mt-2 text-muted-foreground sm:pl-20">{review.comment}</p>
       </div>
     </div>
-  );
-}
-
-------------------------------------------------------------
-review-list.tsx
-
-import ReviewItem from '@/components/reviews/review-item';
-import { Separator } from '@/components/ui/separator';
-import {
-  Review,
-  ReviewCreateMutation,
-  ReviewDeleteMutation,
-  ReviewUpdateMutation,
-} from '@/types';
-
-type Props = {
-  reviews: Review[];
-  createMutation?: ReviewCreateMutation;
-  updateMutation?: ReviewUpdateMutation;
-  deleteMutation?: ReviewDeleteMutation;
-};
-
-export default function ReviewList({
-  reviews,
-  createMutation,
-  updateMutation,
-  deleteMutation,
-}: Props) {
-  return (
-    <ul className="flex flex-col p-3 sm:p-6">
-      {reviews.map((review) => (
-        <li key={review.id}>
-          <Separator className="bg-foreground/10" />
-          <ReviewItem
-            review={review}
-            createMutation={createMutation}
-            updateMutation={updateMutation}
-            deleteMutation={deleteMutation}
-          />
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -2105,7 +1872,7 @@ export default function ReviewUpdateDialog({
           onChange={(e) => setComment(e.currentTarget.value)}
         />
 
-        <DialogFooter>
+        <DialogFooter className="gap-y-4 sm:gap-y-0">
           <Button
             className="min-w-24 rounded-full"
             variant="ghost"
@@ -2127,205 +1894,200 @@ export default function ReviewUpdateDialog({
 }
 
 ------------------------------------------------------------
-reviews-book-detail.tsx
+avatar-carousel.tsx
 
-import ReviewCreateDialog from '@/components/reviews/review-create-dialog';
-import ReviewList from '@/components/reviews/review-list';
+import SwipeArea from '@/components/settings/swipe-area';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useApiReview } from '@/hooks/api/use-api-review';
-import { useAuth } from '@/hooks/use-auth';
-import { Review, ReviewRequest } from '@/types';
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  useSuspenseQuery,
-} from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { AVATAR_URLS } from '@/constants/constants';
+import { cn } from '@/lib/util';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRef, useState } from 'react';
 
 type Props = {
-  bookId: string;
+  value: string;
+  onChange: (avatarUrl: string) => void;
 };
 
-export default function ReviewsBookDetail({ bookId }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function AvatarCarousel({ value, onChange }: Props) {
+  // 座標など調整用の値
+  const itemWidth = 70;
+  const frameWidth = 192;
+  const paddingItem = 2;
+  const marginLeft = Math.floor(frameWidth / 2) - Math.floor(itemWidth / 2);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [totalPages, setTotalPages] = useState(0);
+  // 配列の最初と最後の切れ目部分にアイテムを追加しておく
+  // 循環参照するときの見た目の調整のため
+  const extendedAvatarUrls = [
+    ...AVATAR_URLS.slice(-paddingItem),
+    ...AVATAR_URLS,
+    ...AVATAR_URLS.slice(0, paddingItem),
+  ];
 
-  const { user } = useAuth();
-  const {
-    getReviewPage,
-    checkSelfReviewExists,
-    createReview,
-    updateReview,
-    deleteReview,
-  } = useApiReview();
+  // 引数のvalueが見つからなかった場合、findIndex()は-1を返すので、
+  // Math.max()で最小でも0になるようにする
+  const defaultIndex = Math.max(
+    0,
+    AVATAR_URLS.findIndex((avatarUrl) => avatarUrl === value)
+  );
 
-  const { data: initialReviewPage } = useSuspenseQuery({
-    queryKey: ['getReviewPage', bookId, 1],
-    queryFn: () => getReviewPage(bookId, 1),
-  });
+  // インデックス番号でカルーセルを制御
+  // innerIndexは内部的なインデックスとして使用（スクロールアニメーション用）
+  const [currentIndex, setCurrentIndex] = useState(defaultIndex);
+  const [innerIndex, setInnerIndex] = useState(defaultIndex);
 
-  // ログインしていない場合は、enabledオプションを指定して
-  // queryFnを呼び出さないようにする（この指定はuseSuspenseQueryでは出来ない模様）
-  const { data: reviewExists = false } = useQuery({
-    queryKey: ['checkSelfReviewExists', bookId],
-    queryFn: () => checkSelfReviewExists(bookId),
-    enabled: !!user,
-    retry: false,
-  });
+  const [isScrolling, setIsScrolling] = useState(false);
+  const carouselRef = useRef<HTMLUListElement>(null);
 
-  const queryClient = useQueryClient();
+  const handlePrev = () => {
+    if (isScrolling) return;
+    setIsScrolling(true);
+    setInnerIndex(innerIndex - 1);
 
-  const onSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['getReviewPage', bookId, 1] });
-    queryClient.invalidateQueries({ queryKey: ['getBookDetailsById', bookId] });
-    queryClient.invalidateQueries({ queryKey: ['checkSelfReviewExists', bookId] });
+    const prevIndex = (currentIndex - 1 + AVATAR_URLS.length) % AVATAR_URLS.length;
+    setCurrentIndex(prevIndex);
+    onChange(AVATAR_URLS[prevIndex]);
   };
 
-  const onError = (error: Error) => {
-    console.error(error);
+  const handleNext = () => {
+    if (isScrolling) return;
+    setIsScrolling(true);
+    setInnerIndex(innerIndex + 1);
+
+    const nextIndex = (currentIndex + 1) % AVATAR_URLS.length;
+    setCurrentIndex(nextIndex);
+    onChange(AVATAR_URLS[nextIndex]);
   };
 
-  const createMutation = useMutation({
-    mutationFn: (reqestBody: ReviewRequest) => createReview(reqestBody),
-    onSuccess,
-    onError,
-  });
+  const handleTransitonEnd = () => {
+    setIsScrolling(false);
+    setInnerIndex(currentIndex);
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, requestBody }: { id: number; requestBody: ReviewRequest }) =>
-      updateReview(id, requestBody),
-    onSuccess,
-    onError,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteReview(id),
-    onSuccess,
-    onError,
-  });
-
-  useEffect(() => {
-    if (initialReviewPage) {
-      setCurrentPage(1);
-      setReviews(initialReviewPage.reviews);
-      setTotalPages(initialReviewPage.totalPages);
+    // 循環スクロールのために、先頭から終端などに座標を変化させるとスクロールの
+    // ちらつきが発生してしまうので、切れ目の変化ではアニメーションをいったんOffにする
+    if (currentIndex === 0 || currentIndex === AVATAR_URLS.length - 1) {
+      setIsScrolling(true);
+      carouselRef.current!.style.transitionProperty = 'none';
+      setTimeout(() => {
+        carouselRef.current!.style.transitionProperty = 'transform';
+        setIsScrolling(false);
+      }, 75);
     }
-  }, [initialReviewPage]);
-
-  const loadMoreReviews = async () => {
-    const nextPage = currentPage + 1;
-    const nextReviewPage = await getReviewPage(bookId, nextPage);
-    setReviews((prevReviews) => [...prevReviews, ...nextReviewPage.reviews]);
-    setCurrentPage(nextPage);
   };
 
   return (
-    <div className="mx-auto w-full pb-4 lg:w-3/4">
-      <div className="flex flex-col-reverse items-center justify-end gap-y-4 sm:flex-row sm:gap-x-4 sm:px-6">
-        <p>レビュー {initialReviewPage.totalItems} 件</p>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              className="w-44 rounded-full bg-transparent"
-              variant="outline"
-              disabled={user ? reviewExists : true}
-              onClick={() => user && setIsOpen(true)}
+    <div className="flex items-center justify-center">
+      <Button
+        className="rounded-full"
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label="前へ"
+        onClick={handlePrev}
+      >
+        <ChevronLeft className="size-4" />
+      </Button>
+
+      <div
+        className="relative w-full select-none overflow-hidden"
+        style={{ width: `${frameWidth}px` }}
+      >
+        <ul
+          ref={carouselRef}
+          className="flex transition-transform duration-200"
+          style={{
+            transform: `translateX(-${(innerIndex + paddingItem) * itemWidth}px)`,
+            marginLeft: `${marginLeft}px`,
+          }}
+          onTransitionEnd={handleTransitonEnd}
+        >
+          {extendedAvatarUrls.map((avatarUrl, index) => (
+            <li
+              key={index}
+              className={`flex shrink-0 items-center justify-center`}
+              style={{ width: `${itemWidth}px` }}
             >
-              {user && reviewExists ? 'レビュー済み' : 'レビューする'}
-            </Button>
-          </TooltipTrigger>
-          {!user && (
-            <TooltipContent>
-              ログインしてこの本の「レビュー」を書きましょう
-            </TooltipContent>
-          )}
-        </Tooltip>
-        <ReviewCreateDialog
-          bookId={bookId}
-          page={currentPage}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          createMutation={createMutation}
+              <div className="relative flex h-24 items-center">
+                <Avatar
+                  className={cn(
+                    'transition-all duration-200',
+                    'size-12 opacity-25 scale-100',
+                    avatarUrl === AVATAR_URLS[currentIndex] &&
+                      'opacity-100 scale-150 outline-1 outline-offset-1 outline outline-primary'
+                  )}
+                >
+                  <AvatarImage
+                    className="bg-primary"
+                    src={avatarUrl}
+                    alt="avatar-image"
+                    draggable={false}
+                  />
+                </Avatar>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <SwipeArea
+          className="absolute left-0 top-0 h-24 w-full"
+          onSwipeLeft={handleNext}
+          onSwipeRight={handlePrev}
         />
       </div>
 
-      <ReviewList
-        reviews={reviews}
-        updateMutation={updateMutation}
-        deleteMutation={deleteMutation}
-      />
-
-      {currentPage < totalPages && (
-        <div className="flex justify-center">
-          <Button
-            className="w-44 rounded-full text-muted-foreground"
-            variant="ghost"
-            onClick={loadMoreReviews}
-          >
-            もっと見る
-          </Button>
-        </div>
-      )}
+      <Button
+        className="rounded-full"
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label="次へ"
+        onClick={handleNext}
+      >
+        <ChevronRight className="size-4" />
+      </Button>
     </div>
   );
 }
 
 ------------------------------------------------------------
-profile-counts.tsx
+password-input.tsx
 
-import CountUpNumber from '@/components/count-up-number';
-import { useApiUser } from '@/hooks/api/use-api-user';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import React, { useState } from 'react';
 
-export default function ProfileCounts() {
-  const { getProfileCounts } = useApiUser();
+const PasswordInput = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
+  ({ className, ...props }, ref) => {
+    const [isShownPassword, setIsShownPassword] = useState(false);
 
-  const { data: profileCounts } = useSuspenseQuery({
-    queryKey: ['getProfileCounts'],
-    queryFn: () => getProfileCounts(),
-  });
-
-  return (
-    <div className="flex justify-between pt-8">
-      <div className="delay-0 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
-        <Link to={'/favorites'}>
-          <div className="w-24 text-center">
-            <p className="text-xl font-bold">
-              <CountUpNumber end={profileCounts.favoriteCount} delay={300} />
-            </p>
-            <p className="text-sm">お気に入り</p>
-          </div>
-        </Link>
+    return (
+      <div className="relative">
+        <Input
+          ref={ref}
+          className={className}
+          type={isShownPassword ? 'text' : 'password'}
+          {...props}
+        />
+        <Button
+          className="absolute right-0 top-0 rounded-full hover:bg-transparent hover:text-foreground"
+          variant="ghost"
+          size="icon"
+          aria-label={isShownPassword ? 'パスワードを非表示' : 'パスワードを表示'}
+          type="button"
+          onClick={() => setIsShownPassword(!isShownPassword)}
+        >
+          {isShownPassword ? (
+            <EyeIcon className="size-4" />
+          ) : (
+            <EyeOffIcon className="size-4" />
+          )}
+        </Button>
       </div>
-      <div className="delay-100 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
-        <Link to={'/bookmarks'}>
-          <div className="w-24 text-center">
-            <p className="text-xl font-bold">
-              <CountUpNumber end={profileCounts.bookmarkCount} delay={400} />
-            </p>
-            <p className="text-sm">ブックマーク</p>
-          </div>
-        </Link>
-      </div>
-      <div className="delay-200 duration-500 animate-in fade-in-0 slide-in-from-bottom-10 fill-mode-both">
-        <Link to={'/my-reviews'}>
-          <div className="w-24 text-center">
-            <p className="text-xl font-bold">
-              <CountUpNumber end={profileCounts.reviewCount} delay={500} />
-            </p>
-            <p className="text-sm">マイレビュー</p>
-          </div>
-        </Link>
-      </div>
-    </div>
-  );
-}
+    );
+  }
+);
+
+export default PasswordInput;
 
 ------------------------------------------------------------
 confirm-dialog.tsx
@@ -2493,7 +2255,7 @@ const ConfirmDialog = () => {
           </div>
         )}
 
-        <DialogFooter className="flex justify-end">
+        <DialogFooter className="flex justify-end gap-y-4 sm:gap-y-0">
           {!options.actionOnly && (
             <Button
               className="min-w-24 rounded-full"
@@ -2517,6 +2279,81 @@ const ConfirmDialog = () => {
 };
 
 export { ConfirmDialog };
+
+------------------------------------------------------------
+pagination.tsx
+
+import { Button } from '@/components/ui/button';
+import { createPageNumbers } from '@/lib/pagination';
+import { cn } from '@/lib/util';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { HTMLAttributes } from 'react';
+
+interface Props extends HTMLAttributes<HTMLDivElement> {
+  total: number;
+  page: number;
+  onChangePage: (page: number) => void;
+}
+
+export default function Pagination({
+  total,
+  page,
+  onChangePage,
+  className,
+  ...props
+}: Props) {
+  const pageNumbers = createPageNumbers(page, total);
+
+  return (
+    <div className={cn('flex', className)} {...props}>
+      <Button
+        className="size-8 rounded-full"
+        variant="ghost"
+        size="icon"
+        aria-label="前のページへ"
+        disabled={page <= 1}
+        onClick={() => onChangePage(page - 1)}
+      >
+        <ChevronLeft className="size-5" />
+      </Button>
+
+      <ul className="flex">
+        {pageNumbers.map((pageNumber, index) => (
+          <li key={`${pageNumber}-${index}`}>
+            {pageNumber === 0 ? (
+              <div className="size-8 text-center">...</div>
+            ) : (
+              <Button
+                className="size-8 rounded-full"
+                variant={page === pageNumber ? 'secondary' : 'ghost'}
+                size="icon"
+                aria-label="ページ番号"
+                onClick={() => {
+                  if (page !== pageNumber) {
+                    onChangePage(pageNumber);
+                  }
+                }}
+              >
+                {pageNumber}
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      <Button
+        className="size-8 rounded-full"
+        variant="ghost"
+        size="icon"
+        aria-label="次のページへ"
+        disabled={page >= total}
+        onClick={() => onChangePage(page + 1)}
+      >
+        <ChevronRight className="size-5" />
+      </Button>
+    </div>
+  );
+}
 
 ------------------------------------------------------------
 constants.ts
@@ -2546,11 +2383,11 @@ export const MENU_LIST = [
 ];
 
 // API Endpoits
-// export const BOOKS_API_ENDPOINT = 'https://vsv-emerald/my-books/api/v1';
-export const BOOKS_API_ENDPOINT = 'https://localhost/my-books/api/v1';
+export const BOOKS_API_ENDPOINT = 'https://vsv-emerald.skygroup.local/api/v1';
+// export const BOOKS_API_ENDPOINT = 'https://localhost/api/v1';
 
-// export const AVATAR_BASE_URL = 'https://vsv-emerald/images/avatars';
-export const AVATAR_BASE_URL = 'https://localhost/images/avatars';
+export const AVATAR_BASE_URL = 'https://vsv-emerald.skygroup.local/images/avatars';
+// export const AVATAR_BASE_URL = 'https://localhost/images/avatars';
 export const AVATAR_URLS = [...Array(41)].map(
   (_, index) => `${AVATAR_BASE_URL}/avatar${String(index).padStart(2, '0')}.png`
 );
@@ -2563,705 +2400,248 @@ export const FETCH_MY_REVIEWS_MAX_RESULTS = 5;
 export const FETCH_BOOKMARKS_MAX_RESULTS = 5;
 
 ------------------------------------------------------------
-use-api-favorite.ts
+book-read-content.ts
 
-import { FETCH_FAVORITES_MAX_RESULTS } from '@/constants/constants';
-import { useApi } from '@/hooks/api/use-api';
-import { Favorite, FavoriteInfo, FavoritePage, FavoriteRequest } from '@/types';
+import { BookTableOfContents } from '@/types';
 
-export const useApiFavorite = () => {
-  const { fetcher, fetcherWithAuth, mutationWithAuth } = useApi();
+// 「現在のページ/総ページ数」を表す文字列を返す
+export const getCurrentPageText = (
+  bookTableOfContents: BookTableOfContents,
+  chapterNumber: number,
+  pageNumber: number
+) => {
+  // 章番号が見つからなかった場合でも chapterIndex は少なくとも1にする
+  const chapterIndex = Math.max(
+    1,
+    bookTableOfContents.chapters.findIndex(
+      (chapter) => chapter.chapterNumber === chapterNumber
+    )
+  );
 
-  const getFavoriteByBookId = async (bookId: string) => {
-    try {
-      const url = `/favorites/${bookId}`;
-      const favorite = await fetcherWithAuth<Favorite>(url);
-      return favorite;
-    } catch (error) {
-      throw new Error('お気に入りの読み込みが失敗しました。' + error);
+  const totalPage = bookTableOfContents.chapters[chapterIndex]?.pageNumbers.length ?? 1;
+  return `${pageNumber}/${totalPage}`;
+};
+
+// 現在のページが最初か最後かを判定する
+export const getPagePosition = (
+  bookTableOfContents: BookTableOfContents,
+  chapterNumber: number,
+  pageNumber: number
+) => {
+  const isFirstPage = chapterNumber === 1 && pageNumber === 1;
+  const isLastPage =
+    chapterNumber === bookTableOfContents.chapters.length &&
+    pageNumber ===
+      bookTableOfContents.chapters.find(
+        (chapter) => chapter.chapterNumber === chapterNumber
+      )?.pageNumbers.length;
+
+  return { isFirstPage, isLastPage };
+};
+
+// 指定方向（次 or 前）のページのリンク先を返す
+export const getPageLink = (
+  bookTableOfContents: BookTableOfContents,
+  chapterNumber: number,
+  pageNumber: number,
+  direction: 'next' | 'prev'
+) => {
+  const chapterIndex = bookTableOfContents.chapters.findIndex(
+    (chapter) => chapter.chapterNumber === chapterNumber
+  );
+
+  if (chapterIndex === -1) {
+    return `/read/${bookTableOfContents.bookId}/chapter/${chapterNumber}/page/${pageNumber}`;
+  }
+
+  const totalPages = bookTableOfContents.chapters[chapterIndex]?.pageNumbers.length ?? 1;
+  const isMovingForward = direction === 'next';
+
+  const isLastPage = pageNumber >= totalPages;
+  const isFirstPage = pageNumber <= 1;
+  const isLastChapter = chapterIndex >= bookTableOfContents.chapters.length - 1;
+  const isFirstChapter = chapterIndex <= 0;
+
+  let newChapterNumber = chapterNumber;
+  let newPageNumber = pageNumber;
+
+  if (isMovingForward) {
+    if (isLastPage) {
+      // 最終章の最後のページなら、それ以上進めない
+      if (isLastChapter) {
+        newPageNumber = totalPages; // 現在の最後のページのまま
+      } else {
+        // 次のチャプターの最初のページへ
+        newChapterNumber = chapterNumber + 1;
+        newPageNumber = 1;
+      }
+    } else {
+      newPageNumber = pageNumber + 1;
     }
-  };
-
-  const getFavoritePage = async (page: number = 0) => {
-    try {
-      const basePage = page > 0 ? page - 1 : 0;
-      const url = `/favorites?&page=${basePage}&maxResults=${FETCH_FAVORITES_MAX_RESULTS}`;
-      const favoritePage = await fetcherWithAuth<FavoritePage>(url);
-      return favoritePage;
-    } catch (error) {
-      throw new Error('お気に入り一覧の読み込みが失敗しました。' + error);
+  } else {
+    if (isFirstPage) {
+      // 最初の章の最初のページなら、それ以上戻れない
+      if (isFirstChapter) {
+        newPageNumber = 1; // 現在の最初のページのまま
+      } else {
+        // 前のチャプターの最後のページへ
+        newChapterNumber = chapterNumber - 1;
+        newPageNumber = bookTableOfContents.chapters[chapterIndex - 1].pageNumbers.length;
+      }
+    } else {
+      newPageNumber = pageNumber - 1;
     }
-  };
+  }
 
-  const getFavoriteInfo = async (bookId: string, userId: number | undefined) => {
-    try {
-      const query = userId ? `?userId=${userId}` : '';
-      const url = `/books/${bookId}/favorites/info${query}`;
-      const favoriteInfo = await fetcher<FavoriteInfo>(url);
-      return favoriteInfo;
-    } catch (error) {
-      throw new Error('お気に入り情報の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const createFavorite = async (reqestBody: FavoriteRequest) => {
-    try {
-      const url = `/favorites`;
-      const options: RequestInit = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqestBody),
-      };
-      await mutationWithAuth(url, options);
-    } catch (error) {
-      throw new Error('お気に入りの作成に失敗しました。' + error);
-    }
-  };
-
-  const deleteFavorite = async (bookId: string) => {
-    try {
-      const url = `/favorites/${bookId}`;
-      const options: RequestInit = { method: 'DELETE' };
-      await mutationWithAuth(url, options);
-    } catch (error) {
-      throw new Error('お気に入りの削除に失敗しました。' + error);
-    }
-  };
-
-  return {
-    getFavoriteByBookId,
-    getFavoritePage,
-    getFavoriteInfo,
-    createFavorite,
-    deleteFavorite,
-  };
+  return `/read/${bookTableOfContents.bookId}/chapter/${newChapterNumber}/page/${newPageNumber}`;
 };
 
 ------------------------------------------------------------
-use-api-review.ts
+index.css
 
-import {
-  FETCH_MY_REVIEWS_MAX_RESULTS,
-  FETCH_REVIEWS_MAX_RESULTS,
-} from '@/constants/constants';
-import { useApi } from '@/hooks/api/use-api';
-import { ReviewPage, ReviewRequest, ReviewSummary, SelfReviewExists } from '@/types';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-export const useApiReview = () => {
-  const { fetcher, fetcherWithAuth, mutationWithAuth } = useApi();
+@layer base {
+  html {
+    font-family: 'Inter', 'Noto Sans JP', system-ui, sans-serif;
+  }
 
-  const getReviewPage = async (bookId: string, page: number = 0) => {
-    try {
-      const basePage = page > 0 ? page - 1 : 0;
-      const url = `/books/${bookId}/reviews?&page=${basePage}&maxResults=${FETCH_REVIEWS_MAX_RESULTS}`;
-      const reviewPage = await fetcher<ReviewPage>(url);
-      return reviewPage;
-    } catch (error) {
-      throw new Error('レビュー一覧の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const getReviewSummary = async (bookId: string) => {
-    try {
-      const url = `/books/${bookId}/reviews/summary`;
-      const reviewSummary = await fetcher<ReviewSummary>(url);
-      return reviewSummary;
-    } catch (error) {
-      throw new Error('レビュー情報の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const checkSelfReviewExists = async (bookId: string) => {
-    try {
-      const url = `/reviews/self-review-exists/${bookId}`;
-      const data = await fetcherWithAuth<SelfReviewExists>(url);
-      return data.exists;
-    } catch (error) {
-      throw new Error('レビューの存在チェックに失敗しました。' + error);
-    }
-  };
-
-  const getReviewPageByUser = async (page: number = 0) => {
-    try {
-      const basePage = page > 0 ? page - 1 : 0;
-      const url = `/reviews?&page=${basePage}&maxResults=${FETCH_MY_REVIEWS_MAX_RESULTS}`;
-      const reviewPage = await fetcherWithAuth<ReviewPage>(url);
-      return reviewPage;
-    } catch (error) {
-      throw new Error('マイレビュー一覧の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const createReview = async (reqestBody: ReviewRequest) => {
-    try {
-      const url = `/reviews`;
-      const options: RequestInit = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqestBody),
-      };
-      await mutationWithAuth(url, options);
-    } catch (error) {
-      throw new Error('レビューの作成に失敗しました。' + error);
-    }
-  };
-
-  const updateReview = async (id: number, reqestBody: ReviewRequest) => {
-    try {
-      const url = `/reviews/${id}`;
-      const options: RequestInit = {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqestBody),
-      };
-      await mutationWithAuth(url, options);
-    } catch (error) {
-      throw new Error('レビューの更新に失敗しました。' + error);
-    }
-  };
-
-  const deleteReview = async (id: number) => {
-    try {
-      const url = `/reviews/${id}`;
-      const options: RequestInit = {
-        method: 'DELETE',
-      };
-      await mutationWithAuth(url, options);
-    } catch (error) {
-      throw new Error('レビューの削除に失敗しました。' + error);
-    }
-  };
-
-  return {
-    getReviewPage,
-    getReviewSummary,
-    checkSelfReviewExists,
-    getReviewPageByUser,
-    createReview,
-    updateReview,
-    deleteReview,
-  };
-};
-
-------------------------------------------------------------
-use-discover-queries.ts
-
-import { useLocation, useNavigate } from 'react-router-dom';
-
-export const useDiscoverQueries = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const searchParams = new URLSearchParams(location.search);
-  const genreIds = searchParams.get('genreIds') || '';
-  const condition = searchParams.get('condition') || '';
-  const page = Number(searchParams.get('page') || '1');
-
-  const updateQueryParams = (params: {
-    genreIds?: string;
-    condition?: string;
-    page?: number;
-  }) => {
-    const newParams = new URLSearchParams(location.search);
-
-    if (params.genreIds !== undefined) {
-      newParams.set('genreIds', params.genreIds);
-    }
-    if (params.condition !== undefined) {
-      newParams.set('condition', params.condition);
-    }
-    if (params.page !== undefined) {
-      newParams.set('page', params.page.toString());
-    }
-
-    navigate(`/discover?${newParams.toString()}`);
-  };
-
-  return { genreIds, condition, page, updateQueryParams };
-};
-
-------------------------------------------------------------
-bookmarks
-
-import Bookmarks from '@/components/bookmarks/bookmarks';
-import BookmarksSkeleton from '@/components/bookmarks/bookmarks-skeleton';
-import { Separator } from '@/components/ui/separator';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useSearchParams } from 'react-router-dom';
-
-export default function Page() {
-  const [searchParams] = useSearchParams();
-  const page = Number(searchParams.get('page') || '1');
-
-  return (
-    <>
-      <div className="m-4 flex h-10 items-center">
-        <p className="font-bold">ブックマーク</p>
-      </div>
-
-      <Separator className="my-4 bg-foreground/10" />
-
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<BookmarksSkeleton />}>
-          <Bookmarks page={page} />
-        </Suspense>
-      </ErrorBoundary>
-    </>
-  );
+  /* スクロールバー */
+  body ::-webkit-scrollbar-track {
+    cursor: default;
+    background-color: hsl(var(--muted));
+  }
+  body ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  body ::-webkit-scrollbar-thumb {
+    cursor: default;
+    border-radius: 8px;
+    background-color: hsl(var(--foreground) / 0.2);
+  }
+  body ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--foreground) / 0.3);
+  }
 }
 
-------------------------------------------------------------
-discover
-
-import BooksDiscover from '@/components/books/books-discover';
-import BooksSkeleton from '@/components/books/books-skeleton';
-import GenresConditionSelector from '@/components/genres/genres-condition-selector';
-import GenresDiscover from '@/components/genres/genres-discover';
-import GenresSkeleton from '@/components/genres/genres-skeleton';
-import { Separator } from '@/components/ui/separator';
-import { useDiscoverQueries } from '@/hooks/use-discover-queries';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-
-export default function Page() {
-  const { genreIds, condition, page, updateQueryParams } = useDiscoverQueries();
-
-  const handleConditionChange = (condition: string) => {
-    // SINGLE選択以外は複数ジャンル選択可能OKだが
-    // SINGLE選択の場合、複数ジャンルの中の最初の値（単一の値）とする
-    const ids = condition === 'SINGLE' ? genreIds.split(',')[0] : undefined;
-    updateQueryParams({ genreIds: ids, condition, page: 1 });
-  };
-
-  const handleGenreIdsChange = (genreIds: string) => {
-    updateQueryParams({ genreIds, page: 1 });
-  };
-
-  return (
-    <>
-      <div className="m-4 flex h-10 items-center justify-between">
-        <p className="font-bold">ジャンル</p>
-        <GenresConditionSelector
-          condition={condition}
-          onConditionChange={handleConditionChange}
-        />
-      </div>
-
-      <Separator className="my-4 bg-foreground/10" />
-
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<GenresSkeleton />}>
-          <GenresDiscover
-            genreIds={genreIds}
-            condition={condition}
-            onGenreIdsChange={handleGenreIdsChange}
-          />
-        </Suspense>
-      </ErrorBoundary>
-
-      <Separator className="my-4 bg-foreground/10" />
-
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<BooksSkeleton />}>
-          <BooksDiscover genreIds={genreIds} condition={condition} page={page} />
-        </Suspense>
-      </ErrorBoundary>
-    </>
-  );
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
-------------------------------------------------------------
-favorites
+/*
+カラーテーマは以下のページからコピペ
+https://ui.jln.dev/
+*/
 
-import Favorites from '@/components/favorites/favorites';
-import FavoritesSkeleton from '@/components/favorites/favorites-skeleton';
-import { Separator } from '@/components/ui/separator';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useSearchParams } from 'react-router-dom';
+@layer base {
+  :root {
+    --background: 112 100% 97%;
+    --foreground: 60 2% 30%;
+    --muted: 112 12% 90%;
+    --muted-foreground: 112 12% 30%;
+    --popover: 112 100% 94%;
+    --popover-foreground: 60 2% 20%;
+    --card: 112 100% 95%;
+    --card-foreground: 60 2% 25%;
+    --border: 112 90% 92%;
+    --input: 112 90% 89%;
+    --primary: 123 43% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 123 30% 75%;
+    --secondary-foreground: 123 30% 15%;
+    --accent: 112 100% 82%;
+    --accent-foreground: 112 100% 2%;
+    --destructive: 2 96% 27%;
+    --destructive-foreground: 2 96% 87%;
 
-export default function Page() {
-  const [searchParams] = useSearchParams();
-  const page = Number(searchParams.get('page') || '1');
+    --ring: 155 58% 29%;
+    --radius: 0.5rem;
+  }
 
-  return (
-    <>
-      <div className="m-4 flex h-10 items-center">
-        <p className="font-bold">お気に入り</p>
-      </div>
-
-      <Separator className="my-4 bg-foreground/10" />
-
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<FavoritesSkeleton />}>
-          <Favorites page={page} />
-        </Suspense>
-      </ErrorBoundary>
-    </>
-  );
-}
-
-------------------------------------------------------------
-my-reviews
-
-import MyReviews from '@/components/my-reviews/my-reviews';
-import MyReviewsSkeleton from '@/components/my-reviews/my-reviews-skeleton';
-import { Separator } from '@/components/ui/separator';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useSearchParams } from 'react-router-dom';
-
-export default function Page() {
-  const [searchParams] = useSearchParams();
-  const page = Number(searchParams.get('page') || '1');
-
-  return (
-    <>
-      <div className="m-4 flex h-10 items-center">
-        <p className="font-bold">マイレビュー</p>
-      </div>
-
-      <Separator className="my-4 bg-foreground/10" />
-
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<MyReviewsSkeleton />}>
-          <MyReviews page={page} />
-        </Suspense>
-      </ErrorBoundary>
-    </>
-  );
-}
-
-------------------------------------------------------------
-search
-
-import BooksSearch from '@/components/books/books-search';
-import BooksSkeleton from '@/components/books/books-skeleton';
-import { Separator } from '@/components/ui/separator';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useSearchParams } from 'react-router-dom';
-
-export default function Page() {
-  const [searchParams] = useSearchParams();
-  const searchQuery = searchParams.get('q') || '';
-  const page = Number(searchParams.get('page') || '1');
-
-  return (
-    <>
-      <div className="m-4 flex h-10 items-center">
-        <p>
-          「 {searchQuery} 」
-          <span className="text-sm text-muted-foreground">の検索結果</span>
-        </p>
-      </div>
-
-      <Separator className="my-4 bg-foreground/10" />
-
-      <ErrorBoundary fallback={<ErrorElement />}>
-        <Suspense fallback={<BooksSkeleton />}>
-          <BooksSearch searchQuery={searchQuery} page={page} />
-        </Suspense>
-      </ErrorBoundary>
-    </>
-  );
-}
-
-------------------------------------------------------------
-page.tsx
-
-import BooksNewReleases from '@/components/books/books-new-releases';
-import BooksSkeleton from '@/components/books/books-skeleton';
-import GenresSkeleton from '@/components/genres/genres-skeleton';
-import GenresTopPage from '@/components/genres/genres-top-page';
-import Hero from '@/components/layout/hero';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-
-export default function Page() {
-  return (
-    <>
-      <Hero />
-
-      <div className="mb-4 flex flex-col gap-y-4">
-        <p className="font-bold">ジャンル</p>
-
-        <ErrorBoundary fallback={<ErrorElement />}>
-          <Suspense fallback={<GenresSkeleton />}>
-            <GenresTopPage />
-          </Suspense>
-        </ErrorBoundary>
-      </div>
-
-      <div className="flex flex-col">
-        <p className="font-bold">ニューリリース</p>
-
-        <ErrorBoundary fallback={<ErrorElement />}>
-          <Suspense fallback={<BooksSkeleton />}>
-            <BooksNewReleases />
-          </Suspense>
-        </ErrorBoundary>
-      </div>
-    </>
-  );
-}
-
-------------------------------------------------------------
-route.tsx
-
-import BookDetailPage from '@/routes/book/[bookId]/page';
-import BookmarksPage from '@/routes/bookmarks/page';
-import DiscoverPage from '@/routes/discover/page';
-import FavoritesPage from '@/routes/favorites/page';
-import RootLayout from '@/routes/layout';
-import LoginPage from '@/routes/login/page';
-import MyReviewsPage from '@/routes/my-reviews/page';
-import RootPage from '@/routes/page';
-import { ProtectedRoute } from '@/routes/protected-route';
-import BookReadPage from '@/routes/read/[bookId]/chapter/[chapterNumber]/page/[pageNumber]/page';
-import BookReadTableOfContentsPage from '@/routes/read/[bookId]/table-of-contents/page';
-import SearchPage from '@/routes/search/page';
-import ChangeEmailPage from '@/routes/settings/change-email/page';
-import ChangePasswordPage from '@/routes/settings/change-password/page';
-import ChangeUserInfoPage from '@/routes/settings/change-user-info/page';
-import ProfilePage from '@/routes/settings/profile/page';
-import SignupPage from '@/routes/signup/page';
-import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
-
-export const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route>
-      <Route path="/" element={<RootLayout />}>
-        <Route index element={<RootPage />} />
-
-        <Route path="book/:bookId" element={<BookDetailPage />} />
-        <Route path="book/:bookId/reviews" element={<BookDetailPage />} />
-
-        <Route path="read/:bookId">
-          <Route path="table-of-contents" element={<BookReadTableOfContentsPage />} />
-        </Route>
-
-        <Route path="search">
-          <Route index element={<SearchPage />} />
-        </Route>
-
-        <Route path="discover">
-          <Route index element={<DiscoverPage />} />
-        </Route>
-
-        <Route path="login">
-          <Route index element={<LoginPage />} />
-        </Route>
-
-        <Route path="signup">
-          <Route index element={<SignupPage />} />
-        </Route>
-
-        {/* 以下、認証が必要な画面 */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="favorites">
-            <Route index element={<FavoritesPage />} />
-          </Route>
-
-          <Route path="my-reviews">
-            <Route index element={<MyReviewsPage />} />
-          </Route>
-
-          <Route path="bookmarks">
-            <Route index element={<BookmarksPage />} />
-          </Route>
-
-          <Route path="settings">
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="change-user-info" element={<ChangeUserInfoPage />} />
-            <Route path="change-email" element={<ChangeEmailPage />} />
-            <Route path="change-password" element={<ChangePasswordPage />} />
-          </Route>
-
-          <Route path="read/:bookId">
-            <Route path="chapter/:chapterNumber">
-              <Route path="page/:pageNumber" element={<BookReadPage />} />
-            </Route>
-          </Route>
-        </Route>
-      </Route>
-    </Route>
-  )
-);
-
-------------------------------------------------------------
-bookmark.ts
-
-import { Book } from '@/types/book';
-import { UseMutationResult } from '@tanstack/react-query';
-
-export interface Bookmark {
-  id: number;
-  userId: number;
-  bookId: string;
-  chapterNumber: number;
-  pageNumber: number;
-  note: string;
-  chapterTitle: string;
-  updatedAt: string;
-  book: Book;
-}
-
-export interface BookmarkPage {
-  page: number;
-  totalPages: number;
-  totalItems: number;
-  bookmarks: Bookmark[];
-}
-
-export interface BookmarkRequest {
-  bookId: string;
-  chapterNumber: number;
-  pageNumber: number;
-  note: string;
-}
-
-export type BookmarkCreateMutation = UseMutationResult<
-  void,
-  Error,
-  BookmarkRequest,
-  unknown
->;
-
-export type BookmarkUpdateMutation = UseMutationResult<
-  void,
-  Error,
-  {
-    id: number;
-    requestBody: BookmarkRequest;
-  },
-  unknown
->;
-
-export type BookmarkDeleteMutation = UseMutationResult<void, Error, number, unknown>;
-
-------------------------------------------------------------
-review.ts
-
-import { Book } from '@/types';
-import { UseMutationResult } from '@tanstack/react-query';
-
-export interface Review {
-  id: number;
-  userId: number;
-  bookId: string;
-  name: string;
-  avatarUrl: string;
-  comment: string;
-  rating: number;
-  createdAt: string;
-  updatedAt: string;
-  book: Book;
-}
-
-export interface ReviewPage {
-  page: number;
-  totalPages: number;
-  totalItems: number;
-  reviews: Review[];
-}
-
-export interface ReviewSummary {
-  bookId: string;
-  reviewCount: number;
-  averageRating: number;
-}
-
-export interface ReviewRequest {
-  bookId: string;
-  comment: string;
-  rating: number;
-}
-
-export interface SelfReviewExists {
-  exists: boolean;
-}
-
-export type ReviewCreateMutation = UseMutationResult<void, Error, ReviewRequest, unknown>;
-
-export type ReviewUpdateMutation = UseMutationResult<
-  void,
-  Error,
-  {
-    id: number;
-    requestBody: ReviewRequest;
-  },
-  unknown
->;
-
-export type ReviewDeleteMutation = UseMutationResult<void, Error, number, unknown>;
-
-------------------------------------------------------------
-package.json
-
-{
-  "name": "my-books-frontend",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite --host",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview --host"
-  },
-  "dependencies": {
-    "@tanstack/react-query": "^5.64.2",
-    "@types/react-router-dom": "^5.3.3",
-    "clsx": "^2.1.1",
-    "html-react-parser": "^5.1.16",
-    "lucide-react": "^0.445.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-error-boundary": "^5.0.0",
-    "react-router-dom": "^6.26.2",
-    "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7",
-    "use-debounce": "^10.0.3"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.9.0",
-    "@types/eslint-plugin-react-refresh": "^0.4.0",
-    "@types/eslint-plugin-tailwindcss": "^3.17.0",
-    "@types/node": "^22.5.5",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react-swc": "^3.5.0",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^9.9.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
-    "eslint-plugin-react-refresh": "^0.4.9",
-    "eslint-plugin-tailwindcss": "^3.17.4",
-    "globals": "^15.9.0",
-    "postcss": "^8.4.47",
-    "prettier": "^3.5.3",
-    "prettier-plugin-organize-imports": "^4.0.0",
-    "tailwindcss": "^3.4.11",
-    "typescript": "^5.5.3",
-    "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1"
+  .dark {
+    --background: 200 19% 18%;
+    --foreground: 0 0% 96%;
+    --muted: 200 12% 22%;
+    --muted-foreground: 200 12% 72%;
+    --popover: 200 19% 15%;
+    --popover-foreground: 0 0% 100%;
+    --card: 200 19% 16%;
+    --card-foreground: 0 0% 100%;
+    --border: 200 9% 23%;
+    --input: 200 9% 26%;
+    --primary: 123 49% 59%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 123 30% 25%;
+    --secondary-foreground: 123 30% 85%;
+    --accent: 200 19% 33%;
+    --accent-foreground: 200 19% 93%;
+    --destructive: 4 91% 59%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 123 49% 59%;
   }
 }
 
 ------------------------------------------------------------
-※package-look.json
+index.html
 
-bookmark-button.tsx
-book-card.tsx
-books-favorites.tsx
-genre-list-selector.tsx
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="本の探索サイトへようこそ。多様なコレクションから、新しい知識を発見しましょう。厳選された書籍で、あなたの次の読書を見つけてください。知識の旅に一緒に出かけましょう。"
+    />
+    <title>My Books</title>
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+JP:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="dark">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+------------------------------------------------------------
+vite.config.ts
+
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
+import { defineConfig } from 'vite';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+
+  // エイリアス設定
+  // https://zenn.dev/yuji6523/articles/react-absolute-path
+  // shadcn/uiのviteの設定も参考
+  // https://ui.shadcn.com/docs/installation/vite
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});
+
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
 
