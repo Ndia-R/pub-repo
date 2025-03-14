@@ -1,209 +1,288 @@
-DROP DATABASE IF EXISTS `my-books-db`;
-CREATE DATABASE `my-books-db`;
+------------------------------------------------------------
+api/my-books-api
+Dockerfile
 
-USE `my-books-db`;
+# ベースイメージとして軽量なJavaランタイムを指定
+FROM openjdk:17-alpine
+
+# アプリケーションの作業ディレクトリを設定
+WORKDIR /workspace
+
+# ビルドしたSpring BootのJARファイルをコンテナにコピー
+COPY ./my-books.jar my-books.jar
+
+# アプリケーションの実行
+ENTRYPOINT ["java", "-jar", "my-books.jar"]
+------------------------------------------------------------
+db/my-books-db
+
+books.csv
+
+NULL検索
+
+------------------------------------------------------------
+web
+certs
+
+vsv-emerald_skygroup_local_2025.cer
+
+-----BEGIN CERTIFICATE-----
+MIIGqjCCBZKgAwIBAgITJwAA2z7jGYQWqgURhQAAAADbPjANBgkqhkiG9w0BAQsF
+ADBTMRUwEwYKCZImiZPyLGQBGRYFbG9jYWwxGDAWBgoJkiaJk/IsZAEZFghza3ln
+cm91cDEgMB4GA1UEAxMXc2t5Z3JvdXAtVlNWLU9EQ0NBMDEtQ0EwHhcNMjUwMzEx
+MDY0NDEyWhcNMjcwMzExMDY0NDEyWjCBlTELMAkGA1UEBhMCSlAxDjAMBgNVBAgT
+BU9zYWthMRIwEAYDVQQHEwlPc2FrYS1zaGkxFTATBgNVBAoTDFNreSBDby4sTHRk
+LjEmMCQGA1UECxMdSW5mb3JtYXRpb24gU3lzdGVtIERlcGFydG1lbnQxIzAhBgNV
+BAMTGnZzdi1lbWVyYWxkLnNreWdyb3VwLmxvY2FsMIIBIjANBgkqhkiG9w0BAQEF
+AAOCAQ8AMIIBCgKCAQEAwprYqL4Rfs+mEVAy4zk/AF2rx12nLABPcPVY3Xulfthc
+J6jIuyBNLubSP5TBePNodyo15FzjPlS45lUw6+URSBvPQ7YnvzUlSA9xUnrmXqfq
+Gr93f8tTh7HI6y0bWptOzvsCdZUM/lq5jO3tF+eztd1k9NeC/b9ok+Jjo9DJ/sbg
+nU3CtuZG85034TiWUgA+EkhG3p5M+2yzljCBDqHNx2OX9NmxgZQGJkHY3BZ/Dh2r
+Zwbqn0xZe1lBSyMnhVkDb9vf5WDLPu/OfqemSsjOyPpH/pAMx1VnWGPTnFuYVHqR
+PMcAs7eAmPQ4g0T4yNtTuGZFwKCE3mRrJ2G+5gxS2QIDAQABo4IDMjCCAy4wNQYD
+VR0RBC4wLIIOc2t5Z3JvdXAubG9jYWyCGnZzdi1lbWVyYWxkLnNreWdyb3VwLmxv
+Y2FsMB0GA1UdDgQWBBRp1opRWaWKfkbZCDd0KZo8H06HZjAfBgNVHSMEGDAWgBSq
+35QO29jXIKDk84muPqq56D5dGjCCASsGA1UdHwSCASIwggEeMIIBGqCCARagggES
+hoHFbGRhcDovLy9DTj1za3lncm91cC1WU1YtT0RDQ0EwMS1DQSxDTj1WU1YtT0RD
+Q0EwMSxDTj1DRFAsQ049UHVibGljJTIwS2V5JTIwU2VydmljZXMsQ049U2Vydmlj
+ZXMsQ049Q29uZmlndXJhdGlvbixEQz1za3lncm91cCxEQz1sb2NhbD9jZXJ0aWZp
+Y2F0ZVJldm9jYXRpb25MaXN0P2Jhc2U/b2JqZWN0Q2xhc3M9Y1JMRGlzdHJpYnV0
+aW9uUG9pbnSGSGh0dHA6Ly9WU1YtT0RDQ0EwMS5za3lncm91cC5sb2NhbC9DZXJ0
+RW5yb2xsL3NreWdyb3VwLVZTVi1PRENDQTAxLUNBLmNybDCCAT8GCCsGAQUFBwEB
+BIIBMTCCAS0wgbkGCCsGAQUFBzAChoGsbGRhcDovLy9DTj1za3lncm91cC1WU1Yt
+T0RDQ0EwMS1DQSxDTj1BSUEsQ049UHVibGljJTIwS2V5JTIwU2VydmljZXMsQ049
+U2VydmljZXMsQ049Q29uZmlndXJhdGlvbixEQz1za3lncm91cCxEQz1sb2NhbD9j
+QUNlcnRpZmljYXRlP2Jhc2U/b2JqZWN0Q2xhc3M9Y2VydGlmaWNhdGlvbkF1dGhv
+cml0eTBvBggrBgEFBQcwAoZjaHR0cDovL1ZTVi1PRENDQTAxLnNreWdyb3VwLmxv
+Y2FsL0NlcnRFbnJvbGwvVlNWLU9EQ0NBMDEuc2t5Z3JvdXAubG9jYWxfc2t5Z3Jv
+dXAtVlNWLU9EQ0NBMDEtQ0EuY3J0MCEGCSsGAQQBgjcUAgQUHhIAVwBlAGIAUwBl
+AHIAdgBlAHIwCwYDVR0PBAQDAgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMA0GCSqG
+SIb3DQEBCwUAA4IBAQAumzGulH5dByKNuT7RVm6dw0sx48G+o65zlM+F01p1+aGH
+iLLlTHB94FldWucpEZtGsVMFqTwwSvLPYDSkIxKRzxnBgWfD8rtpZE/brRxjqZlL
+YOPqzCarPb1AldCxJwaceC42RWF7yVPck5OsroJ8tUopBJ4xp5SpgDPlZHaGJ4VC
+33ZPRcguapMzZJxq5TgiFQmLq2PT4fw+g9tpvSRvJgYgXZ5Xgjc1KPfoldpWjB2S
+N+Zlg6+1cJVIFfHUzm3h6zd90nx/ml9eJC+PWlv/QMWYfQ9s3drS2TQB8govq1x/
+det7chYUJ2+/4g4jtTVUiKvd4CiPyW4rF1jzXpfF
+-----END CERTIFICATE-----
 
 
-DROP TABLE IF EXISTS `books`;
-DROP TABLE IF EXISTS `genres`;
-DROP TABLE IF EXISTS `book_genres`;
-DROP TABLE IF EXISTS `users`;
-DROP TABLE IF EXISTS `roles`;
-DROP TABLE IF EXISTS `user_roles`;
-DROP TABLE IF EXISTS `reviews`;
-DROP TABLE IF EXISTS `favorites`;
-DROP TABLE IF EXISTS `my_lists`;
+------------------------------------------------------------
+vsv-emerald_skygroup_local_2025.key
+
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAwprYqL4Rfs+mEVAy4zk/AF2rx12nLABPcPVY3XulfthcJ6jI
+uyBNLubSP5TBePNodyo15FzjPlS45lUw6+URSBvPQ7YnvzUlSA9xUnrmXqfqGr93
+f8tTh7HI6y0bWptOzvsCdZUM/lq5jO3tF+eztd1k9NeC/b9ok+Jjo9DJ/sbgnU3C
+tuZG85034TiWUgA+EkhG3p5M+2yzljCBDqHNx2OX9NmxgZQGJkHY3BZ/Dh2rZwbq
+n0xZe1lBSyMnhVkDb9vf5WDLPu/OfqemSsjOyPpH/pAMx1VnWGPTnFuYVHqRPMcA
+s7eAmPQ4g0T4yNtTuGZFwKCE3mRrJ2G+5gxS2QIDAQABAoIBAGWeUjCbP6uGZuN3
+i3sXs4xPXZn3j4nsh48mrsbJADxiYozbGCaO0X8CTRuiY/zyrcQ8KHQdBRTRTNQJ
+/EfSD9olm29yOQMhj1w3pCc7wfv/lsFs5cu3suCSt6YGodgIbXirnjckI+rWGTo8
+K6hl93OqLkOkHeS/BK7kcr9iEXiWGrMnm9opYWMv4fC2qdBLMA5G4ytXTrpSP8Cl
+7prZq5PsZXG8hGsCyCCFssiD5BwJ9d3xTvqX0MIeKw4N0kMXQLX4PFOEVDjv2j+Q
+VBZhtu2LmbHzwRTXu8rvnn6WKR6S1EjwvRWIo71oFDdcYsu32zm6eoj0vJfqGVK3
+iZ7VzFkCgYEA+ch/4wCseM8ikqkZcb4QhqxyFjToN2iu7Bxehb0OyBtyISaCV3Px
+/rbTjzUvrIzJ4Udxa8gCaX9iRlsdBp+Zkym1OpkU2b6o9f+WeHoW6xu5wawC2bep
+Lc41IGrjb0S1ybda6E7FxRQ18jK0pKQQkDEVXdmIaGgonikKxaEm5KcCgYEAx3LG
+yitkZyknBOf8PA9IkWaIZXWF9Cry2IZcKxlCLxZNWFvvBtAiOPY7YVGiEjml4cro
+/JcOAgr2vz2yExEItGmxCLOg2Ynw6j6gC6N/r1kmzBbvgFiSgHcr1OoClUFKWJI0
+1CO7EedeURdF6Su6qJYwiv+Po5nV/vUlrJsAfH8CgYEAlVfbns34UQMHmMih/e+1
+0c+pJr3bWcWtUF5l5XB0NhCy3D86Dy+zsKd/NlCGgJRs39Tna5naV1liWM6BPESQ
+ffyh7rc4UDg+rVZzkPTuXwPkvHcr/SBidpCkEw3VjeF3D3QhVmRCuuKqnnTSrN2r
+SYsPS12UwVgFcQr49dC0gGECgYALJQCyn0YW9Ze2kHfpqzj01vPcJ3r6r8OuEaPo
+zJqEIwzjWQ+8I7kl0axzvan+trXsLfhi1NX1i0NKYFoo8pS38AfyYockYK7Th/hN
+bi9eTu76DHYJh+l3wDD0zraiPGm5FUJacDytvW3pvhEr/EOL1AiWW71c+OWaP3yB
+bo/SZQKBgQCUEafoSiQDrtVsxT2kYIYD259XWNZMv9A8TWzhCq6fA+i/1AI+XA4d
+NApaxGViC+rdLNMThfSMrod6iCCpHewflW9Z3VXH0yN4qoWbA0+63/5eFCrsr0h+
+29mIJowh/DErRRAOz/ttYgllVTQwaSyRCsZnk2tTueG4Wd4x7wfu+g==
+-----END RSA PRIVATE KEY-----
+
+------------------------------------------------------------
+images/avatars
+images/my-books → NULL画像
+
+no-image.png.webp 300x300
+
+------------------------------------------------------------
+convert_images.sh
+
+#!/bin/sh
+
+# 画像ディレクトリを指定
+IMAGE_DIR="/usr/share/nginx/html/images"
+
+# jpgとpng画像をwebpに変換（すでにwebpファイルが存在する場合はスキップ）
+find $IMAGE_DIR -type f \( -iname "*.jpg" -o -iname "*.png" \) -exec sh -c '
+  for img; do
+    # 元のファイル名を取得
+    base_name=$(basename "$img")
+    # 変換後のファイル名を設定
+    webp_file="${img}.webp"
+    if [ ! -f "$webp_file" ]; then
+      cwebp "$img" -o "$webp_file"
+    fi
+  done
+' sh {} +
+------------------------------------------------------------
+default.conf
+
+map $http_accept $sebp_ext {
+    default "";
+    "~*webp" ".webp";
+}
+
+server {
+    listen 80;
+    server_name vsv-emerald.skygroup.local;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name vsv-emerald.skygroup.local;
+
+    ssl_certificate /etc/nginx/ssl/vsv-emerald_skygroup_local_2025.cer;
+    ssl_certificate_key /etc/nginx/ssl/vsv-emerald_skygroup_local_2025.key;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri /index.html;
+
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|webp)$ {
+            expires 30d;
+            add_header Cache-Control "public, no-transform";
+        }
+    }
+
+    location /api/v1/ {
+        proxy_pass http://my-books-api:8080/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /images/ {
+        alias /usr/share/nginx/html/images/;
+        try_files $uri$sebp_ext $uri /images/no-image.png.webp;
+
+        expires 6M;
+        add_header Cache-Control "public, no-transform";
+    }
+}
+------------------------------------------------------------
+Dockerfile
+
+FROM nginx:alpine
+
+# 必要なパッケージをインストール
+RUN apk update && \
+    apk add --no-cache libwebp-tools
+
+# 作業ディレクトリを設定
+WORKDIR /usr/share/nginx/html
+
+# アプリを配置
+COPY ./my-books/dist/ .
+
+# 画像を変換するスクリプトを追加
+COPY ./convert_images.sh /usr/local/bin/convert_images.sh
+RUN chmod +x /usr/local/bin/convert_images.sh
+
+# コンテナ起動時に画像を変換
+CMD ["/bin/sh", "-c", "/usr/local/bin/convert_images.sh && nginx -g 'daemon off;'"]
+------------------------------------------------------------
+nginx.conf
+
+user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log notice;
+pid        /var/run/nginx.pid;
 
 
-CREATE TABLE `books` (
-  `id` VARCHAR(255) NOT NULL PRIMARY KEY,
-  `title` VARCHAR(255) NOT NULL DEFAULT '',
-  `description` TEXT NOT NULL,
-  `authors` VARCHAR(255) NOT NULL DEFAULT '',
-  `publisher` VARCHAR(255) NOT NULL DEFAULT '',
-  `published_date` DATE NOT NULL,
-  `price` INT NOT NULL DEFAULT 0,
-  `page_count` INT NOT NULL DEFAULT 0,
-  `isbn` VARCHAR(255) NOT NULL DEFAULT '',
-  `image_url` VARCHAR(255) DEFAULT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
-);
+events {
+    worker_connections  1024;
+}
 
-CREATE TABLE `genres` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `name` VARCHAR(255) NOT NULL DEFAULT '',
-  `description` VARCHAR(255) NOT NULL DEFAULT '',
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
-);
 
-CREATE TABLE `book_genres` (
-  `book_id` VARCHAR(255) NOT NULL,
-  `genre_id` BIGINT NOT NULL,
-  PRIMARY KEY (`book_id`, `genre_id`),
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`genre_id`) REFERENCES `genres`(`id`) ON DELETE CASCADE
-);
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
 
-CREATE TABLE `users` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `email` VARCHAR(255) NOT NULL DEFAULT '',
-  `password` VARCHAR(255) NOT NULL DEFAULT '',
-  `name` VARCHAR(255) NOT NULL DEFAULT '',
-  `avatar_url` VARCHAR(255) DEFAULT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
-);
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
 
-CREATE TABLE `roles` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `name` VARCHAR(255) NOT NULL DEFAULT '',
-  `description` VARCHAR(255) NOT NULL DEFAULT '',
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0
-);
+    access_log  /var/log/nginx/access.log  main;
 
-CREATE TABLE `user_roles` (
-  `user_id` BIGINT NOT NULL,
-  `role_id` BIGINT NOT NULL,
-  PRIMARY KEY (`user_id`, `role_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE
-);
+    sendfile        on;
+    #tcp_nopush     on;
 
-CREATE TABLE `reviews` (
-  `user_id` BIGINT NOT NULL,
-  `book_id` VARCHAR(255) NOT NULL,
-  `comment` TEXT NOT NULL,
-  `rating` DECIMAL(2, 1) CHECK (`rating` >= 0 AND `rating` <= 5),
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`user_id`, `book_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
-);
+    keepalive_timeout  65;
 
-CREATE TABLE `favorites` (
-  `user_id` BIGINT NOT NULL,
-  `book_id` VARCHAR(255) NOT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`user_id`, `book_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
-);
+    gzip  on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_min_length 1000;
+    gzip_comp_level 5;
 
-CREATE TABLE `my_lists` (
-  `user_id` BIGINT NOT NULL,
-  `book_id` VARCHAR(255) NOT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`user_id`, `book_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE
-);
+    include /etc/nginx/conf.d/*.conf;
+}
+------------------------------------------------------------
+docker-compose.yml
 
--- データのロード
-LOAD DATA INFILE '/docker-entrypoint-initdb.d/books.csv'
-INTO TABLE books
-FIELDS TERMINATED BY ','
-ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-(`id`, `title`, `description`, `authors`, `publisher`, `published_date`, `price`, `page_count`, `isbn`, `image_url`);
+services:
+  web:
+    build:
+      context: ./web
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./web/nginx.conf:/etc/nginx/nginx.conf
+      - ./web/default.conf:/etc/nginx/conf.d/default.conf
+      - ./web/certs:/etc/nginx/ssl
+      - ./web/images:/usr/share/nginx/html/images
+    environment:
+      - TZ=Asia/Tokyo
+    depends_on:
+      - my-books-api
 
-INSERT INTO `genres` (`name`, `description`) VALUES
-('ミステリー', '謎解きや推理をテーマにした作品'),
-('サスペンス', '緊張感や驚きを伴う作品'),
-('ロマンス', '恋愛をテーマにした作品'),
-('ファンタジー', '魔法や異世界を舞台にした作品'),
-('SF', '科学技術や未来をテーマにした作品'),
-('ホラー', '恐怖をテーマにした作品'),
-('歴史', '歴史的な出来事や人物をテーマにした作品'),
-('絵本', '子供向けのイラストが多い本'),
-('教科書', '教育機関で使用される教材'),
-('専門書', '特定の分野に特化した書籍'),
-('研究書', '学術的な研究をまとめた書籍'),
-('環境', '自然や環境問題をテーマにした作品'),
-('冒険', '冒険や探検をテーマにした作品'),
-('図鑑', '特定のテーマに関する情報を集めた書籍'),
-('音楽', '音楽に関する書籍'),
-('ドラマ', '人間関係や感情を描いた作品'),
-('教育', '教育に関する書籍');
+  my-books-api:
+    build:
+      context: ./api/my-books-api
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://my-books-db:3306/my-books-db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_APP_JWT_SECRET: Ry9CqEZVzQH7k1234abcdefghijklmnopqrstuvwxyzABCD+/=
+      SPRING_APP_JWT_ACCESS_EXPIRATION: 3600
+      SPRING_APP_JWT_REFRESH_EXPIRATION: 86400
+      TZ: Asia/Tokyo
+    expose:
+      - "8080"
+    depends_on:
+      - my-books-db
 
-LOAD DATA INFILE '/docker-entrypoint-initdb.d/book_genres.csv'
-INTO TABLE book_genres
-FIELDS TERMINATED BY ','
-ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-(`book_id`, `genre_id`);
+  my-books-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: my-books-db
+      TZ: Asia/Tokyo
+    expose:
+      - "3306"
+    volumes:
+      - ./db/my-books-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/my-books-db/books.csv:/docker-entrypoint-initdb.d/books.csv
+      - ./db/my-books-db/book_genres.csv:/docker-entrypoint-initdb.d/book_genres.csv
+      - ./db/my-books-db/book_content_pages.csv:/docker-entrypoint-initdb.d/book_content_pages.csv
+      - ./db/my-books-db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - my-books-db-data:/var/lib/mysql
+    command: --secure-file-priv=/docker-entrypoint-initdb.d
 
-INSERT INTO `users` (`name`, `email`, `password`, `avatar_url`) VALUES
-('Lars', 'lars@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar01.png'),
-('Nina', 'nina@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar02.png'),
-('Paul', 'paul@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar03.png'),
-('Julia', 'julia@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar04.png'),
-('Lee', 'lee@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar05.png'),
-('Lili', 'lili@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar06.png'),
-('Steve', 'steve@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar07.png'),
-('Anna', 'anna@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar08.png'),
-('Law', 'law@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar09.png'),
-('Alisa', 'alisa@gmail.com', '$2a$10$E7FzFP73ImXXFHUmUUmXtuDrJnp0gZ3Zb3XJluLEW7tfnVmh5FLwC', 'https://localhost/images/avatars/avatar10.png');
-
-INSERT INTO `roles` (`name`, `description`) VALUES
-('ROLE_ADMIN', '管理者権限'),
-('ROLE_USER', 'ユーザー権限');
-
-INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
-(1, 2),
-(2, 2),
-(3, 2),
-(4, 2),
-(5, 2),
-(6, 2),
-(7, 2),
-(8, 2),
-(9, 2),
-(10, 2),
-(3, 1),
-(4, 1);
-
-INSERT INTO `reviews` (`user_id`, `book_id`, `comment`, `rating`) VALUES
-(1, 'afcIMuetDuzj', '知識の宝庫で、読み終える頃には少し賢くなった気がした。', 4.5),
-(2, 'afcIMuetDuzj', '人生観が変わるほどの深い洞察が詰まっていました。', 3.0),
-(3, 'afcIMuetDuzj', '読む手が止まらないほど引き込まれた。', 3.5),
-(4, 'afcIMuetDuzj', '心に響く言葉が何度も胸を打った。', 5.0),
-(5, 'afcIMuetDuzj', '言葉の美しさに何度もページをめくり直した。', 4.0),
-(6, 'afcIMuetDuzj', '想像力をかき立てられる素晴らしいストーリーだった。', 4.5),
-(7, 'afcIMuetDuzj', '感動しました。何度も読み直したいと思いました。', 3.0),
-(8, 'afcIMuetDuzj', '登場人物に感情移入しすぎて泣いてしまった。', 5.0),
-(9, 'afcIMuetDuzj', '終わるのが惜しいほど楽しかった。', 4.5),
-(10, 'afcIMuetDuzj', '感動的な結末に、読後の余韻が心地よかった。', 3.5),
-(1, '9UizZw491wye', '読み進むにつれドンドン引き込まれていきました。', 3.5),
-(2, '9UizZw491wye', '首を長くして待っていました。非常に楽しかったです。', 3.0),
-(3, '9UizZw491wye', '読んでいる間、時間を忘れるほど夢中になれました。', 3.0),
-(4, '9UizZw491wye', '物語の展開が巧妙で、予想を超える展開が続いて面白かったです。', 3.0),
-(1, 'pDYIwtdahwkp', '私もこんな経験をしたいと思いました。', 5.0);
-
-INSERT INTO `favorites` (`user_id`, `book_id`) VALUES
-(1, 'afcIMuetDuzj'),
-(2, 'afcIMuetDuzj'),
-(3, 'afcIMuetDuzj'),
-(4, 'afcIMuetDuzj'),
-(4, 'pDYIwtdahwkp'),
-(5, 'pDYIwtdahwkp'),
-(6, 'pDYIwtdahwkp'),
-(3, '9UizZw491wye'),
-(3, 'ln5NiMJq02V7');
-
-INSERT INTO `my_lists` (`user_id`, `book_id`) VALUES
-(4, '3BndPAiEFnjB'),
-(4, '3gNJnRcrwrUH'),
-(3, 'v21pjIlzDua1');
+volumes:
+  my-books-db-data:
+  
+------------------------------------------------------------
