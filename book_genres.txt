@@ -1,157 +1,34 @@
-・基本的なレイアウト構成
-　（ヘッダー、メイン、フッター、ハンバーガーメニュー）
-・アクセシビリティ
-・セマンティックHTML
-・レスポンシブ対応
-・Ｗｅｂフォント（Google fons）
-・クエリパラメータによる検索
-・ルーティング
-・ページネーション
-・楽観的更新
-・Suspense
-・ダークモード
-・CSSアニメーション
-
-・コンポーネント分割
-・カスタムhooks
-・フォーム
-
-・認証、認可
-
-・TailwindCSS
-・Tanstack Query
-・React Router
-
-・Vite
-
-・REST API
-・CRUD
-・CORS
-
-・Docker
-・devcontainer(VSCode)
-・
-
-
-
-# Web開発の学習マップ
-
-## 開発ツール
-- VSCode
-- Chrome
-
-## HTML
-- 基本構文
-- フォーム
-- アクセシビリティ
-
-## CSS
-- メディアクエリ
-- Flexbox・Grid
-- 基本構文
-
-## 静的Webページ
-- レイアウト
-- レスポンシブ対応
-- リセットCSS
-- セマンティックHTML
-
-## JavaScript
-- 基本構文
-- DOM操作
-- イベントハンドリング
-- 非同期処理
-
-## 動的Webページ
-- WebAPI
-- JSON
-
-## パッケージマネージャー
-- npm
-- yarn
-- pnpm
-- bun
-
-## バージョン管理
-- Git
-- GitHub
-- GitLab
-- BitBucket
-
-## CSSフレームワーク
-- TailwindCSS
-
-## ビルドツール
-- Vite
-- webpack
-
-## フロントエンドフレームワーク
-- React
-- Vue.js
-- Angular
-- Svelte
-
-## SPAアプリ (JavaScript)
-- 状態管理
-- ルーティング
-
-## TypeScript
-- 基本構文
-
-## SPAアプリ (TypeScript)
-
-## プログラム言語
-- JavaScript
-- Java
-- C#
-- PHP
-- Python
-- Ruby
-- Go
-- Rust
-
-## Node.js
-- Express
-- Webサーバー
-- アプリケーションサーバー
-
-## リレーショナルデータベース
-- MySQL
-- PostgreSQL
-- Oracle Database
-- Microsoft SQL Server
-
-## REST API
-- CRUD
-- HTTPステータス
-
-## バックエンドフレームワーク
-- Express (JavaScript)
-- Spring Boot (Java)
-- ASP.NET (C#)
-- Laravel (PHP)
-- Next.js (TypeScript)
-- Flask (Python)
-- FastAPI (Python)
-- Django (Python)
-- Ruby on Rails (Ruby)
-- Gin (Go)
-
-## Linux
-- WSL2
-- コマンド
-- 仮想環境
-- VSCode
-- Dev Container
-
-## Docker
-- DockerHub
-- Dockerfile
-- Docker Compose
-
-## AWS
-- EC2
-- S3
-- VPC
-- Route53
-
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <header>
+      <div>My Books</div>
+      <nav></nav>
+      <img src="https://localhost/images/avatars/avatar04.png" alt="" />
+    </header>
+    <main>
+      <section>
+        <h1>Let’s search for Books to discover new knowledge.</h1>
+        <p>
+          本の探索サイトへようこそ。多様なコレクションから、新しい知識を発見しましょう。厳選された書籍で、あなたの次の読書を見つけてください。知識の旅に一緒に出かけましょう。
+        </p>
+        <form action="/search" method="GET">
+          <input type="text" name="q" placeholder="タイトルで検索" />
+          <button type="submit">検索</button>
+        </form>
+      </section>
+      <img src="./main-visual.png" alt="" />
+      <img src="https://localhost/images/my-books/aBcDeFgHiJkL.jpg" alt="" />
+      <img src="https://localhost/images/my-books/C4hD3jZ8rK6e.jpg" alt="" />
+      <img src="https://localhost/images/my-books/Hh5r4Kj9Tb8v.jpg" alt="" />
+    </main>
+    <footer>
+      <p>© 2025 Xxxxx, Inc.</p>
+    </footer>
+  </body>
+</html>
