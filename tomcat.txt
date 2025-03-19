@@ -1,131 +1,3 @@
-------------------------------------------------------------
-api/my-books-api
-Dockerfile
-
-# ベースイメージとして軽量なJavaランタイムを指定
-FROM openjdk:17-alpine
-
-# アプリケーションの作業ディレクトリを設定
-WORKDIR /workspace
-
-# ビルドしたSpring BootのJARファイルをコンテナにコピー
-COPY ./my-books.jar my-books.jar
-
-# アプリケーションの実行
-ENTRYPOINT ["java", "-jar", "my-books.jar"]
-------------------------------------------------------------
-db/my-books-db
-
-books.csv
-
-NULL検索
-
-------------------------------------------------------------
-web
-certs
-
-vsv-emerald_skygroup_local_2025.cer
-
------BEGIN CERTIFICATE-----
-MIIGqjCCBZKgAwIBAgITJwAA2z7jGYQWqgURhQAAAADbPjANBgkqhkiG9w0BAQsF
-ADBTMRUwEwYKCZImiZPyLGQBGRYFbG9jYWwxGDAWBgoJkiaJk/IsZAEZFghza3ln
-cm91cDEgMB4GA1UEAxMXc2t5Z3JvdXAtVlNWLU9EQ0NBMDEtQ0EwHhcNMjUwMzEx
-MDY0NDEyWhcNMjcwMzExMDY0NDEyWjCBlTELMAkGA1UEBhMCSlAxDjAMBgNVBAgT
-BU9zYWthMRIwEAYDVQQHEwlPc2FrYS1zaGkxFTATBgNVBAoTDFNreSBDby4sTHRk
-LjEmMCQGA1UECxMdSW5mb3JtYXRpb24gU3lzdGVtIERlcGFydG1lbnQxIzAhBgNV
-BAMTGnZzdi1lbWVyYWxkLnNreWdyb3VwLmxvY2FsMIIBIjANBgkqhkiG9w0BAQEF
-AAOCAQ8AMIIBCgKCAQEAwprYqL4Rfs+mEVAy4zk/AF2rx12nLABPcPVY3Xulfthc
-J6jIuyBNLubSP5TBePNodyo15FzjPlS45lUw6+URSBvPQ7YnvzUlSA9xUnrmXqfq
-Gr93f8tTh7HI6y0bWptOzvsCdZUM/lq5jO3tF+eztd1k9NeC/b9ok+Jjo9DJ/sbg
-nU3CtuZG85034TiWUgA+EkhG3p5M+2yzljCBDqHNx2OX9NmxgZQGJkHY3BZ/Dh2r
-Zwbqn0xZe1lBSyMnhVkDb9vf5WDLPu/OfqemSsjOyPpH/pAMx1VnWGPTnFuYVHqR
-PMcAs7eAmPQ4g0T4yNtTuGZFwKCE3mRrJ2G+5gxS2QIDAQABo4IDMjCCAy4wNQYD
-VR0RBC4wLIIOc2t5Z3JvdXAubG9jYWyCGnZzdi1lbWVyYWxkLnNreWdyb3VwLmxv
-Y2FsMB0GA1UdDgQWBBRp1opRWaWKfkbZCDd0KZo8H06HZjAfBgNVHSMEGDAWgBSq
-35QO29jXIKDk84muPqq56D5dGjCCASsGA1UdHwSCASIwggEeMIIBGqCCARagggES
-hoHFbGRhcDovLy9DTj1za3lncm91cC1WU1YtT0RDQ0EwMS1DQSxDTj1WU1YtT0RD
-Q0EwMSxDTj1DRFAsQ049UHVibGljJTIwS2V5JTIwU2VydmljZXMsQ049U2Vydmlj
-ZXMsQ049Q29uZmlndXJhdGlvbixEQz1za3lncm91cCxEQz1sb2NhbD9jZXJ0aWZp
-Y2F0ZVJldm9jYXRpb25MaXN0P2Jhc2U/b2JqZWN0Q2xhc3M9Y1JMRGlzdHJpYnV0
-aW9uUG9pbnSGSGh0dHA6Ly9WU1YtT0RDQ0EwMS5za3lncm91cC5sb2NhbC9DZXJ0
-RW5yb2xsL3NreWdyb3VwLVZTVi1PRENDQTAxLUNBLmNybDCCAT8GCCsGAQUFBwEB
-BIIBMTCCAS0wgbkGCCsGAQUFBzAChoGsbGRhcDovLy9DTj1za3lncm91cC1WU1Yt
-T0RDQ0EwMS1DQSxDTj1BSUEsQ049UHVibGljJTIwS2V5JTIwU2VydmljZXMsQ049
-U2VydmljZXMsQ049Q29uZmlndXJhdGlvbixEQz1za3lncm91cCxEQz1sb2NhbD9j
-QUNlcnRpZmljYXRlP2Jhc2U/b2JqZWN0Q2xhc3M9Y2VydGlmaWNhdGlvbkF1dGhv
-cml0eTBvBggrBgEFBQcwAoZjaHR0cDovL1ZTVi1PRENDQTAxLnNreWdyb3VwLmxv
-Y2FsL0NlcnRFbnJvbGwvVlNWLU9EQ0NBMDEuc2t5Z3JvdXAubG9jYWxfc2t5Z3Jv
-dXAtVlNWLU9EQ0NBMDEtQ0EuY3J0MCEGCSsGAQQBgjcUAgQUHhIAVwBlAGIAUwBl
-AHIAdgBlAHIwCwYDVR0PBAQDAgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMA0GCSqG
-SIb3DQEBCwUAA4IBAQAumzGulH5dByKNuT7RVm6dw0sx48G+o65zlM+F01p1+aGH
-iLLlTHB94FldWucpEZtGsVMFqTwwSvLPYDSkIxKRzxnBgWfD8rtpZE/brRxjqZlL
-YOPqzCarPb1AldCxJwaceC42RWF7yVPck5OsroJ8tUopBJ4xp5SpgDPlZHaGJ4VC
-33ZPRcguapMzZJxq5TgiFQmLq2PT4fw+g9tpvSRvJgYgXZ5Xgjc1KPfoldpWjB2S
-N+Zlg6+1cJVIFfHUzm3h6zd90nx/ml9eJC+PWlv/QMWYfQ9s3drS2TQB8govq1x/
-det7chYUJ2+/4g4jtTVUiKvd4CiPyW4rF1jzXpfF
------END CERTIFICATE-----
-
-
-------------------------------------------------------------
-vsv-emerald_skygroup_local_2025.key
-
------BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEAwprYqL4Rfs+mEVAy4zk/AF2rx12nLABPcPVY3XulfthcJ6jI
-uyBNLubSP5TBePNodyo15FzjPlS45lUw6+URSBvPQ7YnvzUlSA9xUnrmXqfqGr93
-f8tTh7HI6y0bWptOzvsCdZUM/lq5jO3tF+eztd1k9NeC/b9ok+Jjo9DJ/sbgnU3C
-tuZG85034TiWUgA+EkhG3p5M+2yzljCBDqHNx2OX9NmxgZQGJkHY3BZ/Dh2rZwbq
-n0xZe1lBSyMnhVkDb9vf5WDLPu/OfqemSsjOyPpH/pAMx1VnWGPTnFuYVHqRPMcA
-s7eAmPQ4g0T4yNtTuGZFwKCE3mRrJ2G+5gxS2QIDAQABAoIBAGWeUjCbP6uGZuN3
-i3sXs4xPXZn3j4nsh48mrsbJADxiYozbGCaO0X8CTRuiY/zyrcQ8KHQdBRTRTNQJ
-/EfSD9olm29yOQMhj1w3pCc7wfv/lsFs5cu3suCSt6YGodgIbXirnjckI+rWGTo8
-K6hl93OqLkOkHeS/BK7kcr9iEXiWGrMnm9opYWMv4fC2qdBLMA5G4ytXTrpSP8Cl
-7prZq5PsZXG8hGsCyCCFssiD5BwJ9d3xTvqX0MIeKw4N0kMXQLX4PFOEVDjv2j+Q
-VBZhtu2LmbHzwRTXu8rvnn6WKR6S1EjwvRWIo71oFDdcYsu32zm6eoj0vJfqGVK3
-iZ7VzFkCgYEA+ch/4wCseM8ikqkZcb4QhqxyFjToN2iu7Bxehb0OyBtyISaCV3Px
-/rbTjzUvrIzJ4Udxa8gCaX9iRlsdBp+Zkym1OpkU2b6o9f+WeHoW6xu5wawC2bep
-Lc41IGrjb0S1ybda6E7FxRQ18jK0pKQQkDEVXdmIaGgonikKxaEm5KcCgYEAx3LG
-yitkZyknBOf8PA9IkWaIZXWF9Cry2IZcKxlCLxZNWFvvBtAiOPY7YVGiEjml4cro
-/JcOAgr2vz2yExEItGmxCLOg2Ynw6j6gC6N/r1kmzBbvgFiSgHcr1OoClUFKWJI0
-1CO7EedeURdF6Su6qJYwiv+Po5nV/vUlrJsAfH8CgYEAlVfbns34UQMHmMih/e+1
-0c+pJr3bWcWtUF5l5XB0NhCy3D86Dy+zsKd/NlCGgJRs39Tna5naV1liWM6BPESQ
-ffyh7rc4UDg+rVZzkPTuXwPkvHcr/SBidpCkEw3VjeF3D3QhVmRCuuKqnnTSrN2r
-SYsPS12UwVgFcQr49dC0gGECgYALJQCyn0YW9Ze2kHfpqzj01vPcJ3r6r8OuEaPo
-zJqEIwzjWQ+8I7kl0axzvan+trXsLfhi1NX1i0NKYFoo8pS38AfyYockYK7Th/hN
-bi9eTu76DHYJh+l3wDD0zraiPGm5FUJacDytvW3pvhEr/EOL1AiWW71c+OWaP3yB
-bo/SZQKBgQCUEafoSiQDrtVsxT2kYIYD259XWNZMv9A8TWzhCq6fA+i/1AI+XA4d
-NApaxGViC+rdLNMThfSMrod6iCCpHewflW9Z3VXH0yN4qoWbA0+63/5eFCrsr0h+
-29mIJowh/DErRRAOz/ttYgllVTQwaSyRCsZnk2tTueG4Wd4x7wfu+g==
------END RSA PRIVATE KEY-----
-
-------------------------------------------------------------
-images/avatars
-images/my-books → NULL画像
-
-no-image.png.webp 300x300
-
-------------------------------------------------------------
-convert_images.sh
-
-#!/bin/sh
-
-# 画像ディレクトリを指定
-IMAGE_DIR="/usr/share/nginx/html/images"
-
-# jpgとpng画像をwebpに変換（すでにwebpファイルが存在する場合はスキップ）
-find $IMAGE_DIR -type f \( -iname "*.jpg" -o -iname "*.png" \) -exec sh -c '
-  for img; do
-    # 元のファイル名を取得
-    base_name=$(basename "$img")
-    # 変換後のファイル名を設定
-    webp_file="${img}.webp"
-    if [ ! -f "$webp_file" ]; then
-      cwebp "$img" -o "$webp_file"
-    fi
-  done
-' sh {} +
-------------------------------------------------------------
-default.conf
-
 map $http_accept $sebp_ext {
     default "";
     "~*webp" ".webp";
@@ -133,16 +5,21 @@ map $http_accept $sebp_ext {
 
 server {
     listen 80;
-    server_name vsv-emerald.skygroup.local;
+    # server_name vsv-emerald.skygroup.local;
+    server_name localhost;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name vsv-emerald.skygroup.local;
+    # server_name vsv-emerald.skygroup.local;
+    server_name localhost;
 
-    ssl_certificate /etc/nginx/ssl/vsv-emerald_skygroup_local_2025.cer;
-    ssl_certificate_key /etc/nginx/ssl/vsv-emerald_skygroup_local_2025.key;
+    # ssl_certificate /etc/nginx/ssl/vsv-emerald_skygroup_local_2025.cer;
+    # ssl_certificate_key /etc/nginx/ssl/vsv-emerald_skygroup_local_2025.key;
+
+    ssl_certificate /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
 
     location / {
         root /usr/share/nginx/html;
@@ -171,118 +48,3 @@ server {
         add_header Cache-Control "public, no-transform";
     }
 }
-------------------------------------------------------------
-Dockerfile
-
-FROM nginx:alpine
-
-# 必要なパッケージをインストール
-RUN apk update && \
-    apk add --no-cache libwebp-tools
-
-# 作業ディレクトリを設定
-WORKDIR /usr/share/nginx/html
-
-# アプリを配置
-COPY ./my-books/dist/ .
-
-# 画像を変換するスクリプトを追加
-COPY ./convert_images.sh /usr/local/bin/convert_images.sh
-RUN chmod +x /usr/local/bin/convert_images.sh
-
-# コンテナ起動時に画像を変換
-CMD ["/bin/sh", "-c", "/usr/local/bin/convert_images.sh && nginx -g 'daemon off;'"]
-------------------------------------------------------------
-nginx.conf
-
-user  nginx;
-worker_processes  auto;
-
-error_log  /var/log/nginx/error.log notice;
-pid        /var/run/nginx.pid;
-
-
-events {
-    worker_connections  1024;
-}
-
-
-http {
-    include       /etc/nginx/mime.types;
-    default_type  application/octet-stream;
-
-    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-                      '$status $body_bytes_sent "$http_referer" '
-                      '"$http_user_agent" "$http_x_forwarded_for"';
-
-    access_log  /var/log/nginx/access.log  main;
-
-    sendfile        on;
-    #tcp_nopush     on;
-
-    keepalive_timeout  65;
-
-    gzip  on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-    gzip_min_length 1000;
-    gzip_comp_level 5;
-
-    include /etc/nginx/conf.d/*.conf;
-}
-------------------------------------------------------------
-docker-compose.yml
-
-services:
-  web:
-    build:
-      context: ./web
-    ports:
-      - "443:443"
-      - "80:80"
-    volumes:
-      - ./web/nginx.conf:/etc/nginx/nginx.conf
-      - ./web/default.conf:/etc/nginx/conf.d/default.conf
-      - ./web/certs:/etc/nginx/ssl
-      - ./web/images:/usr/share/nginx/html/images
-    environment:
-      - TZ=Asia/Tokyo
-    depends_on:
-      - my-books-api
-
-  my-books-api:
-    build:
-      context: ./api/my-books-api
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://my-books-db:3306/my-books-db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: password
-      SPRING_APP_JWT_SECRET: Ry9CqEZVzQH7k1234abcdefghijklmnopqrstuvwxyzABCD+/=
-      SPRING_APP_JWT_ACCESS_EXPIRATION: 3600
-      SPRING_APP_JWT_REFRESH_EXPIRATION: 86400
-      TZ: Asia/Tokyo
-    expose:
-      - "8080"
-    depends_on:
-      - my-books-db
-
-  my-books-db:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: my-books-db
-      TZ: Asia/Tokyo
-    expose:
-      - "3306"
-    volumes:
-      - ./db/my-books-db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./db/my-books-db/books.csv:/docker-entrypoint-initdb.d/books.csv
-      - ./db/my-books-db/book_genres.csv:/docker-entrypoint-initdb.d/book_genres.csv
-      - ./db/my-books-db/book_content_pages.csv:/docker-entrypoint-initdb.d/book_content_pages.csv
-      - ./db/my-books-db/my.cnf:/etc/mysql/conf.d/my.cnf
-      - my-books-db-data:/var/lib/mysql
-    command: --secure-file-priv=/docker-entrypoint-initdb.d
-
-volumes:
-  my-books-db-data:
-  
-------------------------------------------------------------
