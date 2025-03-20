@@ -1,50 +1,126 @@
-map $http_accept $sebp_ext {
-    default "";
-    "~*webp" ".webp";
-}
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Books</title>
+  </head>
+  <body>
+    <header>
+      <a href="">My Books</a>
+      <nav>
+        <ul>
+          <li><a href="">ジャンル</a></li>
+          <li><a href="">ランキング</a></li>
+          <li><a href="">特集</a></li>
+        </ul>
+      </nav>
+      <form action="">
+        <input type="text" placeholder="タイトルで検索" />
+      </form>
+      <a href="">ログイン</a>
+      <button>🌞</button>
+    </header>
 
-server {
-    listen 80;
-    # server_name vsv-emerald.skygroup.local;
-    server_name localhost;
-    return 301 https://$host$request_uri;
-}
+    <main>
+      <section>
+        <h1>Let’s search for Books to discover new knowledge.</h1>
+        <p>
+          本の探索サイトへようこそ。多様なコレクションから、新しい知識を発見しましょう。厳選された書籍で、あなたの次の読書を見つけてください。知識の旅に一緒に出かけましょう。
+        </p>
+        <form action="">
+          <input type="text" placeholder="タイトルで検索" />
+        </form>
+        <img src="./main-visual.png" alt="" />
+      </section>
 
-server {
-    listen 443 ssl http2;
-    # server_name vsv-emerald.skygroup.local;
-    server_name localhost;
+      <section>
+        <h2>ジャンル</h2>
+        <ul>
+          <li><a href="">ミステリー</a></li>
+          <li><a href="">サスペンス</a></li>
+          <li><a href="">ロマンス</a></li>
+          <li><a href="">ファンタジー</a></li>
+          <li><a href="">SF</a></li>
+          <li><a href="">ホラー</a></li>
+          <li><a href="">歴史</a></li>
+          <li><a href="">絵本</a></li>
+          <li><a href="">教科書</a></li>
+          <li><a href="">専門書</a></li>
+          <li><a href="">環境</a></li>
+          <li><a href="">冒険</a></li>
+          <li><a href="">図鑑</a></li>
+          <li><a href="">音楽</a></li>
+          <li><a href="">ドラマ</a></li>
+          <li><a href="">教育</a></li>
+        </ul>
+      </section>
 
-    # ssl_certificate /etc/nginx/ssl/vsv-emerald_skygroup_local_2025.cer;
-    # ssl_certificate_key /etc/nginx/ssl/vsv-emerald_skygroup_local_2025.key;
+      <section>
+        <h2>ニューリリース</h2>
+        <article>
+          <a href="">
+            <img
+              src="https://localhost/images/my-books/aBcDeFgHiJkL.jpg"
+              alt=""
+            />
+          </a>
+          <a href="">ドラゴン図鑑：伝説と現実</a>
+          <time>2025年4月24日</time>
+          <div>⭐4.0</div>
+          <div>💭10</div>
+        </article>
 
-    ssl_certificate /etc/nginx/ssl/server.crt;
-    ssl_certificate_key /etc/nginx/ssl/server.key;
+        <article>
+          <a href="">
+            <img
+              src="https://localhost/images/my-books/afcIMuetDuzj.jpg"
+              alt=""
+            />
+          </a>
+          <a href="">ワニと月の舞踏会</a>
+          <time>2025年4月20日</time>
+          <div>⭐3.9</div>
+          <div>💭10</div>
+        </article>
 
-    location / {
-        root /usr/share/nginx/html;
-        index index.html;
-        try_files $uri /index.html;
+        <article>
+          <a href="">
+            <img
+              src="https://localhost/images/my-books/C4hD3jZ8rK6e.jpg"
+              alt=""
+            />
+          </a>
+          <a href="">フラミンゴの遺言</a>
+          <time>2025年4月18日</time>
+          <div>⭐4.0</div>
+          <div>💭9</div>
+        </article>
 
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|webp)$ {
-            expires 30d;
-            add_header Cache-Control "public, no-transform";
-        }
-    }
+        <article>
+          <a href="">
+            <img
+              src="https://localhost/images/my-books/Hh5r4Kj9Tb8v.jpg"
+              alt=""
+            />
+          </a>
+          <a href="">ツルと恋の旋律</a>
+          <time>2025年4月2日</time>
+          <div>⭐4.7</div>
+          <div>💭7</div>
+        </article>
+      </section>
+    </main>
 
-    location /api/v1/ {
-        proxy_pass http://my-books-api:8080/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /images/ {
-        alias /usr/share/nginx/html/images/;
-        try_files $uri$sebp_ext $uri /images/no-image.png.webp;
-
-        expires 6M;
-        add_header Cache-Control "public, no-transform";
-    }
-}
+    <footer>
+      <ul>
+        <li><a href="">Youtube</a></li>
+        <li><a href="">Twitter</a></li>
+        <li><a href="">Instagram</a></li>
+        <li><a href="">Facebook</a></li>
+      </ul>
+      <p>© 2025 Xxxxx, Inc.</p>
+      <a href="">My Books</a>
+    </footer>
+  </body>
+</html>
