@@ -1,606 +1,162 @@
-16
+10
 
 ------------------------------------------------------------
-user-icon-button
+auth.ts
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button, buttonVariants } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { AVATAR_IMAGE_BASE_URL } from '@/constants/constants';
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/providers/auth-provider';
-import { useMutation } from '@tanstack/react-query';
-import {
-  BookmarkIcon,
-  HeartIcon,
-  LogOutIcon,
-  MessageSquareIcon,
-  UserRoundIcon,
-} from 'lucide-react';
-import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
-import { toast } from 'sonner';
+import { fetchApi } from '@/api/client';
+import { AccessToken, LoginRequest, SignupRequest, User } from '@/types';
 
-const MENU_LIST = [
-  { href: '/favorites', title: 'お気に入り', icon: HeartIcon },
-  { href: '/bookmarks', title: 'ブックマーク', icon: BookmarkIcon },
-  { href: '/my-reviews', title: 'マイレビュー', icon: MessageSquareIcon },
-  { href: '/profile', title: 'プロフィール', icon: UserRoundIcon },
-];
+export const login = async (requestBody: LoginRequest) => {
+  try {
+    const endpoint = `/login`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+      credentials: 'include',
+    };
+    const response = await fetchApi<AccessToken>(endpoint, options);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw new Error('ログインに失敗しました。');
+  }
+};
 
-export default function UserIconButton() {
-  const [isOpen, setIsOpen] = useState(false);
+export const signup = async (requestBody: SignupRequest) => {
+  try {
+    const endpoint = `/signup`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+      credentials: 'include',
+    };
+    const response = await fetchApi<AccessToken>(endpoint, options);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw new Error('サインアップに失敗しました。');
+  }
+};
 
-  const navigate = useNavigate();
-  const location = useLocation();
+export const logout = async () => {
+  try {
+    const endpoint = `/logout`;
+    const options: RequestInit = {
+      method: 'POST',
+      credentials: 'include',
+    };
+    await fetchApi(endpoint, options);
+  } catch (error) {
+    console.error(error);
+    throw new Error('ログアウトに失敗しました。');
+  }
+};
 
-  const { user, logout } = useAuth();
+export const getAccessToken = async () => {
+  try {
+    const endpoint = `/refresh-token`;
+    const options: RequestInit = {
+      method: 'POST',
+      credentials: 'include',
+    };
+    const response = await fetchApi<AccessToken>(endpoint, options);
+    return response.data.accessToken;
+  } catch (error) {
+    console.error(error);
+    throw new Error('トークンの取得に失敗しました。');
+  }
+};
 
-  const logoutMutation = useMutation({
-    mutationFn: () => logout(),
-    onSuccess: () => {},
-    onError: (error) => {
-      console.error(error);
-    },
-  });
+export const getUser = async (token: string | null) => {
+  if (!token) return null;
 
-  const handleClickLogout = () => {
-    logoutMutation.mutate(undefined, {
-      onSuccess: () => {
-        toast.success('ログアウトしました');
-      },
-      onError: () => {
-        toast.error('ログアウトに失敗しました', { duration: 5000 });
-      },
-      onSettled: () => {
-        setIsOpen(false);
-      },
-    });
-  };
-
-  const handleClickMenuItem = (href: string) => {
-    setIsOpen(false);
-    navigate(href);
-  };
-
-  if (!user)
-    return (
-      <Link
-        className={cn(buttonVariants({ variant: 'ghost' }), 'rounded-full')}
-        to="/login"
-        state={{ from: location }}
-      >
-        ログイン
-      </Link>
-    );
-
-  return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger
-        className="ml-2 flex items-center justify-center"
-        asChild
-      >
-        <Button
-          className="rounded-full"
-          variant="ghost"
-          size="icon"
-          aria-label="アバター画像"
-        >
-          <Avatar>
-            <AvatarImage
-              className="bg-primary/50"
-              src={AVATAR_IMAGE_BASE_URL + user.avatarPath}
-              alt="avatar-image"
-            />
-            <AvatarFallback className="text-lg font-semibold">
-              {user.name.slice(0, 1)}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-48 p-2" side="bottom" align="end">
-        <DropdownMenuLabel>
-          <div className="flex items-center gap-x-2">
-            <Avatar className="size-8">
-              <AvatarImage
-                className="bg-primary/50"
-                src={AVATAR_IMAGE_BASE_URL + user.avatarPath}
-                alt="avatar-image"
-              />
-              <AvatarFallback className="font-semibold">
-                {user.name.slice(0, 1)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 overflow-hidden">
-              <p className="truncate">{user.name}</p>
-              <p className="text-muted-foreground truncate text-xs font-normal">
-                {user.email}
-              </p>
-            </div>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {MENU_LIST.map((item) => (
-          <DropdownMenuItem
-            className={cn(
-              location.pathname !== '/' &&
-                item.href.includes(location.pathname) &&
-                'text-primary'
-            )}
-            key={item.href}
-            onClick={() => handleClickMenuItem(item.href)}
-          >
-            <item.icon className="mr-1" />
-            {item.title}
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleClickLogout}>
-          <LogOutIcon className="mr-1" />
-          ログアウト
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
+  try {
+    const endpoint = `/me`;
+    const options: RequestInit = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    const response = await fetchApi<User>(endpoint, options);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw new Error('ユーザー情報の取得に失敗しました。');
+  }
+};
 
 ------------------------------------------------------------
-use-api-bookmark.ts
+client.ts
 
-import { FETCH_BOOKMARKS_MAX_RESULTS } from '@/constants/constants';
-import { useApi } from '@/hooks/api/use-api';
-import { Bookmark, BookmarkPage, BookmarkRequest } from '@/types';
+import { BOOKS_API_BASE_URL } from '@/constants/constants';
+import { ApiResponse, ErrorResponse } from '@/types';
 
-export const useApiBookmark = () => {
-  const { fetcherWithAuth, mutatorWithAuth } = useApi();
+export const fetchApi = async <T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> => {
+  const url = `${BOOKS_API_BASE_URL}${endpoint}`;
+  const response = await fetch(url, { ...options });
 
-  const getBookmarkByBookId = async (bookId: string) => {
-    try {
-      const url = `/bookmarks/${bookId}`;
-      const bookmarks = await fetcherWithAuth<Bookmark[]>(url);
-      return bookmarks;
-    } catch (error) {
-      throw new Error('ブックマークの読み込みが失敗しました。' + error);
-    }
-  };
+  if (!response.ok) {
+    throw new Error(await generateErrorMessage(url, response));
+  }
 
-  const getBookmarkPage = async (page: number = 0) => {
-    try {
-      const basePage = page > 0 ? page - 1 : 0;
-      const url = `/bookmarks?&page=${basePage}&maxResults=${FETCH_BOOKMARKS_MAX_RESULTS}`;
-      const bookmarkPage = await fetcherWithAuth<BookmarkPage>(url);
-      return bookmarkPage;
-    } catch (error) {
-      throw new Error('ブックマーク一覧の読み込みが失敗しました。' + error);
-    }
-  };
+  return await parseApiResponse<T>(response);
+};
 
-  const createBookmark = async (requestBody: BookmarkRequest) => {
-    try {
-      const url = `/bookmarks`;
-      const options: RequestInit = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('ブックマークの作成に失敗しました。' + error);
-    }
-  };
-
-  const updateBookmark = async (id: number, requestBody: BookmarkRequest) => {
-    try {
-      const url = `/bookmarks/${id}`;
-      const options: RequestInit = {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('ブックマークの更新に失敗しました。' + error);
-    }
-  };
-
-  const deleteBookmark = async (id: number) => {
-    try {
-      const url = `/bookmarks/${id}`;
-      const options: RequestInit = { method: 'DELETE' };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('ブックマークの削除に失敗しました。' + error);
-    }
-  };
-
+export const parseApiResponse = async <T>(
+  response: Response
+): Promise<ApiResponse<T>> => {
+  const contentType = response.headers.get('content-type');
+  const data = contentType?.includes('application/json')
+    ? await response.json()
+    : ((await response.text()) as unknown as T);
   return {
-    getBookmarkByBookId,
-    getBookmarkPage,
-    createBookmark,
-    updateBookmark,
-    deleteBookmark,
+    data,
+    status: response.status,
+    statusText: response.statusText,
   };
 };
 
+export const generateErrorMessage = async (url: string, response: Response) => {
+  let errorMessage = `[URL] ${url}`;
+  try {
+    const errorResponse = (await response.json()) as ErrorResponse;
+    errorMessage += ` [MESSAGE] ${errorResponse.message} [STATUS] ${response.status}(${errorResponse.status})`;
+  } catch {
+    // JSON でない場合は無視
+  }
+  return errorMessage;
+};
 
 ------------------------------------------------------------
-use-api-favorite.ts
+constants.ts
 
-import { FETCH_FAVORITES_MAX_RESULTS } from '@/constants/constants';
-import { useApi } from '@/hooks/api/use-api';
-import { Favorite, FavoriteInfo, FavoritePage, FavoriteRequest } from '@/types';
+export const TITLE_LOGO = 'My Books';
 
-export const useApiFavorite = () => {
-  const { fetcher, fetcherWithAuth, mutatorWithAuth } = useApi();
+export const BOOKS_API_BASE_URL = `${import.meta.env.VITE_BASE_URL}/api/v1`;
+export const IMAGE_BASE_URL = `${import.meta.env.VITE_BASE_URL}/images`;
 
-  const getFavoriteByBookId = async (bookId: string) => {
-    try {
-      const url = `/favorites/${bookId}`;
-      const favorite = await fetcherWithAuth<Favorite>(url);
-      return favorite;
-    } catch (error) {
-      throw new Error('お気に入りの読み込みが失敗しました。' + error);
-    }
-  };
+export const BOOK_IMAGE_BASE_URL = `${IMAGE_BASE_URL}/my-books`;
+export const AVATAR_IMAGE_BASE_URL = `${IMAGE_BASE_URL}/avatars`;
 
-  const getFavoritePage = async (page: number = 0) => {
-    try {
-      const basePage = page > 0 ? page - 1 : 0;
-      const url = `/favorites?&page=${basePage}&maxResults=${FETCH_FAVORITES_MAX_RESULTS}`;
-      const favoritePage = await fetcherWithAuth<FavoritePage>(url);
-      return favoritePage;
-    } catch (error) {
-      throw new Error('お気に入り一覧の読み込みが失敗しました。' + error);
-    }
-  };
+export const FETCH_BOOKS_MAX_RESULTS = 20;
+export const FETCH_REVIEWS_MAX_RESULTS = 3;
 
-  const getFavoriteInfo = async (
-    bookId: string,
-    userId: number | undefined
-  ) => {
-    try {
-      const query = userId ? `?userId=${userId}` : '';
-      const url = `/books/${bookId}/favorites/info${query}`;
-      const favoriteInfo = await fetcher<FavoriteInfo>(url);
-      return favoriteInfo;
-    } catch (error) {
-      throw new Error('お気に入り情報の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const createFavorite = async (requestBody: FavoriteRequest) => {
-    try {
-      const url = `/favorites`;
-      const options: RequestInit = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('お気に入りの作成に失敗しました。' + error);
-    }
-  };
-
-  const deleteFavorite = async (bookId: string) => {
-    try {
-      const url = `/favorites/${bookId}`;
-      const options: RequestInit = { method: 'DELETE' };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('お気に入りの削除に失敗しました。' + error);
-    }
-  };
-
-  return {
-    getFavoriteByBookId,
-    getFavoritePage,
-    getFavoriteInfo,
-    createFavorite,
-    deleteFavorite,
-  };
-};
-
-
-------------------------------------------------------------
-use-api-review.ts
-
-import {
-  FETCH_MY_REVIEWS_MAX_RESULTS,
-  FETCH_REVIEWS_MAX_RESULTS,
-} from '@/constants/constants';
-import { useApi } from '@/hooks/api/use-api';
-import {
-  ReviewPage,
-  ReviewRequest,
-  ReviewSummary,
-  SelfReviewExists,
-} from '@/types';
-
-export const useApiReview = () => {
-  const { fetcher, fetcherWithAuth, mutatorWithAuth } = useApi();
-
-  const getReviewPage = async (bookId: string, page: number = 0) => {
-    try {
-      const basePage = page > 0 ? page - 1 : 0;
-      const url = `/books/${bookId}/reviews?&page=${basePage}&maxResults=${FETCH_REVIEWS_MAX_RESULTS}`;
-      const reviewPage = await fetcher<ReviewPage>(url);
-      return reviewPage;
-    } catch (error) {
-      throw new Error('レビュー一覧の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const getReviewSummary = async (bookId: string) => {
-    try {
-      const url = `/books/${bookId}/reviews/summary`;
-      const reviewSummary = await fetcher<ReviewSummary>(url);
-      return reviewSummary;
-    } catch (error) {
-      throw new Error('レビュー情報の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const checkSelfReviewExists = async (bookId: string) => {
-    try {
-      const url = `/reviews/self-review-exists/${bookId}`;
-      const data = await fetcherWithAuth<SelfReviewExists>(url);
-      return data.exists;
-    } catch (error) {
-      throw new Error('レビューの存在チェックに失敗しました。' + error);
-    }
-  };
-
-  const getReviewPageByUser = async (page: number = 0) => {
-    try {
-      const basePage = page > 0 ? page - 1 : 0;
-      const url = `/reviews?&page=${basePage}&maxResults=${FETCH_MY_REVIEWS_MAX_RESULTS}`;
-      const reviewPage = await fetcherWithAuth<ReviewPage>(url);
-      return reviewPage;
-    } catch (error) {
-      throw new Error('マイレビュー一覧の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const createReview = async (requestBody: ReviewRequest) => {
-    try {
-      const url = `/reviews`;
-      const options: RequestInit = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('レビューの作成に失敗しました。' + error);
-    }
-  };
-
-  const updateReview = async (id: number, requestBody: ReviewRequest) => {
-    try {
-      const url = `/reviews/${id}`;
-      const options: RequestInit = {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('レビューの更新に失敗しました。' + error);
-    }
-  };
-
-  const deleteReview = async (id: number) => {
-    try {
-      const url = `/reviews/${id}`;
-      const options: RequestInit = {
-        method: 'DELETE',
-      };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('レビューの削除に失敗しました。' + error);
-    }
-  };
-
-  return {
-    getReviewPage,
-    getReviewSummary,
-    checkSelfReviewExists,
-    getReviewPageByUser,
-    createReview,
-    updateReview,
-    deleteReview,
-  };
-};
-
-
-------------------------------------------------------------
-use-api-user.ts
-
-import { useApi } from '@/hooks/api/use-api';
-import {
-  ChangeEmail,
-  ChangePassword,
-  ProfileCounts,
-  UpdateCurrentUser,
-  User,
-} from '@/types';
-
-export const useApiUser = () => {
-  const { fetcherWithAuth, mutatorWithAuth } = useApi();
-
-  const getCurrentUser = async () => {
-    try {
-      const url = `/me`;
-      const user = await fetcherWithAuth<User>(url);
-      return user;
-    } catch (error) {
-      throw new Error('ユーザー情報の読み込みが失敗しました。' + error);
-    }
-  };
-
-  const getProfileCounts = async () => {
-    try {
-      const url = `/me/profile-counts`;
-      const profieleCounts = await fetcherWithAuth<ProfileCounts>(url);
-      return profieleCounts;
-    } catch (error) {
-      throw new Error(
-        'ユーザーのプロフィール情報の読み込みが失敗しました。' + error
-      );
-    }
-  };
-
-  const updateCurrentUser = async (requestBody: UpdateCurrentUser) => {
-    try {
-      const url = `/me`;
-      const options: RequestInit = {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('ユーザー情報の更新に失敗しました。' + error);
-    }
-  };
-
-  const changePassword = async (requestBody: ChangePassword) => {
-    try {
-      const url = `/me/password`;
-      const options: RequestInit = {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('パスワードの更新に失敗しました。' + error);
-    }
-  };
-
-  const changeEmail = async (requestBody: ChangeEmail) => {
-    try {
-      const url = `/me/email`;
-      const options: RequestInit = {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      };
-      await mutatorWithAuth(url, options);
-    } catch (error) {
-      throw new Error('メールアドレスの更新に失敗しました。' + error);
-    }
-  };
-
-  return {
-    getCurrentUser,
-    getProfileCounts,
-    updateCurrentUser,
-    changePassword,
-    changeEmail,
-  };
-};
-
-
-------------------------------------------------------------
-use-api.ts
-
-import { BOOKS_API_ENDPOINT } from '@/constants/constants';
-import { useAuth } from '@/providers/auth-provider';
-import { ErrorResponse } from '@/types/error-response';
-
-export const useApi = () => {
-  const { accessToken, refreshAccessToken } = useAuth();
-
-  const fetcher = async <T>(url: string, options: RequestInit = {}) => {
-    const response = await fetch(`${BOOKS_API_ENDPOINT}${url}`, options);
-    if (!response.ok) {
-      throw new Error(await generateErrorMessage(url, response));
-    }
-    return response.json() as Promise<T>;
-  };
-
-  const fetcherWithAuth = async <T>(url: string, options: RequestInit = {}) => {
-    const response = await fetchWithToken(
-      `${BOOKS_API_ENDPOINT}${url}`,
-      options
-    );
-    if (!response.ok) {
-      throw new Error(await generateErrorMessage(url, response));
-    }
-    return response.json() as Promise<T>;
-  };
-
-  const mutatorWithAuth = async (url: string, options: RequestInit = {}) => {
-    const response = await fetchWithToken(
-      `${BOOKS_API_ENDPOINT}${url}`,
-      options
-    );
-    if (!response.ok) {
-      throw new Error(await generateErrorMessage(url, response));
-    }
-  };
-
-  const fetchWithToken = async (url: string, options: RequestInit = {}) => {
-    let response = await fetch(url, {
-      ...options,
-      headers: {
-        ...options.headers,
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (response.status === 401) {
-      const newAccessToken = await refreshAccessToken();
-      if (!newAccessToken) {
-        throw new Error('認証に失敗しました。再ログインしてください。');
-      }
-      response = await fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${newAccessToken}`,
-        },
-      });
-    }
-
-    return response;
-  };
-
-  const generateErrorMessage = async (url: string, response: Response) => {
-    let errorMessage = `[URL] ${url}`;
-    try {
-      const errorResponse = (await response.json()) as ErrorResponse;
-      errorMessage += ` [MESSAGE] ${errorResponse.message} [STATUS] ${response.status}(${errorResponse.status})`;
-    } catch {
-      // JSON でない場合は無視
-    }
-    return errorMessage;
-  };
-
-  return { fetcher, fetcherWithAuth, mutatorWithAuth };
-};
+export const FETCH_FAVORITES_MAX_RESULTS = 5;
+export const FETCH_MY_REVIEWS_MAX_RESULTS = 5;
+export const FETCH_BOOKMARKS_MAX_RESULTS = 5;
 
 ------------------------------------------------------------
 auth-provider.tsx
 
-import { BOOKS_API_ENDPOINT } from '@/constants/constants';
-import {
-  AccessToken,
-  ErrorResponse,
-  LoginRequest,
-  SignupRequest,
-  User,
-} from '@/types';
+import * as AuthApi from '@/api/auth';
+import { generateErrorMessage, parseApiResponse } from '@/api/client';
+import { BOOKS_API_BASE_URL } from '@/constants/constants';
+import { ApiResponse, LoginRequest, SignupRequest, User } from '@/types';
 import { createContext, useContext, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 type AuthProviderProps = {
   children: React.ReactNode;
@@ -608,13 +164,16 @@ type AuthProviderProps = {
 
 type AuthProviderState = {
   accessToken: string | null;
-  isLoading: boolean;
   user: User | null;
-  setUser: (user: User | null) => void;
+  isLoading: boolean;
   login: (requestBody: LoginRequest) => Promise<void>;
   signup: (requestBody: SignupRequest) => Promise<void>;
   logout: () => Promise<void>;
-  refreshAccessToken: () => Promise<string | null>;
+  refreshUserInfo: () => Promise<void>;
+  fetchApiWithAuth: <T>(
+    endpoint: string,
+    options?: RequestInit
+  ) => Promise<ApiResponse<T>>;
 };
 
 const AuthProviderContext = createContext<AuthProviderState | undefined>(
@@ -628,151 +187,111 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (requestBody: LoginRequest) => {
     try {
-      const url = `${BOOKS_API_ENDPOINT}/login`;
-      const options: RequestInit = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-        credentials: 'include',
-      };
-
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        const data = (await response.json()) as ErrorResponse;
-        throw new Error(
-          `[STATUS] ${response.status} [MESSAGE] ${data.message} [URL] ${url}`
-        );
-      }
-
-      const data = (await response.json()) as AccessToken;
-      setAccessToken(data.accessToken);
-
-      const user = await fetchUser(data.accessToken);
+      const response = await AuthApi.login(requestBody);
+      setAccessToken(response.accessToken);
+      const user = await AuthApi.getUser(response.accessToken);
       setUser(user);
     } catch (error) {
       setAccessToken(null);
       setUser(null);
-      throw new Error('ログインできませんでした。' + error);
+      console.error(error);
+      throw new Error('ログインに失敗しました。');
     }
   };
 
   const signup = async (requestBody: SignupRequest) => {
     try {
-      const url = `${BOOKS_API_ENDPOINT}/signup`;
-      const options: RequestInit = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-        credentials: 'include',
-      };
-
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        const data = (await response.json()) as ErrorResponse;
-        throw new Error(
-          `[STATUS] ${response.status} [MESSAGE] ${data.message} [URL] ${url}`
-        );
-      }
-
-      const data = (await response.json()) as AccessToken;
-      setAccessToken(data.accessToken);
-
-      const user = await fetchUser(data.accessToken);
+      const response = await AuthApi.signup(requestBody);
+      setAccessToken(response.accessToken);
+      const user = await AuthApi.getUser(response.accessToken);
       setUser(user);
     } catch (error) {
       setAccessToken(null);
       setUser(null);
-      throw new Error('サインアップできませんでした。' + error);
+      console.error(error);
+      throw new Error('サインアップに失敗しました。');
     }
   };
 
   const logout = async () => {
     try {
-      const url = `${BOOKS_API_ENDPOINT}/logout`;
-      const options: RequestInit = {
-        method: 'POST',
-        credentials: 'include',
-      };
-
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        const data = (await response.json()) as ErrorResponse;
-        throw new Error(
-          `[STATUS] ${response.status} [MESSAGE] ${data.message} [URL] ${url}`
-        );
-      }
-
-      setAccessToken(null);
-      setUser(null);
+      await AuthApi.logout();
     } catch (error) {
+      console.error(error);
+      throw new Error('ログアウトに失敗しました。');
+    } finally {
       setAccessToken(null);
       setUser(null);
-      throw new Error('ログアウトに失敗しました。' + error);
     }
   };
 
-  const refreshAccessToken = async () => {
-    const accessToken = await fetchAccessToken();
-    setAccessToken(accessToken);
-    if (!accessToken) {
-      alert('セッションが切れたため、自動ログアウトしました。');
+  const refreshUserInfo = async () => {
+    try {
+      const user = await AuthApi.getUser(accessToken);
+      setUser(user);
+    } catch (error) {
       setUser(null);
-    }
-    return accessToken;
-  };
-
-  const fetchAccessToken = async () => {
-    try {
-      const url = `${BOOKS_API_ENDPOINT}/refresh-token`;
-      const options: RequestInit = {
-        method: 'POST',
-        credentials: 'include',
-      };
-
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        throw new Error('Failed to refresh token');
-      }
-
-      const data = (await response.json()) as AccessToken;
-      return data.accessToken;
-    } catch {
-      return null;
+      console.error(error);
+      throw new Error('ユーザー情報の取得に失敗しました。');
     }
   };
 
-  const fetchUser = async (token: string | null) => {
-    if (!token) return null;
+  const fetchApiWithAuth = async <T,>( // <T,>の「,」は<T>がJSXと解釈されないためにつけている
+    endpoint: string,
+    options: RequestInit = {}
+  ) => {
+    const url = `${BOOKS_API_BASE_URL}${endpoint}`;
+    let response = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
-    try {
-      const url = `${BOOKS_API_ENDPOINT}/me`;
-      const options: RequestInit = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
+    if (response.status === 401) {
+      try {
+        const newAccessToken = await AuthApi.getAccessToken();
+        setAccessToken(newAccessToken);
 
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        throw new Error('Failed fetch user');
+        response = await fetch(url, {
+          ...options,
+          headers: {
+            ...options.headers,
+            Authorization: `Bearer ${newAccessToken}`,
+          },
+        });
+      } catch {
+        logout();
+        toast.error('ログインセッションの期限が切れました。', {
+          description: '作業を続けるには再度ログインしてください。',
+          duration: 5000,
+        });
+        throw new Error('ログインセッションの期限が切れました。');
       }
-
-      const user = (await response.json()) as User;
-      return user;
-    } catch {
-      return null;
     }
+
+    if (!response.ok) {
+      throw new Error(await generateErrorMessage(endpoint, response));
+    }
+
+    return await parseApiResponse<T>(response);
   };
 
   useEffect(() => {
     // リロードするとメモリからアクセストークンが消えてしまうので
     // 初期読み込み時にリフレッシュトークンを使って再取得する
     const init = async () => {
-      const accessToken = await fetchAccessToken();
-      setAccessToken(accessToken);
-
-      const user = await fetchUser(accessToken);
-      setUser(user);
+      try {
+        const accessToken = await AuthApi.getAccessToken();
+        setAccessToken(accessToken);
+        const user = await AuthApi.getUser(accessToken);
+        setUser(user);
+      } catch {
+        setAccessToken(null);
+        setUser(null);
+        console.warn('自動ログインできませんでした。');
+      }
 
       setIsLoading(false);
     };
@@ -781,13 +300,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value = {
     accessToken,
-    isLoading,
     user,
-    setUser,
+    isLoading,
     login,
     signup,
     logout,
-    refreshAccessToken,
+    refreshUserInfo,
+    fetchApiWithAuth,
   };
 
   return (
@@ -806,712 +325,65 @@ export const useAuth = () => {
   return context;
 };
 
-
 ------------------------------------------------------------
-login
+api.ts
 
-import Logo from '@/components/layout/logo';
-import PasswordInput from '@/components/profile/password-input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { usePageTitle } from '@/hooks/use-page-title';
-import { useAuth } from '@/providers/auth-provider';
-import { LoginRequest } from '@/types';
-import { useMutation } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
-import { toast } from 'sonner';
+export interface ApiResponse<T> {
+  data: T;
+  status: number;
+  statusText: string;
+}
 
-type Props = {
-  title: string;
-};
-
-export default function Page({ title }: Props) {
-  usePageTitle(title);
-
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { login } = useAuth();
-
-  const loginMutation = useMutation({
-    mutationFn: (requestBody: LoginRequest) => login(requestBody),
-    onSuccess: () => {},
-    onError: (error) => {
-      console.error(error);
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = new FormData(e.currentTarget);
-    const email = form.get('email') as string;
-    const password = form.get('password') as string;
-
-    const requestBody: LoginRequest = { email, password };
-    loginMutation.mutate(requestBody, {
-      onSuccess: () => {
-        const pathname = location.state?.from?.pathname || '/';
-        const query = location.state?.from?.search || '';
-        navigate(pathname + query, { replace: true });
-      },
-      onError: () => {
-        toast.error('ログインできませんでした', {
-          description: 'メールアドレスまたはパスワードが違います。',
-          duration: 5000,
-        });
-      },
-    });
-  };
-
-  return (
-    <div className="my-6 flex flex-col place-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <h1 className="font-semibold">ログイン</h1>
-      <Card className="w-80 rounded-3xl p-6 sm:w-96 sm:p-10">
-        <CardContent className="p-0">
-          <form
-            className="flex w-full flex-col gap-y-4"
-            onSubmit={handleSubmit}
-          >
-            <div>
-              <Label className="text-xs" htmlFor="email">
-                メールアドレス
-              </Label>
-              <Input
-                className="my-2 rounded-full"
-                id="email"
-                name="email"
-                autoComplete="off"
-                spellCheck="false"
-              />
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="password">
-                パスワード
-              </Label>
-              <PasswordInput
-                className="my-2 rounded-full"
-                id="password"
-                name="password"
-              />
-            </div>
-
-            <Button
-              className="mt-6 w-full rounded-full"
-              type="submit"
-              disabled={loginMutation.isPending}
-            >
-              {loginMutation.isPending ? (
-                <Loader2Icon className="animate-spin" />
-              ) : (
-                'ログイン'
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 flex justify-center gap-x-1 text-xs">
-            <p className="text-muted-foreground">
-              アカウントをお持ちでない方はこちら
-            </p>
-            <Link to="/signup" className="text-primary hover:underline">
-              新規登録
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+export interface ErrorResponse {
+  message: string;
+  status: string;
 }
 
 ------------------------------------------------------------
-profile/change-user-info
+auth.ts
 
-import Logo from '@/components/layout/logo';
-import AvatarCarousel from '@/components/profile/avatar-carousel';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useApiUser } from '@/hooks/api/use-api-user';
-import { usePageTitle } from '@/hooks/use-page-title';
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/providers/auth-provider';
-import { UpdateCurrentUser } from '@/types';
-import { useMutation } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { toast } from 'sonner';
-
-type Props = {
-  title: string;
-};
-
-export default function Page({ title }: Props) {
-  usePageTitle(title);
-
-  const [nameErrorMessage, setNameErrorMessage] = useState('');
-
-  const nameRef = useRef<HTMLInputElement | null>(null);
-
-  const navigate = useNavigate();
-  const { updateCurrentUser } = useApiUser();
-
-  const { user, setUser } = useAuth();
-
-  const [avatarPath, setAvatarPath] = useState(user?.avatarPath || '');
-
-  const updateMutation = useMutation({
-    mutationFn: (requestBody: UpdateCurrentUser) =>
-      updateCurrentUser(requestBody),
-    onSuccess: () => {
-      navigate('/profile');
-    },
-    onError: (error) => {
-      console.error(error);
-    },
-  });
-
-  useEffect(() => {
-    if (nameRef.current && user) {
-      nameRef.current.value = user.name || '';
-    }
-  }, [user]);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = new FormData(e.currentTarget);
-    const name = form.get('name') as string;
-
-    const isNameValid = validateName();
-
-    if (!isNameValid) {
-      return;
-    }
-
-    const requestBody: UpdateCurrentUser = { name, avatarPath };
-    updateMutation.mutate(requestBody, {
-      onSuccess: () => {
-        // 名前とアバターURLだけなので楽観的に更新しておく
-        const newUser = user ? { ...user, name, avatarPath } : null;
-        setUser(newUser);
-        toast.success('ユーザー情報を変更しました');
-      },
-      onError: () => {
-        toast.error('ユーザー情報を変更できませんでした', {
-          description: '入力内容を確認してください。',
-          duration: 5000,
-        });
-      },
-    });
-  };
-
-  const validateName = () => {
-    const name = nameRef.current?.value as string;
-    setNameErrorMessage('');
-
-    if (name === '') {
-      setNameErrorMessage('ユーザー名は必須です。');
-      return false;
-    }
-
-    return true;
-  };
-
-  return (
-    <div className="my-6 flex flex-col place-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <h1 className="font-semibold">ユーザー情報変更</h1>
-      <Card className="w-80 rounded-3xl sm:w-96">
-        <CardContent className="p-6 sm:px-10">
-          <form
-            className="flex w-full flex-col gap-y-4"
-            onSubmit={handleSubmit}
-          >
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                ユーザー名
-              </Label>
-              <Input
-                ref={nameRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  nameErrorMessage && 'border-destructive'
-                )}
-                id="name"
-                name="name"
-                autoComplete="off"
-                spellCheck="false"
-              />
-              {nameErrorMessage && (
-                <p className="text-destructive text-xs">{nameErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                アバター画像
-              </Label>
-              <AvatarCarousel value={avatarPath} onChange={setAvatarPath} />
-            </div>
-
-            <Button
-              className="w-full rounded-full"
-              type="submit"
-              disabled={updateMutation.isPending}
-            >
-              {updateMutation.isPending ? (
-                <Loader2Icon className="animate-spin" />
-              ) : (
-                '変更'
-              )}
-            </Button>
-
-            <Link
-              className={cn(
-                buttonVariants({ variant: 'outline' }),
-                'w-full rounded-full bg-transparent'
-              )}
-              to="/profile"
-            >
-              キャンセル
-            </Link>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
+export interface LoginRequest {
+  email: string;
+  password: string;
 }
 
-
-------------------------------------------------------------
-signup
-
-import Logo from '@/components/layout/logo';
-import AvatarCarousel from '@/components/profile/avatar-carousel';
-import PasswordInput from '@/components/profile/password-input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { usePageTitle } from '@/hooks/use-page-title';
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/providers/auth-provider';
-import { SignupRequest } from '@/types';
-import { useMutation } from '@tanstack/react-query';
-import { Loader2Icon } from 'lucide-react';
-import { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { toast } from 'sonner';
-
-type Props = {
-  title: string;
-};
-
-export default function Page({ title }: Props) {
-  usePageTitle(title);
-
-  const [emailErrorMessage, setEmailErrorMessage] = useState('');
-  const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
-  const [nameErrorMessage, setNameErrorMessage] = useState('');
-
-  const emailRef = useRef<HTMLInputElement | null>(null);
-  const passwordRef = useRef<HTMLInputElement | null>(null);
-  const nameRef = useRef<HTMLInputElement | null>(null);
-  const [avatarPath, setAvatarPath] = useState('');
-
-  const navigate = useNavigate();
-  const { signup } = useAuth();
-
-  const signupMutation = useMutation({
-    mutationFn: (requestBody: SignupRequest) => signup(requestBody),
-    onSuccess: () => {},
-    onError: (error) => {
-      console.error(error);
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = new FormData(e.currentTarget);
-    const email = form.get('email') as string;
-    const password = form.get('password') as string;
-    const name = form.get('name') as string;
-
-    const isEmailvalid = validateEmail();
-    const isPasswordvalid = validatePassword();
-    const isNamevalid = validateName();
-
-    if (!isEmailvalid || !isPasswordvalid || !isNamevalid) {
-      return;
-    }
-
-    const requestBody: SignupRequest = { email, password, name, avatarPath };
-    signupMutation.mutate(requestBody, {
-      onSuccess: () => {
-        toast.success('ユーザーを新規登録しました');
-        navigate('/');
-      },
-      onError: () => {
-        toast.error('新規登録できませんでした', {
-          description: '入力内容を確認してください。',
-          duration: 5000,
-        });
-      },
-    });
-  };
-
-  const validateEmail = () => {
-    setEmailErrorMessage('');
-
-    const email = emailRef.current?.value as string;
-
-    if (email === '') {
-      setEmailErrorMessage('メールアドレスは必須です。');
-      return false;
-    }
-
-    const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
-      setEmailErrorMessage('無効なメールアドレスです。');
-      return false;
-    }
-
-    return true;
-  };
-
-  const validatePassword = () => {
-    setPasswordErrorMessage('');
-
-    const password = passwordRef.current?.value as string;
-
-    if (password === '') {
-      setPasswordErrorMessage('パスワードは必須です。');
-      return false;
-    }
-
-    if (password.length < 4) {
-      setPasswordErrorMessage('パスワードは4文字以上で設定してください。');
-      return false;
-    }
-
-    return true;
-  };
-
-  const validateName = () => {
-    setNameErrorMessage('');
-
-    const name = nameRef.current?.value as string;
-
-    if (name === '') {
-      setNameErrorMessage('ユーザー名は必須です。');
-      return false;
-    }
-
-    return true;
-  };
-
-  return (
-    <div className="my-3 flex flex-col place-items-center gap-y-3 sm:my-16">
-      <Logo size="lg" disableLink />
-      <h1 className="font-semibold">アカウントの作成</h1>
-      <Card className="w-80 rounded-3xl p-6 sm:w-96 sm:p-10">
-        <CardContent className="p-0">
-          <form
-            className="flex w-full flex-col gap-y-4"
-            onSubmit={handleSubmit}
-          >
-            <div>
-              <Label className="text-xs" htmlFor="email">
-                メールアドレス
-              </Label>
-              <Input
-                ref={emailRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  emailErrorMessage && 'border-destructive'
-                )}
-                id="email"
-                name="email"
-                autoComplete="off"
-                spellCheck="false"
-              />
-              {emailErrorMessage && (
-                <p className="text-destructive text-xs">{emailErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="password">
-                パスワード
-              </Label>
-              <PasswordInput
-                ref={passwordRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  passwordErrorMessage && 'border-destructive'
-                )}
-                id="password"
-                name="password"
-              />
-              {passwordErrorMessage && (
-                <p className="text-destructive text-xs">
-                  {passwordErrorMessage}
-                </p>
-              )}
-            </div>
-
-            <Separator className="bg-foreground/10 mt-6 mb-2" />
-
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                ユーザー名
-              </Label>
-              <Input
-                ref={nameRef}
-                className={cn(
-                  'my-2 rounded-full',
-                  nameErrorMessage && 'border-destructive'
-                )}
-                id="name"
-                name="name"
-                autoComplete="off"
-                spellCheck="false"
-              />
-              {nameErrorMessage && (
-                <p className="text-destructive text-xs">{nameErrorMessage}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-xs" htmlFor="name">
-                アバター画像
-              </Label>
-              <AvatarCarousel value={avatarPath} onChange={setAvatarPath} />
-            </div>
-
-            <Button
-              className="mt-2 w-full rounded-full"
-              type="submit"
-              disabled={signupMutation.isPending}
-            >
-              {signupMutation.isPending ? (
-                <Loader2Icon className="animate-spin" />
-              ) : (
-                '新規登録'
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 flex justify-center gap-x-1 text-xs">
-            <p className="text-muted-foreground">アカウントをお持ちですか？</p>
-            <Link to="/login">
-              <p className="text-primary hover:underline">ログイン</p>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+export interface SignupRequest {
+  email: string;
+  password: string;
+  name: string;
+  avatarPath: string;
 }
 
-
-------------------------------------------------------------
-not-found.tsx
-
-import notFoundImage from '@/assets/not-found.webp';
-import { usePageTitle } from '@/hooks/use-page-title';
-import { Link } from 'react-router';
-
-type Props = {
-  title: string;
-};
-
-export default function NotFound({ title }: Props) {
-  usePageTitle(title);
-
-  return (
-    <div className="flex h-[calc(100vh-64px-140px)] flex-col items-center justify-center gap-y-4 sm:h-[calc(100vh-64px-72px)]">
-      <img className="opacity-50" src={notFoundImage} alt="not-found-image" />
-      <h1 className="text-4xl font-bold">404 Not Found</h1>
-      <p>お探しのページは見つかりませんでした。</p>
-      <Link to="/" className="text-primary underline">
-        ホームに戻る
-      </Link>
-    </div>
-  );
+export interface AccessToken {
+  accessToken: string;
 }
 
 ------------------------------------------------------------
-page.tsx
+index.ts
 
-import BooksNewReleases from '@/components/books/books-new-releases';
-import BooksSkeleton from '@/components/books/books-skeleton';
-import GenresSkeleton from '@/components/genres/genres-skeleton';
-import GenresTopPage from '@/components/genres/genres-top-page';
-import Hero from '@/components/layout/hero';
-import { usePageTitle } from '@/hooks/use-page-title';
-import ErrorElement from '@/routes/error-element';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-
-type Props = {
-  title: string;
-};
-
-export default function Page({ title }: Props) {
-  usePageTitle(title);
-
-  return (
-    <>
-      <section className="mb-4 sm:mb-0">
-        <Hero />
-      </section>
-
-      <section className="mb-4 flex flex-col gap-y-4">
-        <h2 className="font-bold">ジャンル</h2>
-
-        <ErrorBoundary fallback={<ErrorElement />}>
-          <Suspense fallback={<GenresSkeleton />}>
-            <GenresTopPage />
-          </Suspense>
-        </ErrorBoundary>
-      </section>
-
-      <section className="flex flex-col">
-        <h2 className="font-bold">ニューリリース</h2>
-
-        <ErrorBoundary fallback={<ErrorElement />}>
-          <Suspense fallback={<BooksSkeleton />}>
-            <BooksNewReleases />
-          </Suspense>
-        </ErrorBoundary>
-      </section>
-    </>
-  );
-}
+export * from './api';
+export * from './auth';
+export * from './book';
+export * from './book-chapter';
+export * from './book-content-page';
+export * from './bookmark';
+export * from './favorite';
+export * from './genre';
+export * from './review';
+export * from './user';
 
 ------------------------------------------------------------
-route.tsx
+.env.development
 
-import BookDetailPage from '@/routes/book/[bookId]/page';
-import BookmarksPage from '@/routes/bookmarks/page';
-import DiscoverPage from '@/routes/discover/page';
-import FavoritesPage from '@/routes/favorites/page';
-import RootLayout from '@/routes/layout';
-import LoginPage from '@/routes/login/page';
-import MyReviewsPage from '@/routes/my-reviews/page';
-import NotFoundPage from '@/routes/not-found';
-import RootPage from '@/routes/page';
-import ChangeEmailPage from '@/routes/profile/change-email/page';
-import ChangePasswordPage from '@/routes/profile/change-password/page';
-import ChangeUserInfoPage from '@/routes/profile/change-user-info/page';
-import ProfilePage from '@/routes/profile/page';
-import ProtectedRoute from '@/routes/protected-route';
-import RankingPage from '@/routes/ranking/page';
-import BookReadPage from '@/routes/read/[bookId]/chapter/[chapterNumber]/page';
-import BookReadTableOfContentsPage from '@/routes/read/[bookId]/table-of-contents/page';
-import SearchPage from '@/routes/search/page';
-import SignupPage from '@/routes/signup/page';
-import SpecialFeaturesPage from '@/routes/special-features/page';
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  Route,
-} from 'react-router';
+VITE_BASE_URL=https://localhost
 
-export const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route>
-      <Route path="/" element={<RootLayout />}>
-        <Route index element={<RootPage title="" />} />
+------------------------------------------------------------
+.env.production
 
-        <Route path="login" element={<LoginPage title="ログイン" />} />
-        <Route path="signup" element={<SignupPage title="サインアップ" />} />
-
-        <Route path="book">
-          <Route path=":bookId" element={<BookDetailPage />} />
-        </Route>
-
-        <Route path="read">
-          <Route path=":bookId">
-            <Route
-              path="table-of-contents"
-              element={<BookReadTableOfContentsPage />}
-            />
-          </Route>
-        </Route>
-
-        <Route path="search" element={<SearchPage />} />
-        <Route path="discover" element={<DiscoverPage title="ジャンル" />} />
-        <Route path="ranking" element={<RankingPage title="ランキング" />} />
-        <Route
-          path="special-features"
-          element={<SpecialFeaturesPage title="特集" />}
-        />
-
-        {/* 以下、認証が必要な画面 */}
-        <Route element={<ProtectedRoute />}>
-          <Route
-            path="favorites"
-            element={<FavoritesPage title="お気に入り" />}
-          />
-          <Route
-            path="bookmarks"
-            element={<BookmarksPage title="ブックマーク" />}
-          />
-          <Route
-            path="my-reviews"
-            element={<MyReviewsPage title="マイレビュー" />}
-          />
-
-          <Route path="profile">
-            <Route index element={<ProfilePage title="プロフィール" />} />
-            <Route
-              path="change-user-info"
-              element={<ChangeUserInfoPage title="ユーザー情報変更" />}
-            />
-            <Route
-              path="change-email"
-              element={<ChangeEmailPage title="メールアドレス変更" />}
-            />
-            <Route
-              path="change-password"
-              element={<ChangePasswordPage title="パスワード変更" />}
-            />
-          </Route>
-
-          <Route path="read/:bookId">
-            <Route path="chapter/:chapterNumber">
-              <Route path="page/:pageNumber" element={<BookReadPage />} />
-            </Route>
-          </Route>
-        </Route>
-
-        <Route path="*" element={<NotFoundPage title="404" />} />
-      </Route>
-    </Route>
-  )
-);
+VITE_BASE_URL=https://vsv-emerald.skygroup.local
+# VITE_BASE_URL=https://localhost
 
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-
-.env.development M
-.gitignore M
-setttings.json U
-
-
