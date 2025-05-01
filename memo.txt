@@ -237,6 +237,148 @@ ID,タイトル,あらすじ,著者,出版社,出版日,価格,ページ数,ISBN
 
 
 
+UIデザイン
+
+Beautiful CSS Snippets
+https://cssnippets.shefali.dev/
+
+beercss
+https://www.beercss.com/
+
+MUI
+https://mui.com/
+
+HeroUI
+https://www.heroui.com/
+
+UI LIBRARY
+https://design-library.jp/ui/
+
+SVGアイコン
+https://www.nexticons.com/
+
+
+------------------------------------------------------------
+# Web開発の学習マップ
+
+## 開発ツール
+- VSCode
+- Chrome
+
+## HTML
+- 基本構文
+- フォーム
+- アクセシビリティ
+
+## CSS
+- メディアクエリ
+- Flexbox・Grid
+- 基本構文
+
+## 静的Webページ
+- レイアウト
+- レスポンシブ対応
+- リセットCSS
+- セマンティックHTML
+
+## JavaScript
+- 基本構文
+- DOM操作
+- イベントハンドリング
+- 非同期処理
+
+## 動的Webページ
+- WebAPI
+- JSON
+
+## パッケージマネージャー
+- npm
+- yarn
+- pnpm
+- bun
+
+## バージョン管理
+- Git
+- GitHub
+- GitLab
+- BitBucket
+
+## CSSフレームワーク
+- TailwindCSS
+
+## ビルドツール
+- Vite
+- webpack
+
+## フロントエンドフレームワーク
+- React
+- Vue.js
+- Angular
+- Svelte
+
+## SPAアプリ (JavaScript)
+- 状態管理
+- ルーティング
+
+## TypeScript
+- 基本構文
+
+## SPAアプリ (TypeScript)
+
+## プログラム言語
+- JavaScript
+- Java
+- C#
+- PHP
+- Python
+- Ruby
+- Go
+- Rust
+
+## Node.js
+- Express
+- Webサーバー
+- アプリケーションサーバー
+
+## リレーショナルデータベース
+- MySQL
+- PostgreSQL
+- Oracle Database
+- Microsoft SQL Server
+
+## REST API
+- CRUD
+- HTTPステータス
+
+## バックエンドフレームワーク
+- Express (JavaScript)
+- Spring Boot (Java)
+- ASP.NET (C#)
+- Laravel (PHP)
+- Next.js (TypeScript)
+- Flask (Python)
+- FastAPI (Python)
+- Django (Python)
+- Ruby on Rails (Ruby)
+- Gin (Go)
+
+## Linux
+- WSL2
+- コマンド
+- 仮想環境
+- VSCode
+- Dev Container
+
+## Docker
+- DockerHub
+- Dockerfile
+- Docker Compose
+
+## AWS
+- EC2
+- S3
+- VPC
+- Route53
 
 
 
