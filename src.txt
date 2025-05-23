@@ -1,117 +1,4 @@
-１２ファイル
-
-------------------------------------------------------------
-SecurityConfig.java
-
-package com.example.my_books_backend.config;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import com.example.my_books_backend.util.JwtUtil;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-
-@Configuration
-@EnableWebSecurity
-@RequiredArgsConstructor
-@EnableMethodSecurity(prePostEnabled = true)
-public class SecurityConfig {
-    private final AuthTokenFilter authTokenFilter;
-    private final SecurityEndpointsConfig securityEndpointsConfig;
-
-    private final JwtUtil jwtUtil;
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable());
-
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-
-        http.sessionManagement(
-                session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        List<String> fullyPublicEndpoints = securityEndpointsConfig.getFullyPublicEndpoints();
-        List<String> publicGetEndpoints = securityEndpointsConfig.getPublicGetEndpoints();
-
-        http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(fullyPublicEndpoints.toArray(new String[0])).permitAll()
-                .requestMatchers(HttpMethod.GET, publicGetEndpoints.toArray(new String[0]))
-                .permitAll().anyRequest().authenticated());
-
-        http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
-
-        // Controllerクラスで"/logout"のエンドポイントを用意しても、Spring Securityのデフォルトの
-        // "/logout"が呼ばれるので、カスタムのログアウト処理をデフォルトのログアウトに追加設定する
-        http.logout(logout -> logout.logoutUrl("/logout")
-                .logoutSuccessHandler(customLogoutSuccessHandler()).invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID"));
-
-        return http.build();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-
-    // カスタムログアウト処理
-    @Bean
-    public LogoutSuccessHandler customLogoutSuccessHandler() {
-        return new LogoutSuccessHandler() {
-            @Override
-            public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response,
-                    Authentication authentication) throws IOException, ServletException {
-                Cookie cookie = jwtUtil.getInvalidateRefreshTokenCookie();
-                response.addCookie(cookie);
-                response.setStatus(HttpServletResponse.SC_OK);
-                // リダイレクトを行わないように、レスポンスを直接書き込む
-                response.getWriter().flush();
-            }
-        };
-    }
-}
-
+１６ファイル
 ------------------------------------------------------------
 SecurityEndpointsConfig.java
 
@@ -125,9 +12,8 @@ import org.springframework.stereotype.Component;
 public class SecurityEndpointsConfig {
 
     public List<String> getFullyPublicEndpoints() {
-        return Arrays.asList("/login", "/signup", "/logout", "/refresh-token"
-        // , "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
-        );
+        return Arrays.asList("/login", "/signup", "/logout", "/refresh-token", "/v3/api-docs/**", "/swagger-ui/**",
+                "/swagger-ui.html");
     }
 
     // 以下はGETだけ認証なしのエンドポイントとする
@@ -137,122 +23,11 @@ public class SecurityEndpointsConfig {
 }
 
 ------------------------------------------------------------
-AuthController.java
-
-package com.example.my_books_backend.controller;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.auth.LoginRequest;
-import com.example.my_books_backend.dto.auth.SignupRequest;
-import com.example.my_books_backend.dto.auth.AccessTokenResponse;
-import com.example.my_books_backend.service.AuthService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("")
-@RequiredArgsConstructor
-public class AuthController {
-    private final AuthService authService;
-
-    @PostMapping("/login")
-    public ResponseEntity<AccessTokenResponse> login(@Valid @RequestBody LoginRequest request,
-            HttpServletResponse response) {
-        AccessTokenResponse loginResponse = authService.login(request, response);
-        return ResponseEntity.ok(loginResponse);
-    }
-
-    @PostMapping("/signup")
-    public ResponseEntity<AccessTokenResponse> signup(@Valid @RequestBody SignupRequest request,
-            HttpServletResponse response) {
-        AccessTokenResponse userResponse = authService.signup(request, response);
-        return ResponseEntity.ok(userResponse);
-    }
-
-    // Controllerクラスで"/logout"のエンドポイントを用意しても、Spring Securityのデフォルトの
-    // "/logout"が呼ばれるので、このエンドポイントは意味がなくなる
-    // ログアウト処理は「SecurityConfig.java」に実装している
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse response) {
-        authService.logout(response);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/refresh-token")
-    public ResponseEntity<AccessTokenResponse> refreshToken(HttpServletRequest request) {
-        AccessTokenResponse accessTokenResponse = authService.refreshAccessToken(request);
-        return ResponseEntity.ok(accessTokenResponse);
-    }
-}
-
-------------------------------------------------------------
-BookChapterController.java
-
-package com.example.my_books_backend.controller;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.book_chapter.BookTableOfContentsResponse;
-import com.example.my_books_backend.service.BookChapterService;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("")
-@RequiredArgsConstructor
-public class BookChapterController {
-    private final BookChapterService bookChapterService;
-
-    @GetMapping("/books/{bookId}/table-of-contents")
-    public ResponseEntity<BookTableOfContentsResponse> getBookTableOfContents(
-            @PathVariable String bookId) {
-        BookTableOfContentsResponse bookTableOfContentsResponse =
-                bookChapterService.getBookTableOfContents(bookId);
-        return ResponseEntity.ok(bookTableOfContentsResponse);
-    }
-}
-
-------------------------------------------------------------
-BookContentPageController.java
-
-package com.example.my_books_backend.controller;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.book_content_page.BookContentPageResponse;
-import com.example.my_books_backend.service.BookContentPageService;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("")
-@RequiredArgsConstructor
-public class BookContentPageController {
-    private final BookContentPageService bookContentPageService;
-
-    @GetMapping("/read/books/{bookId}/chapters/{chapterNumber}/pages/{pageNumber}")
-    public ResponseEntity<BookContentPageResponse> getBookContentPage(@PathVariable String bookId,
-            @PathVariable Integer chapterNumber, @PathVariable Integer pageNumber) {
-        BookContentPageResponse bookContentPageResponse =
-                bookContentPageService.getBookContentPage(bookId, chapterNumber, pageNumber);
-        return ResponseEntity.ok(bookContentPageResponse);
-    }
-}
-
-------------------------------------------------------------
 BookController.java
 
 package com.example.my_books_backend.controller;
+
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -262,415 +37,108 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.my_books_backend.dto.book.BookDetailsResponse;
 import com.example.my_books_backend.dto.book.BookPageResponse;
+import com.example.my_books_backend.dto.book_chapter.BookTableOfContentsResponse;
+import com.example.my_books_backend.dto.book_chapter_page_content.BookChapterPageContentResponse;
+import com.example.my_books_backend.dto.favorite.FavoriteCountsResponse;
+import com.example.my_books_backend.dto.review.ReviewPageResponse;
+import com.example.my_books_backend.dto.review.ReviewResponse;
+import com.example.my_books_backend.dto.review.ReviewCountsResponse;
 import com.example.my_books_backend.service.BookService;
+import com.example.my_books_backend.service.FavoriteService;
+import com.example.my_books_backend.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("")
+@RequestMapping("/books")
 @RequiredArgsConstructor
 public class BookController {
     private final BookService bookService;
-
-    @GetMapping("/books/{bookId}")
-    public ResponseEntity<BookDetailsResponse> getBookDetailsById(@PathVariable String bookId) {
-        BookDetailsResponse bookDetailsResponse = bookService.getBookDetailsById(bookId);
-        return ResponseEntity.ok(bookDetailsResponse);
-    }
-
-    @GetMapping("/books/new-books")
-    public ResponseEntity<BookPageResponse> getNewBooks(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookPageResponse bookPageResponse = bookService.getNewBooks(page, maxResults);
-        return ResponseEntity.ok(bookPageResponse);
-    }
-
-    @GetMapping("/books/search")
-    public ResponseEntity<BookPageResponse> getBookPageByTitle(@RequestParam String q,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookPageResponse bookPageResponse = bookService.getBookPageByTitle(q, page, maxResults);
-        return ResponseEntity.ok(bookPageResponse);
-    }
-
-    @GetMapping("/books/discover")
-    public ResponseEntity<BookPageResponse> getBookPageByGenreId(@RequestParam String genreIds,
-            @RequestParam String condition, @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookPageResponse bookPageResponse =
-                bookService.getBookPageByGenreId(genreIds, condition, page, maxResults);
-        return ResponseEntity.ok(bookPageResponse);
-    }
-}
-
-------------------------------------------------------------
-BookmarkController.java
-
-package com.example.my_books_backend.controller;
-
-import java.net.URI;
-import java.util.List;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
-import com.example.my_books_backend.dto.bookmark.BookmarkRequest;
-import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.service.BookmarkService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("")
-@RequiredArgsConstructor
-public class BookmarkController {
-    private final BookmarkService bookmarkService;
-
-    @GetMapping("/bookmarks/{bookId}")
-    public ResponseEntity<List<BookmarkResponse>> getBookmarksByBookId(@PathVariable String bookId,
-            @AuthenticationPrincipal User user) {
-        List<BookmarkResponse> bookmarkResponses =
-                bookmarkService.getBookmarksByBookId(bookId, user);
-        return ResponseEntity.ok(bookmarkResponses);
-    }
-
-    @GetMapping("/bookmarks")
-    public ResponseEntity<BookmarkPageResponse> getBookmarkPageByUser(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults,
-            @AuthenticationPrincipal User user) {
-        BookmarkPageResponse bookmarkPageResponses =
-                bookmarkService.getBookmarkPageByUser(page, maxResults, user);
-        return ResponseEntity.ok(bookmarkPageResponses);
-    }
-
-    @PostMapping("/bookmarks")
-    public ResponseEntity<BookmarkResponse> createBookmark(
-            @Valid @RequestBody BookmarkRequest request, @AuthenticationPrincipal User user) {
-        BookmarkResponse bookmarkResponse = bookmarkService.createBookmark(request, user);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(bookmarkResponse.getId()).toUri();
-        return ResponseEntity.created(location).body(bookmarkResponse);
-    }
-
-    @PutMapping("/bookmarks/{id}")
-    public ResponseEntity<BookmarkResponse> updateBookmark(@PathVariable Long id,
-            @Valid @RequestBody BookmarkRequest request, @AuthenticationPrincipal User user) {
-        BookmarkResponse bookmarkResponse = bookmarkService.updateBookmark(id, request, user);
-        return ResponseEntity.ok(bookmarkResponse);
-    }
-
-    @DeleteMapping("/bookmarks/{id}")
-    public ResponseEntity<Void> deleteBookmark(@PathVariable Long id,
-            @AuthenticationPrincipal User user) {
-        bookmarkService.deleteBookmark(id, user);
-        return ResponseEntity.noContent().build();
-    }
-}
-
-------------------------------------------------------------
-FavoriteController.java
-
-package com.example.my_books_backend.controller;
-
-import java.net.URI;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.favorite.FavoriteRequest;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.dto.favorite.FavoriteInfoResponse;
-import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
-import com.example.my_books_backend.service.FavoriteService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("")
-@RequiredArgsConstructor
-public class FavoriteController {
+    private final ReviewService reviewService;
     private final FavoriteService favoriteService;
 
-    @GetMapping("/books/{bookId}/favorites/info")
-    public ResponseEntity<FavoriteInfoResponse> getFavoriteInfo(@PathVariable String bookId,
-            @RequestParam(required = false) Long userId) {
-        FavoriteInfoResponse favoriteInfoResponse = favoriteService.getFavoriteInfo(bookId, userId);
-        return ResponseEntity.ok(favoriteInfoResponse);
-    }
-
-    @GetMapping("/favorites/{bookId}")
-    public ResponseEntity<FavoriteResponse> getFavoriteByBookId(@PathVariable String bookId,
-            @AuthenticationPrincipal User user) {
-        FavoriteResponse favoriteResponse = favoriteService.getFavoriteByBookId(bookId, user);
-        return ResponseEntity.ok(favoriteResponse);
-    }
-
-    @GetMapping("/favorites")
-    public ResponseEntity<FavoritePageResponse> getFavoritePageByUser(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults,
-            @AuthenticationPrincipal User user) {
-        FavoritePageResponse favoritePageResponse =
-                favoriteService.getFavoritePageByUser(page, maxResults, user);
-        return ResponseEntity.ok(favoritePageResponse);
-    }
-
-    @PostMapping("/favorites")
-    public ResponseEntity<FavoriteResponse> createFavorite(
-            @Valid @RequestBody FavoriteRequest request, @AuthenticationPrincipal User user) {
-        FavoriteResponse favoriteResponse = favoriteService.createFavorite(request, user);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{bookId}")
-                .buildAndExpand(favoriteResponse.getBookId()).toUri();
-        return ResponseEntity.created(location).body(favoriteResponse);
-    }
-
-    @DeleteMapping("/favorites/{bookId}")
-    public ResponseEntity<Void> deleteFavorite(@PathVariable String bookId,
-            @AuthenticationPrincipal User user) {
-        favoriteService.deleteFavorite(bookId, user);
-        return ResponseEntity.noContent().build();
-    }
-}
-
-------------------------------------------------------------
-GenreController.java
-
-package com.example.my_books_backend.controller;
-
-import java.net.URI;
-import java.util.List;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.genre.GenreRequest;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-import com.example.my_books_backend.service.GenreService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("")
-@RequiredArgsConstructor
-public class GenreController {
-    private final GenreService genreService;
-
-    @GetMapping("/genres")
-    public ResponseEntity<List<GenreResponse>> getAllGenres() {
-        List<GenreResponse> genreResponses = genreService.getAllGenres();
-        return ResponseEntity.ok(genreResponses);
-    }
-
-    @GetMapping("/genres/{id}")
-    public ResponseEntity<GenreResponse> getGenreById(@PathVariable Long id) {
-        GenreResponse genreResponse = genreService.getGenreById(id);
-        return ResponseEntity.ok(genreResponse);
-    }
-
-    @PostMapping("/genres")
-    public ResponseEntity<GenreResponse> createGenre(@Valid @RequestBody GenreRequest request) {
-        GenreResponse genreResponse = genreService.createGenre(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(genreResponse.getId()).toUri();
-        return ResponseEntity.created(location).body(genreResponse);
-    }
-
-    @PutMapping("/genres/{id}")
-    public ResponseEntity<GenreResponse> updateGenre(@PathVariable Long id,
-            @Valid @RequestBody GenreRequest request) {
-        GenreResponse genreResponse = genreService.updateGenre(id, request);
-        return ResponseEntity.ok(genreResponse);
-    }
-
-    @DeleteMapping("/genres/{id}")
-    public ResponseEntity<Void> deleteGenre(@PathVariable Long id) {
-        genreService.deleteGenre(id);
-        return ResponseEntity.noContent().build();
-    }
-}
-
-------------------------------------------------------------
-ReviewController.java
-
-package com.example.my_books_backend.controller;
-
-import java.net.URI;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.review.ReviewPageResponse;
-import com.example.my_books_backend.dto.review.ReviewSummaryResponse;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.dto.review.ReviewRequest;
-import com.example.my_books_backend.dto.review.ReviewResponse;
-import com.example.my_books_backend.dto.review.SelfReviewExistsResponse;
-import com.example.my_books_backend.service.ReviewService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("")
-@RequiredArgsConstructor
-public class ReviewController {
-    private final ReviewService reviewService;
-
-    @GetMapping("/books/{bookId}/reviews")
-    public ResponseEntity<ReviewPageResponse> getReviewPage(@PathVariable String bookId,
+    // 最新の書籍リスト（１０冊分）
+    @GetMapping("/new-releases")
+    public ResponseEntity<BookPageResponse> getLatestBooks(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer maxResults) {
-        ReviewPageResponse reviewPageResponse =
-                reviewService.getReviewPage(bookId, page, maxResults);
-        return ResponseEntity.ok(reviewPageResponse);
+        BookPageResponse response = bookService.getLatestBooks(page, maxResults);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/books/{bookId}/reviews/summary")
-    public ResponseEntity<ReviewSummaryResponse> getReviewSummary(@PathVariable String bookId) {
-        ReviewSummaryResponse reviewSummaryResponse = reviewService.getReviewSummary(bookId);
-        return ResponseEntity.ok(reviewSummaryResponse);
-    }
-
-    @GetMapping("/reviews/self-review-exists/{bookId}")
-    public ResponseEntity<SelfReviewExistsResponse> getSelfReviewExistsByBookId(
-            @PathVariable String bookId, @AuthenticationPrincipal User user) {
-        Boolean exists = reviewService.getSelfReviewExistsByBookId(bookId, user);
-        return ResponseEntity.ok(new SelfReviewExistsResponse(exists));
-    }
-
-    @GetMapping("/reviews/{bookId}")
-    public ResponseEntity<ReviewResponse> getReviewByBookId(@PathVariable String bookId,
-            @AuthenticationPrincipal User user) {
-        ReviewResponse reviewResponse = reviewService.getReviewByBookId(bookId, user);
-        return ResponseEntity.ok(reviewResponse);
-    }
-
-    @GetMapping("/reviews")
-    public ResponseEntity<ReviewPageResponse> getReviewPageByUser(
+    // タイトル検索
+    @GetMapping("/search")
+    public ResponseEntity<BookPageResponse> searchBooksByTitleKeyword(@RequestParam String q,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults,
-            @AuthenticationPrincipal User user) {
-        ReviewPageResponse reviewPageResponse =
-                reviewService.getReviewPageByUser(page, maxResults, user);
-        return ResponseEntity.ok(reviewPageResponse);
+            @RequestParam(required = false) Integer maxResults) {
+        BookPageResponse response = bookService.searchBooksByTitleKeyword(q, page, maxResults);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/reviews")
-    public ResponseEntity<ReviewResponse> createReview(@Valid @RequestBody ReviewRequest request,
-            @AuthenticationPrincipal User user) {
-        ReviewResponse reviewResponse = reviewService.createReview(request, user);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{bookId}")
-                .buildAndExpand(reviewResponse.getBookId()).toUri();
-        return ResponseEntity.created(location).body(reviewResponse);
+    // ジャンル検索
+    @GetMapping("/discover")
+    public ResponseEntity<BookPageResponse> searchBooksByGenre(@RequestParam String genreIds,
+            @RequestParam String condition, @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        BookPageResponse response = bookService.searchBooksByGenre(genreIds, condition, page, maxResults);
+        return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/reviews/{id}")
-    public ResponseEntity<ReviewResponse> updateReview(@PathVariable Long id,
-            @Valid @RequestBody ReviewRequest request, @AuthenticationPrincipal User user) {
-        ReviewResponse reviewResponse = reviewService.updateReview(id, request, user);
-        return ResponseEntity.ok(reviewResponse);
+    // 特定の書籍の詳細
+    @GetMapping("/{bookId}")
+    public ResponseEntity<BookDetailsResponse> getBookDetails(@PathVariable String bookId) {
+        BookDetailsResponse response = bookService.getBookDetails(bookId);
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/reviews/{id}")
-    public ResponseEntity<Void> deleteReview(@PathVariable Long id,
-            @AuthenticationPrincipal User user) {
-        reviewService.deleteReview(id, user);
-        return ResponseEntity.noContent().build();
-    }
-}
-
-------------------------------------------------------------
-RoleController.java
-
-package com.example.my_books_backend.controller;
-
-import java.net.URI;
-import java.util.List;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import com.example.my_books_backend.dto.role.RoleRequest;
-import com.example.my_books_backend.dto.role.RoleResponse;
-import com.example.my_books_backend.service.RoleService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
-@RestController
-@RequestMapping("")
-@RequiredArgsConstructor
-public class RoleController {
-    private final RoleService roleService;
-
-    @GetMapping("/roles")
-    public ResponseEntity<List<RoleResponse>> getAllRoles() {
-        List<RoleResponse> roleResponses = roleService.getAllRoles();
-        return ResponseEntity.ok(roleResponses);
+    // 特定の書籍の目次
+    @GetMapping("/{bookId}/toc")
+    public ResponseEntity<BookTableOfContentsResponse> getBookTableOfContents(
+            @PathVariable String bookId) {
+        BookTableOfContentsResponse response = bookService.getBookTableOfContents(bookId);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/roles/{id}")
-    public ResponseEntity<RoleResponse> getRoleById(@PathVariable Long id) {
-        RoleResponse roleResponse = roleService.getRoleById(id);
-        return ResponseEntity.ok(roleResponse);
+    // 特定の書籍の閲覧ページ
+    @GetMapping("/{bookId}/chapters/{chapterNumber}/pages/{pageNumber}")
+    public ResponseEntity<BookChapterPageContentResponse> getBookChapterPageContent(
+            @PathVariable String bookId, @PathVariable Integer chapterNumber,
+            @PathVariable Integer pageNumber) {
+        BookChapterPageContentResponse response = bookService.getBookChapterPageContent(bookId, chapterNumber,
+                pageNumber);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/roles")
-    public ResponseEntity<RoleResponse> createRole(@Valid @RequestBody RoleRequest request) {
-        RoleResponse roleResponse = roleService.createRole(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(roleResponse.getId()).toUri();
-        return ResponseEntity.created(location).body(roleResponse);
+    // 特定の書籍のレビュー一覧
+    @GetMapping("/{bookId}/reviews")
+    public ResponseEntity<ReviewPageResponse> getBookReviews(@PathVariable String bookId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults) {
+        ReviewPageResponse response = reviewService.getBookReviews(bookId, page, maxResults);
+        return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/roles/{id}")
-    public ResponseEntity<RoleResponse> updateRole(@PathVariable Long id,
-            @Valid @RequestBody RoleRequest request) {
-        RoleResponse roleResponse = roleService.updateRole(id, request);
-        return ResponseEntity.ok(roleResponse);
+    // 特定の書籍のレビュー一覧（カーソル方式）
+    @GetMapping("/{bookId}/reviews/by-cursor")
+    public ResponseEntity<List<ReviewResponse>> getBookReviewsByCursor(@PathVariable String bookId,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) Integer maxResults) {
+        List<ReviewResponse> response = reviewService.getBookReviewsByCursor(bookId, cursorId, maxResults);
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/roles/{id}")
-    public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
-        roleService.deleteRole(id);
-        return ResponseEntity.noContent().build();
+    // 特定の書籍のレビュー数
+    @GetMapping("/{bookId}/reviews/counts")
+    public ResponseEntity<ReviewCountsResponse> getBookReviewCounts(@PathVariable String bookId) {
+        ReviewCountsResponse response = reviewService.getBookReviewCounts(bookId);
+        return ResponseEntity.ok(response);
+    }
+
+    // 特定の書籍のお気に入り数
+    @GetMapping("/{bookId}/favorites/counts")
+    public ResponseEntity<FavoriteCountsResponse> getBookFavoriteCounts(
+            @PathVariable String bookId) {
+        FavoriteCountsResponse response = favoriteService.getBookFavoriteCounts(bookId);
+        return ResponseEntity.ok(response);
     }
 }
 
@@ -681,87 +149,1223 @@ package com.example.my_books_backend.controller;
 
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.user.ProfileCountsResponse;
-import com.example.my_books_backend.dto.user.ChangeEmailRequest;
-import com.example.my_books_backend.dto.user.ChangePasswordRequest;
-import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.dto.user.UserProfileCountsResponse;
+import com.example.my_books_backend.dto.user.UserProfileResponse;
+import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
+import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
+import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
+import com.example.my_books_backend.dto.favorite.FavoriteResponse;
+import com.example.my_books_backend.dto.review.ReviewPageResponse;
+import com.example.my_books_backend.dto.review.ReviewResponse;
+import com.example.my_books_backend.dto.user.UpdateUserEmailRequest;
+import com.example.my_books_backend.dto.user.UpdateUserPasswordRequest;
+import com.example.my_books_backend.dto.user.UpdateUserProfileRequest;
 import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.dto.user.UpdateUserRequest;
+import com.example.my_books_backend.service.BookmarkService;
+import com.example.my_books_backend.service.FavoriteService;
+import com.example.my_books_backend.service.ReviewService;
 import com.example.my_books_backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("")
+@RequestMapping("/me")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final ReviewService reviewService;
+    private final FavoriteService favoriteService;
+    private final BookmarkService bookmarkService;
 
-    @GetMapping("/users")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        List<UserResponse> userResponses = userService.getAllUsers();
-        return ResponseEntity.ok(userResponses);
+    // 自分のプロフィール情報
+    @GetMapping("/profile")
+    public ResponseEntity<UserProfileResponse> getUserProfile(@AuthenticationPrincipal User user) {
+        UserProfileResponse response = userService.getUserProfile(user);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/users/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-        UserResponse userResponse = userService.getUserById(id);
-        return ResponseEntity.ok(userResponse);
+    // 自分のレビュー、お気に入り、ブックマークの数
+    @GetMapping("/profile-counts")
+    public ResponseEntity<UserProfileCountsResponse> getUserProfileCounts(
+            @AuthenticationPrincipal User user) {
+        UserProfileCountsResponse response = userService.getUserProfileCounts(user);
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/users/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    // 自分のレビュー一覧
+    @GetMapping("/reviews")
+    public ResponseEntity<ReviewPageResponse> getUserReviews(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults,
+            @AuthenticationPrincipal User user) {
+        ReviewPageResponse response = reviewService.getUserReviews(page, maxResults, user);
+        return ResponseEntity.ok(response);
+    }
+
+    // 自分のレビュー一覧（カーソル方式）
+    @GetMapping("/reviews/by-cursor")
+    public ResponseEntity<List<ReviewResponse>> getUserReviewsByCursor(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) Integer maxResults,
+            @AuthenticationPrincipal User user) {
+        List<ReviewResponse> response = reviewService.getUserReviewsByCursor(cursorId, maxResults, user);
+        return ResponseEntity.ok(response);
+    }
+
+    // 自分のお気に入り一覧
+    @GetMapping("/favorites")
+    public ResponseEntity<FavoritePageResponse> getUserFavorites(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults,
+            @AuthenticationPrincipal User user) {
+        FavoritePageResponse response = favoriteService.getUserFavorites(page, maxResults, user);
+        return ResponseEntity.ok(response);
+    }
+
+    // 自分のお気に入り一覧（カーソル方式）
+    @GetMapping("/favorites/by-cursor")
+    public ResponseEntity<List<FavoriteResponse>> getUserFavoritesByCursor(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) Integer maxResults,
+            @AuthenticationPrincipal User user) {
+        List<FavoriteResponse> response = favoriteService.getUserFavoritesByCursor(cursorId, maxResults, user);
+        return ResponseEntity.ok(response);
+    }
+
+    // 自分のブックマーク一覧
+    @GetMapping("/bookmarks")
+    public ResponseEntity<BookmarkPageResponse> getUserBookmarks(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer maxResults,
+            @AuthenticationPrincipal User user) {
+        BookmarkPageResponse responses = bookmarkService.getUserBookmarks(page, maxResults, user);
+        return ResponseEntity.ok(responses);
+    }
+
+    // 自分が投稿した特定の書籍のレビュー
+    // （書籍１冊に対して、１つのレビューなので「単数形」）
+    @GetMapping("/books/{bookId}/review")
+    public ResponseEntity<ReviewResponse> getUserReviewForBook(@PathVariable String bookId,
+            @AuthenticationPrincipal User user) {
+        ReviewResponse response = reviewService.getUserReviewForBook(bookId, user);
+        return ResponseEntity.ok(response);
+    }
+
+    // 自分の追加した特定の書籍のお気に入り
+    // （書籍１冊に対して、１つのお気に入りなので「単数形」）
+    @GetMapping("/books/{bookId}/favorite")
+    public ResponseEntity<FavoriteResponse> getUserFavoriteForBook(@PathVariable String bookId,
+            @AuthenticationPrincipal User user) {
+        FavoriteResponse response = favoriteService.getUserFavoriteForBook(bookId, user);
+        return ResponseEntity.ok(response);
+    }
+
+    // 自分の追加した特定の書籍のブックマークリスト
+    // （書籍１冊に対して、複数のブックマークなので「複数形」）
+    @GetMapping("/books/{bookId}/bookmarks")
+    public ResponseEntity<List<BookmarkResponse>> getUserBookmarksForBook(
+            @PathVariable String bookId, @AuthenticationPrincipal User user) {
+        List<BookmarkResponse> responses = bookmarkService.getUserBookmarksForBook(bookId, user);
+        return ResponseEntity.ok(responses);
+    }
+
+    // 自分のプロフィール情報を更新
+    @PutMapping("/profile")
+    public ResponseEntity<Void> updateUserProfile(
+            @Valid @RequestBody UpdateUserProfileRequest request,
+            @AuthenticationPrincipal User user) {
+        userService.updateUserProfile(request, user);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal User user) {
-        UserResponse userResponse = userService.getCurrentUser(user);
-        return ResponseEntity.ok(userResponse);
-    }
-
-    @GetMapping("/me/profile-counts")
-    public ResponseEntity<ProfileCountsResponse> getProfileCounts(
+    // 自分のメールアドレスを更新
+    @PutMapping("/email")
+    public ResponseEntity<Void> updateUserEmail(@Valid @RequestBody UpdateUserEmailRequest request,
             @AuthenticationPrincipal User user) {
-        ProfileCountsResponse profileCountsResponse = userService.getProfileCounts(user);
-        return ResponseEntity.ok(profileCountsResponse);
-    }
-
-    @PutMapping("/me")
-    public ResponseEntity<Void> updateCurrentUser(@Valid @RequestBody UpdateUserRequest request,
-            @AuthenticationPrincipal User user) {
-        userService.updateCurrentUser(request, user);
+        userService.updateUserEmail(request, user);
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/me/email")
-    public ResponseEntity<Void> changeEmail(@Valid @RequestBody ChangeEmailRequest request,
+    // 自分のパスワードを更新
+    @PutMapping("/password")
+    public ResponseEntity<Void> updateUserPassword(
+            @Valid @RequestBody UpdateUserPasswordRequest request,
             @AuthenticationPrincipal User user) {
-        userService.changeEmail(request, user);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/me/password")
-    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request,
-            @AuthenticationPrincipal User user) {
-        userService.changePassword(request, user);
+        userService.updateUserPassword(request, user);
         return ResponseEntity.noContent().build();
     }
 }
 
+------------------------------------------------------------
+BookRepository.java
+
+package com.example.my_books_backend.repository;
+
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import com.example.my_books_backend.entity.Book;
+
+@Repository
+public interface BookRepository extends JpaRepository<Book, String> {
+    Page<Book> findTop10ByOrderByPublicationDateDesc(Pageable pageable);
+
+    Page<Book> findByTitleContaining(String keyword, Pageable pageable);
+
+    Page<Book> findDistinctByGenres_IdIn(List<Long> genreIds, Pageable pageable);
+
+    // 指定されたジャンルIDのリストを取得
+    @Query("""
+            SELECT b FROM Book b
+            JOIN b.genres bg
+            WHERE bg.id IN :genreIds
+            GROUP BY b.id
+            HAVING COUNT(DISTINCT bg.id) = :size
+            """)
+    Page<Book> findByAllGenreIds(@Param("genreIds") List<Long> genreIds, @Param("size") long size,
+            Pageable pageable);
+}
+
+------------------------------------------------------------
+FavoriteRepository.java
+
+package com.example.my_books_backend.repository;
+
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import com.example.my_books_backend.entity.Favorite;
+import com.example.my_books_backend.entity.FavoriteId;
+import com.example.my_books_backend.entity.User;
+
+@Repository
+public interface FavoriteRepository extends JpaRepository<Favorite, FavoriteId> {
+    Page<Favorite> findByUser(User user, Pageable pageable);
+
+    // カーソル方式のページネーション（cursorIdをカーソルとして使用し、updated_atを基準に降順に並べ替える）
+    @Query("""
+            SELECT r FROM Favorite r
+            WHERE (:cursorId IS NULL OR
+                   r.updatedAt < (SELECT r2.updatedAt FROM Favorite r2 WHERE r2.id = :cursorId) OR
+                   (r.updatedAt = (SELECT r2.updatedAt FROM Favorite r2 WHERE r2.id = :cursorId) AND r.id > :cursorId))
+            AND r.user.id = :userId AND r.isDeleted = false
+            ORDER BY r.updatedAt DESC, r.id ASC
+            """)
+    List<Favorite> findFavoritesByUserIdWithCursor(@Param("userId") Long userId, @Param("cursorId") Long cursorId,
+            Pageable pageable);
+
+    List<Favorite> findByBookId(String bookId);
+
+    Integer countByUserId(Long userId);
+}
+
+------------------------------------------------------------
+ReviewRepository.java
+
+package com.example.my_books_backend.repository;
+
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import com.example.my_books_backend.entity.Book;
+import com.example.my_books_backend.entity.Review;
+import com.example.my_books_backend.entity.User;
+
+@Repository
+public interface ReviewRepository extends JpaRepository<Review, Long> {
+    Optional<Review> findByBookIdAndUserAndIsDeletedFalse(String bookId, User user);
+
+    Page<Review> findByUserAndIsDeletedFalse(User user, Pageable pageable);
+
+    // カーソル方式のページネーション（cursorIdをカーソルとして使用し、updated_atを基準に降順に並べ替える）
+    @Query("""
+            SELECT r FROM Review r
+            WHERE (:cursorId IS NULL OR
+                   r.updatedAt < (SELECT r2.updatedAt FROM Review r2 WHERE r2.id = :cursorId) OR
+                   (r.updatedAt = (SELECT r2.updatedAt FROM Review r2 WHERE r2.id = :cursorId) AND r.id > :cursorId))
+            AND r.user.id = :userId AND r.isDeleted = false
+            ORDER BY r.updatedAt DESC, r.id ASC
+            """)
+    List<Review> findReviewsByUserIdWithCursor(@Param("userId") Long userId, @Param("cursorId") Long cursorId,
+            Pageable pageable);
+
+    Page<Review> findByBookIdAndIsDeletedFalse(String bookId, Pageable pageable);
+
+    // カーソル方式のページネーション（cursorIdをカーソルとして使用し、updated_atを基準に降順に並べ替える）
+    @Query("""
+            SELECT r FROM Review r
+            WHERE (:cursorId IS NULL OR
+                   r.updatedAt < (SELECT r2.updatedAt FROM Review r2 WHERE r2.id = :cursorId) OR
+                   (r.updatedAt = (SELECT r2.updatedAt FROM Review r2 WHERE r2.id = :cursorId) AND r.id > :cursorId))
+            AND r.book.id = :bookId AND r.isDeleted = false
+            ORDER BY r.updatedAt DESC, r.id ASC
+            """)
+    List<Review> findReviewsByBookIdWithCursor(@Param("bookId") String bookId, @Param("cursorId") Long cursorId,
+            Pageable pageable);
+
+    List<Review> findByBookIdAndIsDeletedFalse(String bookId);
+
+    Optional<Review> findByUserAndBook(User user, Book book);
+
+    Integer countByUserIdAndIsDeletedFalse(Long userId);
+}
+
+------------------------------------------------------------
+FavoriteServiceImpl.java
+
+package com.example.my_books_backend.service.impl;
+
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.example.my_books_backend.dto.favorite.FavoriteRequest;
+import com.example.my_books_backend.dto.favorite.FavoriteResponse;
+import com.example.my_books_backend.dto.favorite.FavoriteCountsResponse;
+import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
+import com.example.my_books_backend.entity.Book;
+import com.example.my_books_backend.entity.Favorite;
+import com.example.my_books_backend.entity.FavoriteId;
+import com.example.my_books_backend.entity.User;
+import com.example.my_books_backend.exception.NotFoundException;
+import com.example.my_books_backend.mapper.FavoriteMapper;
+import com.example.my_books_backend.repository.BookRepository;
+import com.example.my_books_backend.repository.FavoriteRepository;
+import com.example.my_books_backend.service.FavoriteService;
+import com.example.my_books_backend.util.PaginationUtil;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class FavoriteServiceImpl implements FavoriteService {
+    private final FavoriteRepository favoriteRepository;
+    private final FavoriteMapper favoriteMapper;
+
+    private final BookRepository bookRepository;
+    private final PaginationUtil paginationUtil;
+
+    /** ユーザーが追加したすべてのお気に入り情報のデフォルトソート（作成日） */
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id"));
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FavoriteResponse getUserFavoriteForBook(String bookId, User user) {
+        FavoriteId favoriteId = new FavoriteId(user.getId(), bookId);
+        Favorite favorite = favoriteRepository.findById(favoriteId)
+                .orElseThrow(() -> new NotFoundException("Favorite not found"));
+        return favoriteMapper.toFavoriteResponse(favorite);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FavoritePageResponse getUserFavorites(Integer page, Integer maxResults, User user) {
+        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
+        Page<Favorite> favorites = favoriteRepository.findByUser(user, pageable);
+        return favoriteMapper.toFavoritePageResponse(favorites);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<FavoriteResponse> getUserFavoritesByCursor(Long cursorId, Integer maxResults, User user) {
+        Pageable pageable = paginationUtil.createPageable(0, maxResults, DEFAULT_SORT);
+        List<Favorite> favorites = favoriteRepository.findFavoritesByUserIdWithCursor(user.getId(), cursorId, pageable);
+        return favoriteMapper.toFavoriteResponseList(favorites);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FavoriteCountsResponse getBookFavoriteCounts(String bookId) {
+        List<Favorite> favorites = favoriteRepository.findByBookId(bookId);
+
+        FavoriteCountsResponse response = new FavoriteCountsResponse();
+        response.setBookId(bookId);
+        response.setFavoriteCount(favorites.size());
+
+        return response;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public FavoriteResponse createFavorite(FavoriteRequest request, User user) {
+        Book book = bookRepository.findById(request.getBookId())
+                .orElseThrow(() -> new NotFoundException("Book not found"));
+        FavoriteId favoriteId = new FavoriteId(user.getId(), request.getBookId());
+
+        Favorite favorite = new Favorite();
+        favorite.setId(favoriteId);
+        favorite.setUser(user);
+        favorite.setBook(book);
+
+        Favorite savedFavorite = favoriteRepository.save(favorite);
+        return favoriteMapper.toFavoriteResponse(savedFavorite);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void deleteFavorite(String bookId, User user) {
+        FavoriteId favoriteId = new FavoriteId(user.getId(), bookId);
+        favoriteRepository.deleteById(favoriteId);
+    }
+}
+
+------------------------------------------------------------
+ReviewServiceImpl.java
+
+package com.example.my_books_backend.service.impl;
+
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.example.my_books_backend.dto.review.ReviewPageResponse;
+import com.example.my_books_backend.dto.review.ReviewCountsResponse;
+import com.example.my_books_backend.dto.review.ReviewRequest;
+import com.example.my_books_backend.dto.review.ReviewResponse;
+import com.example.my_books_backend.entity.Book;
+import com.example.my_books_backend.entity.Review;
+import com.example.my_books_backend.entity.User;
+import com.example.my_books_backend.exception.ConflictException;
+import com.example.my_books_backend.exception.ForbiddenException;
+import com.example.my_books_backend.exception.NotFoundException;
+import com.example.my_books_backend.mapper.ReviewMapper;
+import com.example.my_books_backend.repository.BookRepository;
+import com.example.my_books_backend.repository.ReviewRepository;
+import com.example.my_books_backend.service.ReviewService;
+import com.example.my_books_backend.util.PaginationUtil;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ReviewServiceImpl implements ReviewService {
+    private final ReviewRepository reviewRepository;
+    private final ReviewMapper reviewMapper;
+
+    private final BookRepository bookRepository;
+    private final PaginationUtil paginationUtil;
+
+    /** ユーザーが投稿したすべてのレビュー情報のデフォルトソート（作成日） */
+    private static final Sort USER_REVIEWS_DEFAULT_SORT = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id"));
+
+    /** 書籍に対するレビュー一覧のデフォルトソート（更新日） */
+    private static final Sort BOOK_REVIEWS_DEFAULT_SORT = Sort.by(Sort.Order.desc("updatedAt"), Sort.Order.asc("id"));
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ReviewResponse getUserReviewForBook(String bookId, User user) {
+        Review review = reviewRepository.findByBookIdAndUserAndIsDeletedFalse(bookId, user)
+                .orElseThrow(() -> new NotFoundException("Review not found"));
+        return reviewMapper.toReviewResponse(review);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ReviewPageResponse getUserReviews(Integer page, Integer maxResults, User user) {
+        Pageable pageable = paginationUtil.createPageable(page, maxResults, USER_REVIEWS_DEFAULT_SORT);
+        Page<Review> reviews = reviewRepository.findByUserAndIsDeletedFalse(user, pageable);
+        return reviewMapper.toReviewPageResponse(reviews);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ReviewResponse> getUserReviewsByCursor(Long cursorId, Integer maxResults, User user) {
+        Pageable pageable = paginationUtil.createPageable(0, maxResults, USER_REVIEWS_DEFAULT_SORT);
+        List<Review> reviews = reviewRepository.findReviewsByUserIdWithCursor(user.getId(), cursorId, pageable);
+        return reviewMapper.toReviewResponseList(reviews);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ReviewPageResponse getBookReviews(String bookId, Integer page, Integer maxResults) {
+        Pageable pageable = paginationUtil.createPageable(page, maxResults, BOOK_REVIEWS_DEFAULT_SORT);
+        Page<Review> reviews = reviewRepository.findByBookIdAndIsDeletedFalse(bookId, pageable);
+        return reviewMapper.toReviewPageResponse(reviews);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<ReviewResponse> getBookReviewsByCursor(String bookId, Long cursorId, Integer maxResults) {
+        Pageable pageable = paginationUtil.createPageable(0, maxResults, BOOK_REVIEWS_DEFAULT_SORT);
+        List<Review> reviews = reviewRepository.findReviewsByBookIdWithCursor(bookId, cursorId, pageable);
+        return reviewMapper.toReviewResponseList(reviews);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ReviewCountsResponse getBookReviewCounts(String bookId) {
+        List<Review> reviews = reviewRepository.findByBookIdAndIsDeletedFalse(bookId);
+        Double averageRating = reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
+
+        ReviewCountsResponse response = new ReviewCountsResponse();
+        response.setBookId(bookId);
+        response.setReviewCount(reviews.size());
+        response.setAverageRating(averageRating);
+
+        return response;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public ReviewResponse createReview(ReviewRequest request, User user) {
+        Book book = bookRepository.findById(request.getBookId())
+                .orElseThrow(() -> new NotFoundException("Book not found"));
+
+        Optional<Review> existingReview = reviewRepository.findByUserAndBook(user, book);
+
+        Review review = new Review();
+        if (existingReview.isPresent()) {
+            review = existingReview.get();
+            if (review.getIsDeleted()) {
+                review.setIsDeleted(false);
+            } else {
+                throw new ConflictException("すでにこの書籍にはレビューが登録されています。");
+            }
+        }
+        review.setUser(user);
+        review.setBook(book);
+        review.setRating(request.getRating());
+        review.setComment(request.getComment());
+
+        Review savedReview = reviewRepository.save(review);
+        return reviewMapper.toReviewResponse(savedReview);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public ReviewResponse updateReview(Long id, ReviewRequest request, User user) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Review not found"));
+
+        if (!review.getUser().getId().equals(user.getId())) {
+            throw new ForbiddenException("このレビューを編集する権限がありません。");
+        }
+
+        String comment = request.getComment();
+        Double rating = request.getRating();
+
+        if (comment != null) {
+            review.setComment(comment);
+        }
+
+        if (rating != null) {
+            review.setRating(rating);
+        }
+        Review savedReview = reviewRepository.save(review);
+        return reviewMapper.toReviewResponse(savedReview);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void deleteReview(Long id, User user) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Review not found"));
+
+        if (!review.getUser().getId().equals(user.getId())) {
+            throw new ForbiddenException("このレビューを削除する権限がありません");
+        }
+
+        review.setIsDeleted(true);
+        reviewRepository.save(review);
+    }
+}
+
+------------------------------------------------------------
+AuthService.java
+
+package com.example.my_books_backend.service;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Service;
+import com.example.my_books_backend.dto.auth.LoginRequest;
+import com.example.my_books_backend.dto.auth.SignupRequest;
+import com.example.my_books_backend.dto.auth.AccessTokenResponse;
+import com.example.my_books_backend.dto.user.CreateUserRequest;
+import com.example.my_books_backend.entity.User;
+import com.example.my_books_backend.exception.ConflictException;
+import com.example.my_books_backend.exception.UnauthorizedException;
+import com.example.my_books_backend.exception.ValidationException;
+import com.example.my_books_backend.repository.UserRepository;
+import com.example.my_books_backend.service.impl.UserDetailsServiceImpl;
+import com.example.my_books_backend.util.JwtUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final UserDetailsServiceImpl userDetailsService;
+    private final JwtUtil jwtUtil;
+
+    /**
+     * ユーザーのログイン処理 メールアドレスとパスワードを検証し、認証成功時にアクセストークンとリフレッシュトークンを発行する。
+     * リフレッシュトークンはCookieとして設定。
+     * 
+     * @param request  ログインリクエスト（メールアドレスとパスワードを含む）
+     * @param response HTTPレスポンス（Cookieの設定に使用）
+     * @return アクセストークンを含むレスポンス
+     */
+    public AccessTokenResponse login(LoginRequest request, HttpServletResponse response) {
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    request.getEmail(), request.getPassword()));
+        } catch (AuthenticationException e) {
+            throw new UnauthorizedException("ログインに失敗しました。メールアドレスまたはパスワードが無効です。");
+        }
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        User user = (User) authentication.getPrincipal();
+
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        Cookie refreshTokenCookie = jwtUtil.createRefreshTokenCookie(refreshToken);
+        response.addCookie(refreshTokenCookie);
+
+        return new AccessTokenResponse(accessToken);
+    }
+
+    /**
+     * 新規ユーザーのサインアップ処理 ユーザー情報を検証し、新規ユーザーを作成した後、アクセストークンとリフレッシュトークンを発行する。
+     * リフレッシュトークンはCookieとして設定。
+     * 
+     * @param request  サインアップリクエスト（メールアドレス、パスワード、名前、アバターパスを含む）
+     * @param response HTTPレスポンス（Cookieの設定に使用）
+     * @return アクセストークンを含むレスポンス
+     */
+    public AccessTokenResponse signup(SignupRequest request, HttpServletResponse response) {
+        String email = request.getEmail();
+        String password = request.getPassword();
+        String name = request.getName();
+        String avatarPath = request.getAvatarPath();
+
+        if (userRepository.existsByEmail(email)) {
+            throw new ConflictException("サインアップに失敗しました。このメールアドレスは既に登録されています。: " + email);
+        }
+
+        CreateUserRequest createUserRequest = new CreateUserRequest();
+        createUserRequest.setEmail(email);
+        createUserRequest.setPassword(password);
+        createUserRequest.setName(name);
+        createUserRequest.setAvatarPath(avatarPath);
+
+        User user = userService.createUser(createUserRequest);
+
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        Cookie refreshTokenCookie = jwtUtil.createRefreshTokenCookie(refreshToken);
+        response.addCookie(refreshTokenCookie);
+
+        return new AccessTokenResponse(accessToken);
+    }
+
+    /**
+     * ユーザーのログアウト処理 リフレッシュトークンを無効化するためのCookieを設定。
+     * 
+     * @param response HTTPレスポンス（Cookieの設定に使用）
+     */
+    public void logout(HttpServletResponse response) {
+        Cookie cookie = jwtUtil.getInvalidateRefreshTokenCookie();
+        response.addCookie(cookie);
+    }
+
+    /**
+     * リフレッシュトークンを使用して新しいアクセストークンを発行。 リフレッシュトークンを検証し、有効な場合は新しいアクセストークンを返す。
+     * 同時に認証コンテキストも更新。
+     * 
+     * @param request HTTPリクエスト（リフレッシュトークンの取得に使用）
+     * @return 新しいアクセストークンを含むレスポンス
+     */
+    public AccessTokenResponse refreshAccessToken(HttpServletRequest request) {
+        String refreshToken = jwtUtil.getRefreshTokenFromCookie(request);
+
+        if (refreshToken == null || !jwtUtil.validateToken(refreshToken)) {
+            throw new ValidationException("リフレッシュトークンが無効です。");
+        }
+
+        String email = jwtUtil.getSubjectFromToken(refreshToken);
+        User user = (User) userDetailsService.loadUserByUsername(email);
+
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null,
+                user.getAuthorities());
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String accessToken = jwtUtil.generateAccessToken(user);
+        return new AccessTokenResponse(accessToken);
+    }
+}
+
+------------------------------------------------------------
+BookmarkService.java
+
+package com.example.my_books_backend.service;
+
+import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
+import com.example.my_books_backend.dto.bookmark.BookmarkRequest;
+import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
+import com.example.my_books_backend.entity.User;
+import java.util.List;
+
+public interface BookmarkService {
+    /**
+     * ユーザーが追加した特定の書籍のブックマークリストを取得
+     * 
+     * @param bookId 書籍ID
+     * @param user   ユーザーエンティティ
+     * @return ブックマークリスト
+     */
+    List<BookmarkResponse> getUserBookmarksForBook(String bookId, User user);
+
+    /**
+     * ユーザーが追加したすべてのブックマークを取得（ページング形式）
+     * 
+     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
+     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
+     * @param user       ユーザーエンティティ
+     * @return ブックマークリスト
+     */
+    BookmarkPageResponse getUserBookmarks(Integer page, Integer maxResults, User user);
+
+    /**
+     * ブックマークを作成
+     * 
+     * @param request ブックマーク作成リクエスト
+     * @param user    ユーザーエンティティ
+     * @return 作成されたブックマーク情報
+     */
+    BookmarkResponse createBookmark(BookmarkRequest request, User user);
+
+    /**
+     * ブックマークを更新
+     * 
+     * @param id      更新するブックマークのID
+     * @param request ブックマーク更新リクエスト
+     * @param user    ユーザーエンティティ
+     * @return 更新されたブックマーク情報
+     */
+    BookmarkResponse updateBookmark(Long id, BookmarkRequest request, User user);
+
+    /**
+     * ブックマークを削除
+     * 
+     * @param id   削除するブックマークのID
+     * @param user ユーザーエンティティ
+     */
+    void deleteBookmark(Long id, User user);
+}
+
+------------------------------------------------------------
+BookService.java
+
+package com.example.my_books_backend.service;
+
+import com.example.my_books_backend.dto.book.BookDetailsResponse;
+import com.example.my_books_backend.dto.book.BookPageResponse;
+import com.example.my_books_backend.dto.book_chapter.BookTableOfContentsResponse;
+import com.example.my_books_backend.dto.book_chapter_page_content.BookChapterPageContentResponse;
+
+public interface BookService {
+    /**
+     * 最新の書籍リスト（１０冊分）を取得（ページング形式）
+     * 
+     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
+     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
+     * @return 最新の書籍リスト
+     */
+    BookPageResponse getLatestBooks(Integer page, Integer maxResults);
+
+    /**
+     * タイトルで書籍を検索したリストを取得（ページング形式）
+     * 
+     * @param keyword    検索キーワード
+     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
+     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
+     * @return 検索結果
+     */
+    BookPageResponse searchBooksByTitleKeyword(String keyword, Integer page, Integer maxResults);
+
+    /**
+     * ジャンルIDで書籍を検索したリストを取得（ページング形式）
+     * 
+     * @param genreIdsQuery  カンマ区切りのジャンルIDリスト（例："1,2,3"）
+     * @param conditionQuery 検索条件（"SINGLE"、"AND"、"OR"のいずれか）
+     * @param page           ページ番号（0ベース）、nullの場合はデフォルト値が使用される
+     * @param maxResults     1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
+     * @return 検索結果
+     */
+    BookPageResponse searchBooksByGenre(String genreIdsQuery, String conditionQuery, Integer page,
+            Integer maxResults);
+
+    /**
+     * 指定された書籍の詳細情報を取得
+     * 
+     * @param bookId 書籍ID
+     * @return 書籍の詳細情報
+     */
+    BookDetailsResponse getBookDetails(String bookId);
+
+    /**
+     * 指定された書籍の目次情報（章のリスト）を取得
+     * 
+     * @param bookId 書籍ID
+     * @return 書籍の目次情報
+     */
+    BookTableOfContentsResponse getBookTableOfContents(String bookId);
+
+    /**
+     * 指定された書籍の特定の章・ページのコンテンツを取得
+     * 
+     * @param bookId        書籍ID
+     * @param chapterNumber 章番号
+     * @param pageNumber    ページ番号
+     * @return 書籍のコンテンツ情報
+     */
+    BookChapterPageContentResponse getBookChapterPageContent(String bookId, Integer chapterNumber,
+            Integer pageNumber);
+}
+
+------------------------------------------------------------
+FavoriteService.java
+
+package com.example.my_books_backend.service;
+
+import com.example.my_books_backend.dto.favorite.FavoriteRequest;
+import com.example.my_books_backend.dto.favorite.FavoriteResponse;
+import com.example.my_books_backend.entity.User;
+
+import java.util.List;
+
+import com.example.my_books_backend.dto.favorite.FavoriteCountsResponse;
+import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
+
+public interface FavoriteService {
+    /**
+     * ユーザーが追加した特定の書籍のお気に入りを取得
+     * 
+     * @param bookId 書籍ID
+     * @param user   ユーザーエンティティ
+     * @return お気に入り情報
+     */
+    FavoriteResponse getUserFavoriteForBook(String bookId, User user);
+
+    /**
+     * ユーザーが追加したすべてのお気に入りを取得（ページング形式）
+     * 
+     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
+     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
+     * @param user       ユーザーエンティティ
+     * @return お気に入りリスト
+     */
+    FavoritePageResponse getUserFavorites(Integer page, Integer maxResults, User user);
+
+    /**
+     * ユーザーが追加したすべてのお気に入りを取得（カーソル方式で取得）
+     * 
+     * @param cursorId   カーソルID（レビューID）、nullの場合は先頭からmaxResults分のデータが返却される
+     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
+     * @return お気に入りリスト
+     */
+    List<FavoriteResponse> getUserFavoritesByCursor(Long cursorId, Integer maxResults, User user);
+
+    /**
+     * 書籍に対するお気に入り数を取得
+     * 
+     * @param bookId 書籍ID
+     * @return お気に入り数
+     */
+    FavoriteCountsResponse getBookFavoriteCounts(String bookId);
+
+    /**
+     * お気に入りを作成
+     * 
+     * @param request お気に入り作成リクエスト
+     * @param user    ユーザーエンティティ
+     * @return 作成されたお気に入り情報
+     */
+    FavoriteResponse createFavorite(FavoriteRequest request, User user);
+
+    /**
+     * お気に入りを削除
+     * 
+     * @param id   削除するお気に入りのID
+     * @param user ユーザーエンティティ
+     */
+    void deleteFavorite(String bookId, User user);
+}
+
+------------------------------------------------------------
+GenreService.java
+
+package com.example.my_books_backend.service;
+
+import java.util.List;
+import com.example.my_books_backend.dto.genre.GenreRequest;
+import com.example.my_books_backend.dto.genre.GenreResponse;
+
+public interface GenreService {
+    /**
+     * すべてのジャンルを取得
+     * 
+     * @return ジャンルリスト
+     */
+    List<GenreResponse> getAllGenres();
+
+    /**
+     * 指定されたジャンルを取得
+     * 
+     * @param id ジャンルID
+     * @return ジャンル
+     */
+    GenreResponse getGenreById(Long id);
+
+    /**
+     * ジャンルを作成
+     * 
+     * @param request ジャンル作成リクエスト
+     * @return 作成されたジャンル情報
+     */
+    GenreResponse createGenre(GenreRequest request);
+
+    /**
+     * ジャンルを更新
+     * 
+     * @param id      更新するジャンルのID
+     * @param request ジャンル更新リクエスト
+     * @return 更新されたジャンル情報
+     */
+    GenreResponse updateGenre(Long id, GenreRequest request);
+
+    /**
+     * ジャンルを削除
+     * 
+     * @param id 削除するジャンルのID
+     */
+    void deleteGenre(Long id);
+}
+
+------------------------------------------------------------
+ReviewService.java
+
+package com.example.my_books_backend.service;
+
+import com.example.my_books_backend.dto.review.ReviewPageResponse;
+
+import java.util.List;
+
+import com.example.my_books_backend.dto.review.ReviewCountsResponse;
+import com.example.my_books_backend.entity.User;
+import com.example.my_books_backend.dto.review.ReviewRequest;
+import com.example.my_books_backend.dto.review.ReviewResponse;
+
+public interface ReviewService {
+    /**
+     * ユーザーが投稿した特定の書籍のレビューを取得
+     * 
+     * @param bookId 書籍ID
+     * @param user   ユーザーエンティティ
+     * @return レビュー情報
+     */
+    ReviewResponse getUserReviewForBook(String bookId, User user);
+
+    /**
+     * ユーザーが投稿したすべてのレビューを取得（ページング形式）
+     * 
+     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
+     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
+     * @param user       ユーザーエンティティ
+     * @return レビューリスト
+     */
+    ReviewPageResponse getUserReviews(Integer page, Integer maxResults, User user);
+
+    /**
+     * ユーザーが投稿したすべてのレビューを取得（カーソル方式で取得）
+     * 
+     * @param bookId     書籍ID
+     * @param cursorId   カーソルID（レビューID）、nullの場合は先頭からmaxResults分のデータが返却される
+     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
+     * @return レビューリスト
+     */
+    List<ReviewResponse> getUserReviewsByCursor(Long cursorId, Integer maxResults, User user);
+
+    /**
+     * 書籍に対するレビューリストを取得（ページング形式）
+     * 
+     * @param bookId     書籍ID
+     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
+     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
+     * @return レビューリスト
+     */
+    ReviewPageResponse getBookReviews(String bookId, Integer page, Integer maxResults);
+
+    /**
+     * 書籍に対するレビューリストを取得（カーソル方式で取得）
+     * 
+     * @param bookId     書籍ID
+     * @param cursorId   カーソルID（レビューID）、nullの場合は先頭からmaxResults分のデータが返却される
+     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
+     * @return レビューリスト
+     */
+    List<ReviewResponse> getBookReviewsByCursor(String bookId, Long cursorId, Integer maxResults);
+
+    /**
+     * 書籍に対するレビュー数などを取得 （レビュー数・平均評価点）
+     * 
+     * @param bookId 書籍ID
+     * @return レビュー数など
+     */
+    ReviewCountsResponse getBookReviewCounts(String bookId);
+
+    /**
+     * レビューを作成
+     * 
+     * @param request レビュー作成リクエスト
+     * @param user    ユーザーエンティティ
+     * @return 作成されたレビュー情報
+     */
+    ReviewResponse createReview(ReviewRequest request, User user);
+
+    /**
+     * レビューを更新
+     * 
+     * @param id      更新するレビューのID
+     * @param request レビュー更新リクエスト
+     * @param user    ユーザーエンティティ
+     * @return 更新されたレビュー情報
+     */
+    ReviewResponse updateReview(Long id, ReviewRequest request, User user);
+
+    /**
+     * レビューを削除
+     * 
+     * @param id   削除するレビューのID
+     * @param user ユーザーエンティティ
+     */
+    void deleteReview(Long id, User user);
+}
+
+------------------------------------------------------------
+RoleService.java
+
+package com.example.my_books_backend.service;
+
+import java.util.List;
+import com.example.my_books_backend.dto.role.RoleRequest;
+import com.example.my_books_backend.dto.role.RoleResponse;
+
+public interface RoleService {
+    /**
+     * すべてのロールを取得
+     * 
+     * @return ロールリスト
+     */
+    List<RoleResponse> getAllRoles();
+
+    /**
+     * 指定されたロールを取得
+     * 
+     * @param id ロールID
+     * @return ロール
+     */
+    RoleResponse getRoleById(Long id);
+
+    /**
+     * ロールを作成
+     * 
+     * @param request ロール作成リクエスト
+     * @return 作成されたロール情報
+     */
+    RoleResponse createRole(RoleRequest request);
+
+    /**
+     * ロールを更新
+     * 
+     * @param id      更新するロールのID
+     * @param request ロール更新リクエスト
+     * @return 更新されたロール情報
+     */
+    RoleResponse updateRole(Long id, RoleRequest request);
+
+    /**
+     * ロールを削除
+     * 
+     * @param id 削除するロールのID
+     */
+    void deleteRole(Long id);
+}
+
+------------------------------------------------------------
+UserService.java
+
+package com.example.my_books_backend.service;
+
+import java.util.List;
+import java.util.Optional;
+import com.example.my_books_backend.dto.user.UpdateUserEmailRequest;
+import com.example.my_books_backend.dto.user.UpdateUserPasswordRequest;
+import com.example.my_books_backend.dto.user.CreateUserRequest;
+import com.example.my_books_backend.dto.user.UserProfileCountsResponse;
+import com.example.my_books_backend.dto.user.UserProfileResponse;
+import com.example.my_books_backend.dto.user.UserResponse;
+import com.example.my_books_backend.dto.user.UpdateUserProfileRequest;
+import com.example.my_books_backend.entity.User;
+
+public interface UserService {
+    /**
+     * メールアドレスを使用してユーザーを検索
+     * 
+     * @param email 検索するユーザーのメールアドレス
+     * @return 一致するユーザーが存在する場合はそのユーザーを含むOptional、 存在しない場合は空のOptional
+     */
+    Optional<User> findByEmail(String email);
+
+    /**
+     * すべてのユーザーを取得 （主に管理者向けの機能）
+     * 
+     * @return ユーザーリスト
+     */
+    List<UserResponse> getAllUsers();
+
+    /**
+     * 指定されたユーザーを取得
+     * 
+     * @param id ユーザーID
+     * @return ユーザー
+     */
+    UserResponse getUserById(Long id);
+
+    /**
+     * ユーザーを作成
+     * 
+     * @param request ユーザー作成リクエスト
+     * @return 作成されたユーザー情報
+     */
+    User createUser(CreateUserRequest request);
+
+    /**
+     * ユーザーを削除
+     * 
+     * @param id 削除するユーザーのID
+     */
+    void deleteUser(Long id);
+
+    /**
+     * ユーザーのプロフィール情報を取得
+     * 
+     * @param user ユーザーエンティティ
+     * @return ユーザープロフィール情報
+     */
+    UserProfileResponse getUserProfile(User user);
+
+    /**
+     * ユーザーのプロフィール情報のレビュー、お気に入り、ブックマークの数を取得
+     * 
+     * @param user ユーザーエンティティ
+     * @return レビュー、お気に入り、ブックマークの数
+     */
+    UserProfileCountsResponse getUserProfileCounts(User user);
+
+    /**
+     * ユーザーのプロフィール情報を更新
+     * 
+     * @param request ユーザープロフィール更新リクエスト
+     * @param user    ユーザーエンティティ
+     */
+    void updateUserProfile(UpdateUserProfileRequest request, User user);
+
+    /**
+     * ユーザーのメールアドレスを更新
+     * 
+     * @param request ユーザーメールアドレス更新リクエスト
+     * @param user    ユーザーエンティティ
+     */
+    void updateUserEmail(UpdateUserEmailRequest request, User user);
+
+    /**
+     * ユーザーのパスワードを更新
+     * 
+     * @param request ユーザーパスワード更新リクエスト
+     * @param user    ユーザーエンティティ
+     */
+    void updateUserPassword(UpdateUserPasswordRequest request, User user);
+}
+
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
 ------------------------------------------------------------
