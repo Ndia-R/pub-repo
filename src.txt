@@ -1,53 +1,177 @@
-１６ファイル
-------------------------------------------------------------
-SecurityEndpointsConfig.java
 
-package com.example.my_books_backend.config;
 
+# 要望内容
+
+1. 書籍検索アプリのバックエンドをSpring Bootで実装している。
+2. 書籍を評価点順に並び替えたい。
+3. リポジトリのJPA的な記述ではうまくいかないため、どのように実装すればよいか。
+4. エンドポイントの指定として以下のようなURLが動作することを確認したい
+
+- https://xxx.com/api/v1/books/search?q=タイトル&sort=rating.DESC
+- https://xxx.com/api/v1/books/search?q=タイトル&sort=title.ASC
+- https://xxx.com/api/v1/books/search?q=タイトル&sort=updatedAt.DESC
+
+5. 全体のデータをソートした後にページングを適用すること。
+
+# 現在の実装
+
+- リポジトリ：BookRepository.javaにカスタムクエリを追加している。
+- サービス：BookService.javaでデータを取得し、DTOに変換している。
+- コントローラー：BookController.javaでサービスを呼び出して結果を返している。
+- ページネーションUtil：PageableUtil.javaで評価点順のソートをサポートしている。
+
+# 目標
+
+- 全体のデータをソートした後にページングを適用する。
+- 評価点順のソートをサポートしつつ、他のフィールドでのソートも可能にする。
+
+
+以下、実装内容です。
+
+
+エンティティ
+--------------------------------------------------------------------------------
+package com.example.my_books_backend.entity;
+
+import java.sql.Date;
 import java.util.List;
-import java.util.Arrays;
-import org.springframework.stereotype.Component;
+import com.example.my_books_backend.entity.shared.EntityBase;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-@Component
-public class SecurityEndpointsConfig {
+@Entity
+@Table(name = "books")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class Book extends EntityBase {
+    @Id
+    @Column(name = "id", nullable = false)
+    private String id;
 
-    public List<String> getFullyPublicEndpoints() {
-        return Arrays.asList("/login", "/signup", "/logout", "/refresh-token", "/v3/api-docs/**", "/swagger-ui/**",
-                "/swagger-ui.html");
+    @Column(name = "title", nullable = false)
+    private String title;
+
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
+    private String description;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id"))
+    private List<Genre> genres;
+
+    @Column(name = "authors", nullable = false)
+    private String authors;
+
+    @Column(name = "publisher", nullable = false)
+    private String publisher;
+
+    @Column(name = "publication_date", nullable = false)
+    private Date publicationDate;
+
+    @Column(name = "price", nullable = false)
+    private Integer price;
+
+    @Column(name = "page_count", nullable = false)
+    private Integer pageCount;
+
+    @Column(name = "isbn", nullable = false)
+    private String isbn;
+
+    @Column(name = "image_path")
+    private String imagePath;
+
+    @OneToMany(mappedBy = "book")
+    private List<Review> reviews;
+
+    @OneToMany(mappedBy = "book")
+    private List<Favorite> favorites;
+
+    @OneToMany(mappedBy = "book")
+    private List<Bookmark> bookmarks;
+}
+```
+
+DTO
+--------------------------------------------------------------------------------
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class BookResponse {
+    private String id;
+    private String title;
+    private String description;
+    private List<Long> genreIds;
+    private List<String> authors;
+    private Date publicationDate;
+    private String imagePath;
+    private Integer reviewCount;
+    private Double averageRating;
+}
+
+リポジトリ
+--------------------------------------------------------------------------------
+
+@Repository
+public interface BookRepository extends JpaRepository<Book, String> {
+    @Query("SELECT b, AVG(r.rating) as avgRating, COUNT(r) as reviewCount " +
+           "FROM Book b LEFT JOIN b.reviews r " +
+           "WHERE b.title LIKE %:keyword% AND b.isDeleted = false " +
+           "GROUP BY b.id " +
+           "ORDER BY avgRating DESC")
+    Page<Object[]> findByTitleContainingAndIsDeletedFalseOrderByRatingDesc(@Param("keyword") String keyword, Pageable pageable);
+}
+
+サービス
+--------------------------------------------------------------------------------
+@Service
+@RequiredArgsConstructor
+public class BookService {
+    private final BookRepository bookRepository;
+
+    public PageResponse<BookResponse> getBooksByTitleKeyword(String keyword, Pageable pageable) {
+        Page<Object[]> booksPage = bookRepository.findByTitleContainingAndIsDeletedFalseOrderByRatingDesc(keyword, pageable);
+
+        List<BookResponse> bookResponses = booksPage.getContent().stream()
+                .map(this::convertToBookResponse)
+                .collect(Collectors.toList());
+
+        return new PageResponse<>(bookResponses, booksPage.getNumber(), booksPage.getSize(), booksPage.getTotalElements());
     }
 
-    // 以下はGETだけ認証なしのエンドポイントとする
-    public List<String> getPublicGetEndpoints() {
-        return Arrays.asList("/genres/**", "/books/**");
+    private BookResponse convertToBookResponse(Object[] result) {
+        Book book = (Book) result[0];
+        Double averageRating = (Double) result[1];
+        Long reviewCount = (Long) result[2];
+
+        return new BookResponse(
+                book.getId(),
+                book.getTitle(),
+                book.getDescription(),
+                book.getGenres().stream().map(Genre::getId).collect(Collectors.toList()),
+                Arrays.asList(book.getAuthors().split(",")),
+                book.getPublicationDate(),
+                book.getImagePath(),
+                reviewCount.intValue(),
+                averageRating
+        );
     }
 }
 
-------------------------------------------------------------
-BookController.java
-
-package com.example.my_books_backend.controller;
-
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.book.BookDetailsResponse;
-import com.example.my_books_backend.dto.book.BookPageResponse;
-import com.example.my_books_backend.dto.book_chapter.BookTableOfContentsResponse;
-import com.example.my_books_backend.dto.book_chapter_page_content.BookChapterPageContentResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteCountsResponse;
-import com.example.my_books_backend.dto.review.ReviewPageResponse;
-import com.example.my_books_backend.dto.review.ReviewResponse;
-import com.example.my_books_backend.dto.review.ReviewCountsResponse;
-import com.example.my_books_backend.service.BookService;
-import com.example.my_books_backend.service.FavoriteService;
-import com.example.my_books_backend.service.ReviewService;
-import lombok.RequiredArgsConstructor;
-
+コントローラー
+--------------------------------------------------------------------------------
 @RestController
 @RequestMapping("/books")
 @RequiredArgsConstructor
@@ -55,1318 +179,536 @@ public class BookController {
     private final BookService bookService;
     private final ReviewService reviewService;
     private final FavoriteService favoriteService;
-
-    // 最新の書籍リスト（１０冊分）
-    @GetMapping("/new-releases")
-    public ResponseEntity<BookPageResponse> getLatestBooks(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookPageResponse response = bookService.getLatestBooks(page, maxResults);
-        return ResponseEntity.ok(response);
-    }
+    
+    private static final int DEFAULT_BOOKS_PAGE_SIZE = 20;
 
     // タイトル検索
     @GetMapping("/search")
-    public ResponseEntity<BookPageResponse> searchBooksByTitleKeyword(@RequestParam String q,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookPageResponse response = bookService.searchBooksByTitleKeyword(q, page, maxResults);
-        return ResponseEntity.ok(response);
-    }
-
-    // ジャンル検索
-    @GetMapping("/discover")
-    public ResponseEntity<BookPageResponse> searchBooksByGenre(@RequestParam String genreIds,
-            @RequestParam String condition, @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        BookPageResponse response = bookService.searchBooksByGenre(genreIds, condition, page, maxResults);
-        return ResponseEntity.ok(response);
-    }
-
-    // 特定の書籍の詳細
-    @GetMapping("/{bookId}")
-    public ResponseEntity<BookDetailsResponse> getBookDetails(@PathVariable String bookId) {
-        BookDetailsResponse response = bookService.getBookDetails(bookId);
-        return ResponseEntity.ok(response);
-    }
-
-    // 特定の書籍の目次
-    @GetMapping("/{bookId}/toc")
-    public ResponseEntity<BookTableOfContentsResponse> getBookTableOfContents(
-            @PathVariable String bookId) {
-        BookTableOfContentsResponse response = bookService.getBookTableOfContents(bookId);
-        return ResponseEntity.ok(response);
-    }
-
-    // 特定の書籍の閲覧ページ
-    @GetMapping("/{bookId}/chapters/{chapterNumber}/pages/{pageNumber}")
-    public ResponseEntity<BookChapterPageContentResponse> getBookChapterPageContent(
-            @PathVariable String bookId, @PathVariable Integer chapterNumber,
-            @PathVariable Integer pageNumber) {
-        BookChapterPageContentResponse response = bookService.getBookChapterPageContent(bookId, chapterNumber,
-                pageNumber);
-        return ResponseEntity.ok(response);
-    }
-
-    // 特定の書籍のレビュー一覧
-    @GetMapping("/{bookId}/reviews")
-    public ResponseEntity<ReviewPageResponse> getBookReviews(@PathVariable String bookId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults) {
-        ReviewPageResponse response = reviewService.getBookReviews(bookId, page, maxResults);
-        return ResponseEntity.ok(response);
-    }
-
-    // 特定の書籍のレビュー一覧（カーソル方式）
-    @GetMapping("/{bookId}/reviews/by-cursor")
-    public ResponseEntity<List<ReviewResponse>> getBookReviewsByCursor(@PathVariable String bookId,
-            @RequestParam(required = false) Long cursorId,
-            @RequestParam(required = false) Integer maxResults) {
-        List<ReviewResponse> response = reviewService.getBookReviewsByCursor(bookId, cursorId, maxResults);
-        return ResponseEntity.ok(response);
-    }
-
-    // 特定の書籍のレビュー数
-    @GetMapping("/{bookId}/reviews/counts")
-    public ResponseEntity<ReviewCountsResponse> getBookReviewCounts(@PathVariable String bookId) {
-        ReviewCountsResponse response = reviewService.getBookReviewCounts(bookId);
-        return ResponseEntity.ok(response);
-    }
-
-    // 特定の書籍のお気に入り数
-    @GetMapping("/{bookId}/favorites/counts")
-    public ResponseEntity<FavoriteCountsResponse> getBookFavoriteCounts(
-            @PathVariable String bookId) {
-        FavoriteCountsResponse response = favoriteService.getBookFavoriteCounts(bookId);
+    public ResponseEntity<PageResponse<BookResponse>> getBooksByTitleKeyword(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = DEFAULT_BOOKS_PAGE_SIZE) int size,
+            @RequestParam(defaultValue = "title.ASC") String sort) {
+        
+        Pageable pageable = PageableUtil.createPageable(page, size, sort);
+        PageResponse<BookResponse> response = bookService.getBooksByTitleKeyword(q, pageable);
         return ResponseEntity.ok(response);
     }
 }
 
-------------------------------------------------------------
-UserController.java
+ページネーションUtil
+--------------------------------------------------------------------------------
 
-package com.example.my_books_backend.controller;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
+import java.util.Arrays;
 import java.util.List;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import com.example.my_books_backend.dto.user.UserProfileCountsResponse;
-import com.example.my_books_backend.dto.user.UserProfileResponse;
-import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
-import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
-import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.review.ReviewPageResponse;
-import com.example.my_books_backend.dto.review.ReviewResponse;
-import com.example.my_books_backend.dto.user.UpdateUserEmailRequest;
-import com.example.my_books_backend.dto.user.UpdateUserPasswordRequest;
-import com.example.my_books_backend.dto.user.UpdateUserProfileRequest;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.service.BookmarkService;
-import com.example.my_books_backend.service.FavoriteService;
-import com.example.my_books_backend.service.ReviewService;
-import com.example.my_books_backend.service.UserService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.util.stream.Collectors;
 
-@RestController
-@RequestMapping("/me")
-@RequiredArgsConstructor
-public class UserController {
-    private final UserService userService;
-    private final ReviewService reviewService;
-    private final FavoriteService favoriteService;
-    private final BookmarkService bookmarkService;
+public class PageableUtil {
 
-    // 自分のプロフィール情報
-    @GetMapping("/profile")
-    public ResponseEntity<UserProfileResponse> getUserProfile(@AuthenticationPrincipal User user) {
-        UserProfileResponse response = userService.getUserProfile(user);
-        return ResponseEntity.ok(response);
-    }
+    private static final List<String> ALLOWED_FIELDS = Arrays.asList("title", "updatedAt", "createdAt", "population", "rating");
 
-    // 自分のレビュー、お気に入り、ブックマークの数
-    @GetMapping("/profile-counts")
-    public ResponseEntity<UserProfileCountsResponse> getUserProfileCounts(
-            @AuthenticationPrincipal User user) {
-        UserProfileCountsResponse response = userService.getUserProfileCounts(user);
-        return ResponseEntity.ok(response);
-    }
+    public static Pageable createPageable(int page, int size, String sort) {
+        String[] sortParams = sort.split("\\.");
+        if (sortParams.length != 2) {
+            throw new IllegalArgumentException("Invalid sort parameter");
+        }
 
-    // 自分のレビュー一覧
-    @GetMapping("/reviews")
-    public ResponseEntity<ReviewPageResponse> getUserReviews(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults,
-            @AuthenticationPrincipal User user) {
-        ReviewPageResponse response = reviewService.getUserReviews(page, maxResults, user);
-        return ResponseEntity.ok(response);
-    }
+        String sortField = sortParams[0];
+        Sort.Direction sortDirection;
+        try {
+            sortDirection = Sort.Direction.fromString(sortParams[1]);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid sort direction");
+        }
 
-    // 自分のレビュー一覧（カーソル方式）
-    @GetMapping("/reviews/by-cursor")
-    public ResponseEntity<List<ReviewResponse>> getUserReviewsByCursor(
-            @RequestParam(required = false) Long cursorId,
-            @RequestParam(required = false) Integer maxResults,
-            @AuthenticationPrincipal User user) {
-        List<ReviewResponse> response = reviewService.getUserReviewsByCursor(cursorId, maxResults, user);
-        return ResponseEntity.ok(response);
-    }
+        if (!ALLOWED_FIELDS.contains(sortField)) {
+            throw new IllegalArgumentException("Invalid sort field");
+        }
 
-    // 自分のお気に入り一覧
-    @GetMapping("/favorites")
-    public ResponseEntity<FavoritePageResponse> getUserFavorites(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults,
-            @AuthenticationPrincipal User user) {
-        FavoritePageResponse response = favoriteService.getUserFavorites(page, maxResults, user);
-        return ResponseEntity.ok(response);
-    }
-
-    // 自分のお気に入り一覧（カーソル方式）
-    @GetMapping("/favorites/by-cursor")
-    public ResponseEntity<List<FavoriteResponse>> getUserFavoritesByCursor(
-            @RequestParam(required = false) Long cursorId,
-            @RequestParam(required = false) Integer maxResults,
-            @AuthenticationPrincipal User user) {
-        List<FavoriteResponse> response = favoriteService.getUserFavoritesByCursor(cursorId, maxResults, user);
-        return ResponseEntity.ok(response);
-    }
-
-    // 自分のブックマーク一覧
-    @GetMapping("/bookmarks")
-    public ResponseEntity<BookmarkPageResponse> getUserBookmarks(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer maxResults,
-            @AuthenticationPrincipal User user) {
-        BookmarkPageResponse responses = bookmarkService.getUserBookmarks(page, maxResults, user);
-        return ResponseEntity.ok(responses);
-    }
-
-    // 自分が投稿した特定の書籍のレビュー
-    // （書籍１冊に対して、１つのレビューなので「単数形」）
-    @GetMapping("/books/{bookId}/review")
-    public ResponseEntity<ReviewResponse> getUserReviewForBook(@PathVariable String bookId,
-            @AuthenticationPrincipal User user) {
-        ReviewResponse response = reviewService.getUserReviewForBook(bookId, user);
-        return ResponseEntity.ok(response);
-    }
-
-    // 自分の追加した特定の書籍のお気に入り
-    // （書籍１冊に対して、１つのお気に入りなので「単数形」）
-    @GetMapping("/books/{bookId}/favorite")
-    public ResponseEntity<FavoriteResponse> getUserFavoriteForBook(@PathVariable String bookId,
-            @AuthenticationPrincipal User user) {
-        FavoriteResponse response = favoriteService.getUserFavoriteForBook(bookId, user);
-        return ResponseEntity.ok(response);
-    }
-
-    // 自分の追加した特定の書籍のブックマークリスト
-    // （書籍１冊に対して、複数のブックマークなので「複数形」）
-    @GetMapping("/books/{bookId}/bookmarks")
-    public ResponseEntity<List<BookmarkResponse>> getUserBookmarksForBook(
-            @PathVariable String bookId, @AuthenticationPrincipal User user) {
-        List<BookmarkResponse> responses = bookmarkService.getUserBookmarksForBook(bookId, user);
-        return ResponseEntity.ok(responses);
-    }
-
-    // 自分のプロフィール情報を更新
-    @PutMapping("/profile")
-    public ResponseEntity<Void> updateUserProfile(
-            @Valid @RequestBody UpdateUserProfileRequest request,
-            @AuthenticationPrincipal User user) {
-        userService.updateUserProfile(request, user);
-        return ResponseEntity.noContent().build();
-    }
-
-    // 自分のメールアドレスを更新
-    @PutMapping("/email")
-    public ResponseEntity<Void> updateUserEmail(@Valid @RequestBody UpdateUserEmailRequest request,
-            @AuthenticationPrincipal User user) {
-        userService.updateUserEmail(request, user);
-        return ResponseEntity.noContent().build();
-    }
-
-    // 自分のパスワードを更新
-    @PutMapping("/password")
-    public ResponseEntity<Void> updateUserPassword(
-            @Valid @RequestBody UpdateUserPasswordRequest request,
-            @AuthenticationPrincipal User user) {
-        userService.updateUserPassword(request, user);
-        return ResponseEntity.noContent().build();
+        return PageRequest.of(page, size, Sort.by(sortDirection, sortField));
     }
 }
 
-------------------------------------------------------------
-BookRepository.java
 
+
+# 1. Book.java - 評価点フィールド追加
+package com.example.my_books_backend.entity;
+
+import java.sql.Date;
+import java.util.List;
+import com.example.my_books_backend.entity.shared.EntityBase;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "books")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class Book extends EntityBase {
+    @Id
+    @Column(name = "id", nullable = false)
+    private String id;
+
+    @Column(name = "title", nullable = false)
+    private String title;
+
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
+    private String description;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id"))
+    private List<Genre> genres;
+
+    @Column(name = "authors", nullable = false)
+    private String authors;
+
+    @Column(name = "publisher", nullable = false)
+    private String publisher;
+
+    @Column(name = "publication_date", nullable = false)
+    private Date publicationDate;
+
+    @Column(name = "price", nullable = false)
+    private Integer price;
+
+    @Column(name = "page_count", nullable = false)
+    private Integer pageCount;
+
+    @Column(name = "isbn", nullable = false)
+    private String isbn;
+
+    @Column(name = "image_path")
+    private String imagePath;
+
+    // 事前計算された評価データ
+    @Column(name = "average_rating", nullable = false, columnDefinition = "DECIMAL(3,2) DEFAULT 0.00")
+    private Double averageRating = 0.0;
+
+    @Column(name = "review_count", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer reviewCount = 0;
+
+    @Version
+    @Column(name = "version")
+    private Long version; // 楽観的ロック用
+
+    @OneToMany(mappedBy = "book")
+    private List<Review> reviews;
+
+    @OneToMany(mappedBy = "book")
+    private List<Favorite> favorites;
+
+    @OneToMany(mappedBy = "book")
+    private List<Bookmark> bookmarks;
+}
+
+# 2. BookRepository.java - シンプルなクエリ
 package com.example.my_books_backend.repository;
 
-import java.util.List;
+import com.example.my_books_backend.entity.Book;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.Book;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, String> {
-    Page<Book> findTop10ByOrderByPublicationDateDesc(Pageable pageable);
-
-    Page<Book> findByTitleContaining(String keyword, Pageable pageable);
-
-    Page<Book> findDistinctByGenres_IdIn(List<Long> genreIds, Pageable pageable);
-
-    // 指定されたジャンルIDのリストを取得
-    @Query("""
-            SELECT b FROM Book b
-            JOIN b.genres bg
-            WHERE bg.id IN :genreIds
-            GROUP BY b.id
-            HAVING COUNT(DISTINCT bg.id) = :size
-            """)
-    Page<Book> findByAllGenreIds(@Param("genreIds") List<Long> genreIds, @Param("size") long size,
-            Pageable pageable);
+    
+    // シンプルなクエリ - 事前計算された値を使用
+    @Query("SELECT b FROM Book b " +
+           "WHERE b.title LIKE %:keyword% AND b.isDeleted = false")
+    Page<Book> findByTitleContainingAndIsDeletedFalse(@Param("keyword") String keyword, Pageable pageable);
+    
+    // 特定の書籍の楽観的ロック付き取得
+    @Query("SELECT b FROM Book b WHERE b.id = :bookId")
+    Book findByIdForUpdate(@Param("bookId") String bookId);
 }
 
-------------------------------------------------------------
-FavoriteRepository.java
+# 3. BookRatingService.java - 評価点更新専用サービス
+package com.example.my_books_backend.service;
 
-package com.example.my_books_backend.repository;
-
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-import com.example.my_books_backend.entity.Favorite;
-import com.example.my_books_backend.entity.FavoriteId;
-import com.example.my_books_backend.entity.User;
-
-@Repository
-public interface FavoriteRepository extends JpaRepository<Favorite, FavoriteId> {
-    Page<Favorite> findByUser(User user, Pageable pageable);
-
-    // カーソル方式のページネーション（cursorIdをカーソルとして使用し、updated_atを基準に降順に並べ替える）
-    @Query("""
-            SELECT r FROM Favorite r
-            WHERE (:cursorId IS NULL OR
-                   r.updatedAt < (SELECT r2.updatedAt FROM Favorite r2 WHERE r2.id = :cursorId) OR
-                   (r.updatedAt = (SELECT r2.updatedAt FROM Favorite r2 WHERE r2.id = :cursorId) AND r.id > :cursorId))
-            AND r.user.id = :userId AND r.isDeleted = false
-            ORDER BY r.updatedAt DESC, r.id ASC
-            """)
-    List<Favorite> findFavoritesByUserIdWithCursor(@Param("userId") Long userId, @Param("cursorId") Long cursorId,
-            Pageable pageable);
-
-    List<Favorite> findByBookId(String bookId);
-
-    Integer countByUserId(Long userId);
-}
-
-------------------------------------------------------------
-ReviewRepository.java
-
-package com.example.my_books_backend.repository;
-
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import com.example.my_books_backend.entity.Book;
 import com.example.my_books_backend.entity.Review;
-import com.example.my_books_backend.entity.User;
-
-@Repository
-public interface ReviewRepository extends JpaRepository<Review, Long> {
-    Optional<Review> findByBookIdAndUserAndIsDeletedFalse(String bookId, User user);
-
-    Page<Review> findByUserAndIsDeletedFalse(User user, Pageable pageable);
-
-    // カーソル方式のページネーション（cursorIdをカーソルとして使用し、updated_atを基準に降順に並べ替える）
-    @Query("""
-            SELECT r FROM Review r
-            WHERE (:cursorId IS NULL OR
-                   r.updatedAt < (SELECT r2.updatedAt FROM Review r2 WHERE r2.id = :cursorId) OR
-                   (r.updatedAt = (SELECT r2.updatedAt FROM Review r2 WHERE r2.id = :cursorId) AND r.id > :cursorId))
-            AND r.user.id = :userId AND r.isDeleted = false
-            ORDER BY r.updatedAt DESC, r.id ASC
-            """)
-    List<Review> findReviewsByUserIdWithCursor(@Param("userId") Long userId, @Param("cursorId") Long cursorId,
-            Pageable pageable);
-
-    Page<Review> findByBookIdAndIsDeletedFalse(String bookId, Pageable pageable);
-
-    // カーソル方式のページネーション（cursorIdをカーソルとして使用し、updated_atを基準に降順に並べ替える）
-    @Query("""
-            SELECT r FROM Review r
-            WHERE (:cursorId IS NULL OR
-                   r.updatedAt < (SELECT r2.updatedAt FROM Review r2 WHERE r2.id = :cursorId) OR
-                   (r.updatedAt = (SELECT r2.updatedAt FROM Review r2 WHERE r2.id = :cursorId) AND r.id > :cursorId))
-            AND r.book.id = :bookId AND r.isDeleted = false
-            ORDER BY r.updatedAt DESC, r.id ASC
-            """)
-    List<Review> findReviewsByBookIdWithCursor(@Param("bookId") String bookId, @Param("cursorId") Long cursorId,
-            Pageable pageable);
-
-    List<Review> findByBookIdAndIsDeletedFalse(String bookId);
-
-    Optional<Review> findByUserAndBook(User user, Book book);
-
-    Integer countByUserIdAndIsDeletedFalse(Long userId);
-}
-
-------------------------------------------------------------
-FavoriteServiceImpl.java
-
-package com.example.my_books_backend.service.impl;
-
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.favorite.FavoriteRequest;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.dto.favorite.FavoriteCountsResponse;
-import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.Favorite;
-import com.example.my_books_backend.entity.FavoriteId;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.FavoriteMapper;
-import com.example.my_books_backend.repository.BookRepository;
-import com.example.my_books_backend.repository.FavoriteRepository;
-import com.example.my_books_backend.service.FavoriteService;
-import com.example.my_books_backend.util.PaginationUtil;
-import lombok.RequiredArgsConstructor;
-
-@Service
-@RequiredArgsConstructor
-public class FavoriteServiceImpl implements FavoriteService {
-    private final FavoriteRepository favoriteRepository;
-    private final FavoriteMapper favoriteMapper;
-
-    private final BookRepository bookRepository;
-    private final PaginationUtil paginationUtil;
-
-    /** ユーザーが追加したすべてのお気に入り情報のデフォルトソート（作成日） */
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id"));
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FavoriteResponse getUserFavoriteForBook(String bookId, User user) {
-        FavoriteId favoriteId = new FavoriteId(user.getId(), bookId);
-        Favorite favorite = favoriteRepository.findById(favoriteId)
-                .orElseThrow(() -> new NotFoundException("Favorite not found"));
-        return favoriteMapper.toFavoriteResponse(favorite);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FavoritePageResponse getUserFavorites(Integer page, Integer maxResults, User user) {
-        Pageable pageable = paginationUtil.createPageable(page, maxResults, DEFAULT_SORT);
-        Page<Favorite> favorites = favoriteRepository.findByUser(user, pageable);
-        return favoriteMapper.toFavoritePageResponse(favorites);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<FavoriteResponse> getUserFavoritesByCursor(Long cursorId, Integer maxResults, User user) {
-        Pageable pageable = paginationUtil.createPageable(0, maxResults, DEFAULT_SORT);
-        List<Favorite> favorites = favoriteRepository.findFavoritesByUserIdWithCursor(user.getId(), cursorId, pageable);
-        return favoriteMapper.toFavoriteResponseList(favorites);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FavoriteCountsResponse getBookFavoriteCounts(String bookId) {
-        List<Favorite> favorites = favoriteRepository.findByBookId(bookId);
-
-        FavoriteCountsResponse response = new FavoriteCountsResponse();
-        response.setBookId(bookId);
-        response.setFavoriteCount(favorites.size());
-
-        return response;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public FavoriteResponse createFavorite(FavoriteRequest request, User user) {
-        Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-        FavoriteId favoriteId = new FavoriteId(user.getId(), request.getBookId());
-
-        Favorite favorite = new Favorite();
-        favorite.setId(favoriteId);
-        favorite.setUser(user);
-        favorite.setBook(book);
-
-        Favorite savedFavorite = favoriteRepository.save(favorite);
-        return favoriteMapper.toFavoriteResponse(savedFavorite);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public void deleteFavorite(String bookId, User user) {
-        FavoriteId favoriteId = new FavoriteId(user.getId(), bookId);
-        favoriteRepository.deleteById(favoriteId);
-    }
-}
-
-------------------------------------------------------------
-ReviewServiceImpl.java
-
-package com.example.my_books_backend.service.impl;
-
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.my_books_backend.dto.review.ReviewPageResponse;
-import com.example.my_books_backend.dto.review.ReviewCountsResponse;
-import com.example.my_books_backend.dto.review.ReviewRequest;
-import com.example.my_books_backend.dto.review.ReviewResponse;
-import com.example.my_books_backend.entity.Book;
-import com.example.my_books_backend.entity.Review;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.exception.ConflictException;
-import com.example.my_books_backend.exception.ForbiddenException;
-import com.example.my_books_backend.exception.NotFoundException;
-import com.example.my_books_backend.mapper.ReviewMapper;
 import com.example.my_books_backend.repository.BookRepository;
 import com.example.my_books_backend.repository.ReviewRepository;
-import com.example.my_books_backend.service.ReviewService;
-import com.example.my_books_backend.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ReviewServiceImpl implements ReviewService {
-    private final ReviewRepository reviewRepository;
-    private final ReviewMapper reviewMapper;
-
+@Slf4j
+public class BookRatingService {
+    
     private final BookRepository bookRepository;
-    private final PaginationUtil paginationUtil;
-
-    /** ユーザーが投稿したすべてのレビュー情報のデフォルトソート（作成日） */
-    private static final Sort USER_REVIEWS_DEFAULT_SORT = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id"));
-
-    /** 書籍に対するレビュー一覧のデフォルトソート（更新日） */
-    private static final Sort BOOK_REVIEWS_DEFAULT_SORT = Sort.by(Sort.Order.desc("updatedAt"), Sort.Order.asc("id"));
-
+    private final ReviewRepository reviewRepository;
+    
     /**
-     * {@inheritDoc}
+     * 書籍の評価点を再計算して更新
      */
-    @Override
-    public ReviewResponse getUserReviewForBook(String bookId, User user) {
-        Review review = reviewRepository.findByBookIdAndUserAndIsDeletedFalse(bookId, user)
-                .orElseThrow(() -> new NotFoundException("Review not found"));
-        return reviewMapper.toReviewResponse(review);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ReviewPageResponse getUserReviews(Integer page, Integer maxResults, User user) {
-        Pageable pageable = paginationUtil.createPageable(page, maxResults, USER_REVIEWS_DEFAULT_SORT);
-        Page<Review> reviews = reviewRepository.findByUserAndIsDeletedFalse(user, pageable);
-        return reviewMapper.toReviewPageResponse(reviews);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ReviewResponse> getUserReviewsByCursor(Long cursorId, Integer maxResults, User user) {
-        Pageable pageable = paginationUtil.createPageable(0, maxResults, USER_REVIEWS_DEFAULT_SORT);
-        List<Review> reviews = reviewRepository.findReviewsByUserIdWithCursor(user.getId(), cursorId, pageable);
-        return reviewMapper.toReviewResponseList(reviews);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ReviewPageResponse getBookReviews(String bookId, Integer page, Integer maxResults) {
-        Pageable pageable = paginationUtil.createPageable(page, maxResults, BOOK_REVIEWS_DEFAULT_SORT);
-        Page<Review> reviews = reviewRepository.findByBookIdAndIsDeletedFalse(bookId, pageable);
-        return reviewMapper.toReviewPageResponse(reviews);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ReviewResponse> getBookReviewsByCursor(String bookId, Long cursorId, Integer maxResults) {
-        Pageable pageable = paginationUtil.createPageable(0, maxResults, BOOK_REVIEWS_DEFAULT_SORT);
-        List<Review> reviews = reviewRepository.findReviewsByBookIdWithCursor(bookId, cursorId, pageable);
-        return reviewMapper.toReviewResponseList(reviews);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ReviewCountsResponse getBookReviewCounts(String bookId) {
-        List<Review> reviews = reviewRepository.findByBookIdAndIsDeletedFalse(bookId);
-        Double averageRating = reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
-
-        ReviewCountsResponse response = new ReviewCountsResponse();
-        response.setBookId(bookId);
-        response.setReviewCount(reviews.size());
-        response.setAverageRating(averageRating);
-
-        return response;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     @Transactional
-    public ReviewResponse createReview(ReviewRequest request, User user) {
-        Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-
-        Optional<Review> existingReview = reviewRepository.findByUserAndBook(user, book);
-
-        Review review = new Review();
-        if (existingReview.isPresent()) {
-            review = existingReview.get();
-            if (review.getIsDeleted()) {
-                review.setIsDeleted(false);
+    public void updateBookRating(String bookId) {
+        try {
+            Book book = bookRepository.findByIdForUpdate(bookId);
+            if (book == null) {
+                log.warn("Book not found for rating update: {}", bookId);
+                return;
+            }
+            
+            // レビューから評価を計算
+            List<Review> reviews = reviewRepository.findByBookIdAndIsDeletedFalse(bookId);
+            
+            if (reviews.isEmpty()) {
+                book.setAverageRating(0.0);
+                book.setReviewCount(0);
             } else {
-                throw new ConflictException("すでにこの書籍にはレビューが登録されています。");
+                double averageRating = reviews.stream()
+                        .mapToDouble(Review::getRating)
+                        .average()
+                        .orElse(0.0);
+                
+                // 小数点以下2桁に丸める
+                averageRating = Math.round(averageRating * 100.0) / 100.0;
+                
+                book.setAverageRating(averageRating);
+                book.setReviewCount(reviews.size());
+            }
+            
+            bookRepository.save(book);
+            log.info("Updated rating for book {}: averageRating={}, reviewCount={}", 
+                    bookId, book.getAverageRating(), book.getReviewCount());
+            
+        } catch (Exception e) {
+            log.error("Failed to update book rating for bookId: {}", bookId, e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 全書籍の評価点を再計算（バッチ処理用）
+     */
+    @Transactional
+    public void recalculateAllBookRatings() {
+        log.info("Starting recalculation of all book ratings");
+        
+        List<Book> allBooks = bookRepository.findAll();
+        int updated = 0;
+        
+        for (Book book : allBooks) {
+            try {
+                updateBookRating(book.getId());
+                updated++;
+            } catch (Exception e) {
+                log.error("Failed to update rating for book: {}", book.getId(), e);
             }
         }
-        review.setUser(user);
-        review.setBook(book);
-        review.setRating(request.getRating());
-        review.setComment(request.getComment());
-
-        Review savedReview = reviewRepository.save(review);
-        return reviewMapper.toReviewResponse(savedReview);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public ReviewResponse updateReview(Long id, ReviewRequest request, User user) {
-        Review review = reviewRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Review not found"));
-
-        if (!review.getUser().getId().equals(user.getId())) {
-            throw new ForbiddenException("このレビューを編集する権限がありません。");
-        }
-
-        String comment = request.getComment();
-        Double rating = request.getRating();
-
-        if (comment != null) {
-            review.setComment(comment);
-        }
-
-        if (rating != null) {
-            review.setRating(rating);
-        }
-        Review savedReview = reviewRepository.save(review);
-        return reviewMapper.toReviewResponse(savedReview);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public void deleteReview(Long id, User user) {
-        Review review = reviewRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Review not found"));
-
-        if (!review.getUser().getId().equals(user.getId())) {
-            throw new ForbiddenException("このレビューを削除する権限がありません");
-        }
-
-        review.setIsDeleted(true);
-        reviewRepository.save(review);
+        
+        log.info("Completed recalculation. Updated {} books", updated);
     }
 }
 
-------------------------------------------------------------
-AuthService.java
-
+# 4. ReviewService.java - レビューCRUD時の評価更新
 package com.example.my_books_backend.service;
 
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Service;
-import com.example.my_books_backend.dto.auth.LoginRequest;
-import com.example.my_books_backend.dto.auth.SignupRequest;
-import com.example.my_books_backend.dto.auth.AccessTokenResponse;
-import com.example.my_books_backend.dto.user.CreateUserRequest;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.exception.ConflictException;
-import com.example.my_books_backend.exception.UnauthorizedException;
-import com.example.my_books_backend.exception.ValidationException;
-import com.example.my_books_backend.repository.UserRepository;
-import com.example.my_books_backend.service.impl.UserDetailsServiceImpl;
-import com.example.my_books_backend.util.JwtUtil;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.example.my_books_backend.dto.ReviewRequest;
+import com.example.my_books_backend.dto.ReviewResponse;
+import com.example.my_books_backend.entity.Review;
+import com.example.my_books_backend.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
-    private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
-    private final UserService userService;
-    private final UserDetailsServiceImpl userDetailsService;
-    private final JwtUtil jwtUtil;
-
-    /**
-     * ユーザーのログイン処理 メールアドレスとパスワードを検証し、認証成功時にアクセストークンとリフレッシュトークンを発行する。
-     * リフレッシュトークンはCookieとして設定。
-     * 
-     * @param request  ログインリクエスト（メールアドレスとパスワードを含む）
-     * @param response HTTPレスポンス（Cookieの設定に使用）
-     * @return アクセストークンを含むレスポンス
-     */
-    public AccessTokenResponse login(LoginRequest request, HttpServletResponse response) {
-        Authentication authentication;
+@Slf4j
+public class ReviewService {
+    
+    private final ReviewRepository reviewRepository;
+    private final BookRatingService bookRatingService;
+    
+    @Transactional
+    public ReviewResponse createReview(ReviewRequest request) {
         try {
-            authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    request.getEmail(), request.getPassword()));
-        } catch (AuthenticationException e) {
-            throw new UnauthorizedException("ログインに失敗しました。メールアドレスまたはパスワードが無効です。");
+            Review review = new Review();
+            review.setBookId(request.getBookId());
+            review.setUserId(request.getUserId());
+            review.setRating(request.getRating());
+            review.setComment(request.getComment());
+            
+            Review savedReview = reviewRepository.save(review);
+            
+            // 書籍の評価点を更新
+            bookRatingService.updateBookRating(request.getBookId());
+            
+            return convertToResponse(savedReview);
+            
+        } catch (Exception e) {
+            log.error("Failed to create review", e);
+            throw e;
+        }
+    }
+    
+    @Transactional
+    public ReviewResponse updateReview(String reviewId, ReviewRequest request) {
+        try {
+            Review review = reviewRepository.findById(reviewId)
+                    .orElseThrow(() -> new RuntimeException("Review not found"));
+            
+            String bookId = review.getBookId(); // 更新前のbookIdを保存
+            
+            review.setRating(request.getRating());
+            review.setComment(request.getComment());
+            
+            Review savedReview = reviewRepository.save(review);
+            
+            // 書籍の評価点を更新
+            bookRatingService.updateBookRating(bookId);
+            
+            return convertToResponse(savedReview);
+            
+        } catch (Exception e) {
+            log.error("Failed to update review: {}", reviewId, e);
+            throw e;
+        }
+    }
+    
+    @Transactional
+    public void deleteReview(String reviewId) {
+        try {
+            Review review = reviewRepository.findById(reviewId)
+                    .orElseThrow(() -> new RuntimeException("Review not found"));
+            
+            String bookId = review.getBookId(); // 削除前のbookIdを保存
+            
+            review.setIsDeleted(true);
+            reviewRepository.save(review);
+            
+            // 書籍の評価点を更新
+            bookRatingService.updateBookRating(bookId);
+            
+        } catch (Exception e) {
+            log.error("Failed to delete review: {}", reviewId, e);
+            throw e;
+        }
+    }
+    
+    private ReviewResponse convertToResponse(Review review) {
+        // 変換ロジック
+        return new ReviewResponse();
+    }
+}
+
+# 5. BookService.java - シンプルな実装
+package com.example.my_books_backend.service;
+
+import com.example.my_books_backend.dto.BookResponse;
+import com.example.my_books_backend.dto.PageResponse;
+import com.example.my_books_backend.entity.Book;
+import com.example.my_books_backend.entity.Genre;
+import com.example.my_books_backend.repository.BookRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class BookService {
+    private final BookRepository bookRepository;
+
+    public PageResponse<BookResponse> getBooksByTitleKeyword(String keyword, Pageable pageable) {
+        // シンプルなクエリ - ソートはPageableで処理される
+        Page<Book> booksPage = bookRepository.findByTitleContainingAndIsDeletedFalse(keyword, pageable);
+
+        List<BookResponse> bookResponses = booksPage.getContent().stream()
+                .map(this::convertToBookResponse)
+                .collect(Collectors.toList());
+
+        return new PageResponse<>(bookResponses, booksPage.getNumber(), booksPage.getSize(), booksPage.getTotalElements());
+    }
+
+    private BookResponse convertToBookResponse(Book book) {
+        return new BookResponse(
+                book.getId(),
+                book.getTitle(),
+                book.getDescription(),
+                book.getGenres().stream().map(Genre::getId).collect(Collectors.toList()),
+                Arrays.asList(book.getAuthors().split(",")),
+                book.getPublicationDate(),
+                book.getImagePath(),
+                book.getReviewCount(), // 事前計算された値を使用
+                book.getAverageRating() // 事前計算された値を使用
+        );
+    }
+}
+
+# 6. PageableUtil.java - 通常のフィールドソート
+package com.example.my_books_backend.util;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import java.util.Arrays;
+import java.util.List;
+
+public class PageableUtil {
+
+    private static final List<String> ALLOWED_FIELDS = Arrays.asList(
+        "title", "updatedAt", "createdAt", "averageRating", "reviewCount", "price", "publicationDate"
+    );
+
+    public static Pageable createPageable(int page, int size, String sort) {
+        String[] sortParams = sort.split("\\.");
+        if (sortParams.length != 2) {
+            throw new IllegalArgumentException("Invalid sort parameter. Expected format: field.direction");
         }
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        User user = (User) authentication.getPrincipal();
-
-        String accessToken = jwtUtil.generateAccessToken(user);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
-
-        Cookie refreshTokenCookie = jwtUtil.createRefreshTokenCookie(refreshToken);
-        response.addCookie(refreshTokenCookie);
-
-        return new AccessTokenResponse(accessToken);
-    }
-
-    /**
-     * 新規ユーザーのサインアップ処理 ユーザー情報を検証し、新規ユーザーを作成した後、アクセストークンとリフレッシュトークンを発行する。
-     * リフレッシュトークンはCookieとして設定。
-     * 
-     * @param request  サインアップリクエスト（メールアドレス、パスワード、名前、アバターパスを含む）
-     * @param response HTTPレスポンス（Cookieの設定に使用）
-     * @return アクセストークンを含むレスポンス
-     */
-    public AccessTokenResponse signup(SignupRequest request, HttpServletResponse response) {
-        String email = request.getEmail();
-        String password = request.getPassword();
-        String name = request.getName();
-        String avatarPath = request.getAvatarPath();
-
-        if (userRepository.existsByEmail(email)) {
-            throw new ConflictException("サインアップに失敗しました。このメールアドレスは既に登録されています。: " + email);
+        String sortField = sortParams[0];
+        
+        // rating -> averageRating に変換
+        if ("rating".equals(sortField)) {
+            sortField = "averageRating";
+        }
+        
+        Sort.Direction sortDirection;
+        try {
+            sortDirection = Sort.Direction.fromString(sortParams[1]);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid sort direction. Use ASC or DESC");
         }
 
-        CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setEmail(email);
-        createUserRequest.setPassword(password);
-        createUserRequest.setName(name);
-        createUserRequest.setAvatarPath(avatarPath);
-
-        User user = userService.createUser(createUserRequest);
-
-        String accessToken = jwtUtil.generateAccessToken(user);
-        String refreshToken = jwtUtil.generateRefreshToken(user);
-
-        Cookie refreshTokenCookie = jwtUtil.createRefreshTokenCookie(refreshToken);
-        response.addCookie(refreshTokenCookie);
-
-        return new AccessTokenResponse(accessToken);
-    }
-
-    /**
-     * ユーザーのログアウト処理 リフレッシュトークンを無効化するためのCookieを設定。
-     * 
-     * @param response HTTPレスポンス（Cookieの設定に使用）
-     */
-    public void logout(HttpServletResponse response) {
-        Cookie cookie = jwtUtil.getInvalidateRefreshTokenCookie();
-        response.addCookie(cookie);
-    }
-
-    /**
-     * リフレッシュトークンを使用して新しいアクセストークンを発行。 リフレッシュトークンを検証し、有効な場合は新しいアクセストークンを返す。
-     * 同時に認証コンテキストも更新。
-     * 
-     * @param request HTTPリクエスト（リフレッシュトークンの取得に使用）
-     * @return 新しいアクセストークンを含むレスポンス
-     */
-    public AccessTokenResponse refreshAccessToken(HttpServletRequest request) {
-        String refreshToken = jwtUtil.getRefreshTokenFromCookie(request);
-
-        if (refreshToken == null || !jwtUtil.validateToken(refreshToken)) {
-            throw new ValidationException("リフレッシュトークンが無効です。");
+        if (!ALLOWED_FIELDS.contains(sortField)) {
+            throw new IllegalArgumentException("Invalid sort field. Allowed fields: " + ALLOWED_FIELDS);
         }
 
-        String email = jwtUtil.getSubjectFromToken(refreshToken);
-        User user = (User) userDetailsService.loadUserByUsername(email);
-
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null,
-                user.getAuthorities());
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String accessToken = jwtUtil.generateAccessToken(user);
-        return new AccessTokenResponse(accessToken);
+        return PageRequest.of(page, size, Sort.by(sortDirection, sortField));
     }
 }
 
-------------------------------------------------------------
-BookmarkService.java
+# 7. データベーススキーマ更新（SQL）
+-- booksテーブルにカラム追加
+ALTER TABLE books 
+ADD COLUMN average_rating DECIMAL(3,2) DEFAULT 0.00 NOT NULL,
+ADD COLUMN review_count INT DEFAULT 0 NOT NULL,
+ADD COLUMN version BIGINT DEFAULT 0;
 
-package com.example.my_books_backend.service;
+-- インデックス追加（パフォーマンス向上）
+CREATE INDEX idx_books_average_rating ON books(average_rating);
+CREATE INDEX idx_books_title_rating ON books(title, average_rating);
 
-import com.example.my_books_backend.dto.bookmark.BookmarkPageResponse;
-import com.example.my_books_backend.dto.bookmark.BookmarkRequest;
-import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
-import com.example.my_books_backend.entity.User;
-import java.util.List;
+-- 既存データの初期化（既存のレビューから計算）
+UPDATE books b
+SET average_rating = (
+    SELECT COALESCE(ROUND(AVG(r.rating), 2), 0.00)
+    FROM reviews r 
+    WHERE r.book_id = b.id AND r.is_deleted = false
+),
+review_count = (
+    SELECT COUNT(*)
+    FROM reviews r 
+    WHERE r.book_id = b.id AND r.is_deleted = false
+);
 
-public interface BookmarkService {
+# 8. バッチ処理用コントローラー（管理者用）
+package com.example.my_books_backend.controller.admin;
+
+import com.example.my_books_backend.service.BookRatingService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/admin/books")
+@RequiredArgsConstructor
+public class BookAdminController {
+    
+    private final BookRatingService bookRatingService;
+    
     /**
-     * ユーザーが追加した特定の書籍のブックマークリストを取得
-     * 
-     * @param bookId 書籍ID
-     * @param user   ユーザーエンティティ
-     * @return ブックマークリスト
+     * 全書籍の評価点を再計算
      */
-    List<BookmarkResponse> getUserBookmarksForBook(String bookId, User user);
-
+    @PostMapping("/recalculate-ratings")
+    public ResponseEntity<String> recalculateAllRatings() {
+        try {
+            bookRatingService.recalculateAllBookRatings();
+            return ResponseEntity.ok("Rating recalculation completed successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Failed to recalculate ratings: " + e.getMessage());
+        }
+    }
+    
     /**
-     * ユーザーが追加したすべてのブックマークを取得（ページング形式）
-     * 
-     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
-     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
-     * @param user       ユーザーエンティティ
-     * @return ブックマークリスト
+     * 特定書籍の評価点を再計算
      */
-    BookmarkPageResponse getUserBookmarks(Integer page, Integer maxResults, User user);
-
-    /**
-     * ブックマークを作成
-     * 
-     * @param request ブックマーク作成リクエスト
-     * @param user    ユーザーエンティティ
-     * @return 作成されたブックマーク情報
-     */
-    BookmarkResponse createBookmark(BookmarkRequest request, User user);
-
-    /**
-     * ブックマークを更新
-     * 
-     * @param id      更新するブックマークのID
-     * @param request ブックマーク更新リクエスト
-     * @param user    ユーザーエンティティ
-     * @return 更新されたブックマーク情報
-     */
-    BookmarkResponse updateBookmark(Long id, BookmarkRequest request, User user);
-
-    /**
-     * ブックマークを削除
-     * 
-     * @param id   削除するブックマークのID
-     * @param user ユーザーエンティティ
-     */
-    void deleteBookmark(Long id, User user);
+    @PostMapping("/{bookId}/recalculate-rating")
+    public ResponseEntity<String> recalculateBookRating(@PathVariable String bookId) {
+        try {
+            bookRatingService.updateBookRating(bookId);
+            return ResponseEntity.ok("Rating recalculation completed for book: " + bookId);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Failed to recalculate rating: " + e.getMessage());
+        }
+    }
 }
 
-------------------------------------------------------------
-BookService.java
 
-package com.example.my_books_backend.service;
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 
-import com.example.my_books_backend.dto.book.BookDetailsResponse;
-import com.example.my_books_backend.dto.book.BookPageResponse;
-import com.example.my_books_backend.dto.book_chapter.BookTableOfContentsResponse;
-import com.example.my_books_backend.dto.book_chapter_page_content.BookChapterPageContentResponse;
+@Repository
+public interface BookRepository extends JpaRepository<Book, String> {
 
-public interface BookService {
-    /**
-     * 最新の書籍リスト（１０冊分）を取得（ページング形式）
-     * 
-     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
-     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
-     * @return 最新の書籍リスト
-     */
-    BookPageResponse getLatestBooks(Integer page, Integer maxResults);
-
-    /**
-     * タイトルで書籍を検索したリストを取得（ページング形式）
-     * 
-     * @param keyword    検索キーワード
-     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
-     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
-     * @return 検索結果
-     */
-    BookPageResponse searchBooksByTitleKeyword(String keyword, Integer page, Integer maxResults);
-
-    /**
-     * ジャンルIDで書籍を検索したリストを取得（ページング形式）
-     * 
-     * @param genreIdsQuery  カンマ区切りのジャンルIDリスト（例："1,2,3"）
-     * @param conditionQuery 検索条件（"SINGLE"、"AND"、"OR"のいずれか）
-     * @param page           ページ番号（0ベース）、nullの場合はデフォルト値が使用される
-     * @param maxResults     1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
-     * @return 検索結果
-     */
-    BookPageResponse searchBooksByGenre(String genreIdsQuery, String conditionQuery, Integer page,
-            Integer maxResults);
-
-    /**
-     * 指定された書籍の詳細情報を取得
-     * 
-     * @param bookId 書籍ID
-     * @return 書籍の詳細情報
-     */
-    BookDetailsResponse getBookDetails(String bookId);
-
-    /**
-     * 指定された書籍の目次情報（章のリスト）を取得
-     * 
-     * @param bookId 書籍ID
-     * @return 書籍の目次情報
-     */
-    BookTableOfContentsResponse getBookTableOfContents(String bookId);
-
-    /**
-     * 指定された書籍の特定の章・ページのコンテンツを取得
-     * 
-     * @param bookId        書籍ID
-     * @param chapterNumber 章番号
-     * @param pageNumber    ページ番号
-     * @return 書籍のコンテンツ情報
-     */
-    BookChapterPageContentResponse getBookChapterPageContent(String bookId, Integer chapterNumber,
-            Integer pageNumber);
+    @Query(value = """
+            SELECT * FROM books b
+            WHERE (:cursor IS NULL OR
+                   (CASE WHEN :sortField = 'publication_date' THEN
+                       b.publication_date < (SELECT b2.publication_date FROM books b2 WHERE b2.id = :cursor) OR
+                       (b.publication_date = (SELECT b2.publication_date FROM books b2 WHERE b2.id = :cursor) AND b.id < :cursor)
+                   WHEN :sortField = 'title' THEN
+                       b.title < (SELECT b2.title FROM books b2 WHERE b2.id = :cursor) OR
+                       (b.title = (SELECT b2.title FROM books b2 WHERE b2.id = :cursor) AND b.id < :cursor)
+                   WHEN :sortField = 'rating' THEN
+                       b.average_rating < (SELECT b2.average_rating FROM books b2 WHERE b2.id = :cursor) OR
+                       (b.average_rating = (SELECT b2.average_rating FROM books b2 WHERE b2.id = :cursor) AND b.id < :cursor)
+                   WHEN :sortField = 'updatedAt' THEN
+                       b.updated_at < (SELECT b2.updated_at FROM books b2 WHERE b2.id = :cursor) OR
+                       (b.updated_at = (SELECT b2.updated_at FROM books b2 WHERE b2.id = :cursor) AND b.id < :cursor)
+                   ELSE
+                       b.publication_date < (SELECT b2.publication_date FROM books b2 WHERE b2.id = :cursor) OR
+                       (b.publication_date = (SELECT b2.publication_date FROM books b2 WHERE b2.id = :cursor) AND b.id < :cursor)
+                   END))
+            AND b.title LIKE :keyword
+            AND b.is_deleted = false
+            ORDER BY
+                CASE WHEN :sortField = 'publication_date' THEN b.publication_date END :sortDirection,
+                CASE WHEN :sortField = 'title' THEN b.title END :sortDirection,
+                CASE WHEN :sortField = 'rating' THEN b.average_rating END :sortDirection,
+                CASE WHEN :sortField = 'updatedAt' THEN b.updated_at END :sortDirection,
+                b.id DESC
+            LIMIT :limit
+            """,
+            nativeQuery = true)
+    List<Book> findBooksByTitleKeywordWithCursor(@Param("keyword") String keyword,
+            @Param("cursor") String cursor, @Param("limit") int limit, @Param("sortField") String sortField, @Param("sortDirection") String sortDirection);
 }
-
-------------------------------------------------------------
-FavoriteService.java
-
-package com.example.my_books_backend.service;
-
-import com.example.my_books_backend.dto.favorite.FavoriteRequest;
-import com.example.my_books_backend.dto.favorite.FavoriteResponse;
-import com.example.my_books_backend.entity.User;
-
-import java.util.List;
-
-import com.example.my_books_backend.dto.favorite.FavoriteCountsResponse;
-import com.example.my_books_backend.dto.favorite.FavoritePageResponse;
-
-public interface FavoriteService {
-    /**
-     * ユーザーが追加した特定の書籍のお気に入りを取得
-     * 
-     * @param bookId 書籍ID
-     * @param user   ユーザーエンティティ
-     * @return お気に入り情報
-     */
-    FavoriteResponse getUserFavoriteForBook(String bookId, User user);
-
-    /**
-     * ユーザーが追加したすべてのお気に入りを取得（ページング形式）
-     * 
-     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
-     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
-     * @param user       ユーザーエンティティ
-     * @return お気に入りリスト
-     */
-    FavoritePageResponse getUserFavorites(Integer page, Integer maxResults, User user);
-
-    /**
-     * ユーザーが追加したすべてのお気に入りを取得（カーソル方式で取得）
-     * 
-     * @param cursorId   カーソルID（レビューID）、nullの場合は先頭からmaxResults分のデータが返却される
-     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
-     * @return お気に入りリスト
-     */
-    List<FavoriteResponse> getUserFavoritesByCursor(Long cursorId, Integer maxResults, User user);
-
-    /**
-     * 書籍に対するお気に入り数を取得
-     * 
-     * @param bookId 書籍ID
-     * @return お気に入り数
-     */
-    FavoriteCountsResponse getBookFavoriteCounts(String bookId);
-
-    /**
-     * お気に入りを作成
-     * 
-     * @param request お気に入り作成リクエスト
-     * @param user    ユーザーエンティティ
-     * @return 作成されたお気に入り情報
-     */
-    FavoriteResponse createFavorite(FavoriteRequest request, User user);
-
-    /**
-     * お気に入りを削除
-     * 
-     * @param id   削除するお気に入りのID
-     * @param user ユーザーエンティティ
-     */
-    void deleteFavorite(String bookId, User user);
-}
-
-------------------------------------------------------------
-GenreService.java
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import com.example.my_books_backend.dto.genre.GenreRequest;
-import com.example.my_books_backend.dto.genre.GenreResponse;
-
-public interface GenreService {
-    /**
-     * すべてのジャンルを取得
-     * 
-     * @return ジャンルリスト
-     */
-    List<GenreResponse> getAllGenres();
-
-    /**
-     * 指定されたジャンルを取得
-     * 
-     * @param id ジャンルID
-     * @return ジャンル
-     */
-    GenreResponse getGenreById(Long id);
-
-    /**
-     * ジャンルを作成
-     * 
-     * @param request ジャンル作成リクエスト
-     * @return 作成されたジャンル情報
-     */
-    GenreResponse createGenre(GenreRequest request);
-
-    /**
-     * ジャンルを更新
-     * 
-     * @param id      更新するジャンルのID
-     * @param request ジャンル更新リクエスト
-     * @return 更新されたジャンル情報
-     */
-    GenreResponse updateGenre(Long id, GenreRequest request);
-
-    /**
-     * ジャンルを削除
-     * 
-     * @param id 削除するジャンルのID
-     */
-    void deleteGenre(Long id);
-}
-
-------------------------------------------------------------
-ReviewService.java
-
-package com.example.my_books_backend.service;
-
-import com.example.my_books_backend.dto.review.ReviewPageResponse;
-
-import java.util.List;
-
-import com.example.my_books_backend.dto.review.ReviewCountsResponse;
-import com.example.my_books_backend.entity.User;
-import com.example.my_books_backend.dto.review.ReviewRequest;
-import com.example.my_books_backend.dto.review.ReviewResponse;
-
-public interface ReviewService {
-    /**
-     * ユーザーが投稿した特定の書籍のレビューを取得
-     * 
-     * @param bookId 書籍ID
-     * @param user   ユーザーエンティティ
-     * @return レビュー情報
-     */
-    ReviewResponse getUserReviewForBook(String bookId, User user);
-
-    /**
-     * ユーザーが投稿したすべてのレビューを取得（ページング形式）
-     * 
-     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
-     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
-     * @param user       ユーザーエンティティ
-     * @return レビューリスト
-     */
-    ReviewPageResponse getUserReviews(Integer page, Integer maxResults, User user);
-
-    /**
-     * ユーザーが投稿したすべてのレビューを取得（カーソル方式で取得）
-     * 
-     * @param bookId     書籍ID
-     * @param cursorId   カーソルID（レビューID）、nullの場合は先頭からmaxResults分のデータが返却される
-     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
-     * @return レビューリスト
-     */
-    List<ReviewResponse> getUserReviewsByCursor(Long cursorId, Integer maxResults, User user);
-
-    /**
-     * 書籍に対するレビューリストを取得（ページング形式）
-     * 
-     * @param bookId     書籍ID
-     * @param page       ページ番号（0ベース）、nullの場合はデフォルト値が使用される
-     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
-     * @return レビューリスト
-     */
-    ReviewPageResponse getBookReviews(String bookId, Integer page, Integer maxResults);
-
-    /**
-     * 書籍に対するレビューリストを取得（カーソル方式で取得）
-     * 
-     * @param bookId     書籍ID
-     * @param cursorId   カーソルID（レビューID）、nullの場合は先頭からmaxResults分のデータが返却される
-     * @param maxResults 1ページあたりの最大結果件数、nullの場合はデフォルト値が使用される
-     * @return レビューリスト
-     */
-    List<ReviewResponse> getBookReviewsByCursor(String bookId, Long cursorId, Integer maxResults);
-
-    /**
-     * 書籍に対するレビュー数などを取得 （レビュー数・平均評価点）
-     * 
-     * @param bookId 書籍ID
-     * @return レビュー数など
-     */
-    ReviewCountsResponse getBookReviewCounts(String bookId);
-
-    /**
-     * レビューを作成
-     * 
-     * @param request レビュー作成リクエスト
-     * @param user    ユーザーエンティティ
-     * @return 作成されたレビュー情報
-     */
-    ReviewResponse createReview(ReviewRequest request, User user);
-
-    /**
-     * レビューを更新
-     * 
-     * @param id      更新するレビューのID
-     * @param request レビュー更新リクエスト
-     * @param user    ユーザーエンティティ
-     * @return 更新されたレビュー情報
-     */
-    ReviewResponse updateReview(Long id, ReviewRequest request, User user);
-
-    /**
-     * レビューを削除
-     * 
-     * @param id   削除するレビューのID
-     * @param user ユーザーエンティティ
-     */
-    void deleteReview(Long id, User user);
-}
-
-------------------------------------------------------------
-RoleService.java
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import com.example.my_books_backend.dto.role.RoleRequest;
-import com.example.my_books_backend.dto.role.RoleResponse;
-
-public interface RoleService {
-    /**
-     * すべてのロールを取得
-     * 
-     * @return ロールリスト
-     */
-    List<RoleResponse> getAllRoles();
-
-    /**
-     * 指定されたロールを取得
-     * 
-     * @param id ロールID
-     * @return ロール
-     */
-    RoleResponse getRoleById(Long id);
-
-    /**
-     * ロールを作成
-     * 
-     * @param request ロール作成リクエスト
-     * @return 作成されたロール情報
-     */
-    RoleResponse createRole(RoleRequest request);
-
-    /**
-     * ロールを更新
-     * 
-     * @param id      更新するロールのID
-     * @param request ロール更新リクエスト
-     * @return 更新されたロール情報
-     */
-    RoleResponse updateRole(Long id, RoleRequest request);
-
-    /**
-     * ロールを削除
-     * 
-     * @param id 削除するロールのID
-     */
-    void deleteRole(Long id);
-}
-
-------------------------------------------------------------
-UserService.java
-
-package com.example.my_books_backend.service;
-
-import java.util.List;
-import java.util.Optional;
-import com.example.my_books_backend.dto.user.UpdateUserEmailRequest;
-import com.example.my_books_backend.dto.user.UpdateUserPasswordRequest;
-import com.example.my_books_backend.dto.user.CreateUserRequest;
-import com.example.my_books_backend.dto.user.UserProfileCountsResponse;
-import com.example.my_books_backend.dto.user.UserProfileResponse;
-import com.example.my_books_backend.dto.user.UserResponse;
-import com.example.my_books_backend.dto.user.UpdateUserProfileRequest;
-import com.example.my_books_backend.entity.User;
-
-public interface UserService {
-    /**
-     * メールアドレスを使用してユーザーを検索
-     * 
-     * @param email 検索するユーザーのメールアドレス
-     * @return 一致するユーザーが存在する場合はそのユーザーを含むOptional、 存在しない場合は空のOptional
-     */
-    Optional<User> findByEmail(String email);
-
-    /**
-     * すべてのユーザーを取得 （主に管理者向けの機能）
-     * 
-     * @return ユーザーリスト
-     */
-    List<UserResponse> getAllUsers();
-
-    /**
-     * 指定されたユーザーを取得
-     * 
-     * @param id ユーザーID
-     * @return ユーザー
-     */
-    UserResponse getUserById(Long id);
-
-    /**
-     * ユーザーを作成
-     * 
-     * @param request ユーザー作成リクエスト
-     * @return 作成されたユーザー情報
-     */
-    User createUser(CreateUserRequest request);
-
-    /**
-     * ユーザーを削除
-     * 
-     * @param id 削除するユーザーのID
-     */
-    void deleteUser(Long id);
-
-    /**
-     * ユーザーのプロフィール情報を取得
-     * 
-     * @param user ユーザーエンティティ
-     * @return ユーザープロフィール情報
-     */
-    UserProfileResponse getUserProfile(User user);
-
-    /**
-     * ユーザーのプロフィール情報のレビュー、お気に入り、ブックマークの数を取得
-     * 
-     * @param user ユーザーエンティティ
-     * @return レビュー、お気に入り、ブックマークの数
-     */
-    UserProfileCountsResponse getUserProfileCounts(User user);
-
-    /**
-     * ユーザーのプロフィール情報を更新
-     * 
-     * @param request ユーザープロフィール更新リクエスト
-     * @param user    ユーザーエンティティ
-     */
-    void updateUserProfile(UpdateUserProfileRequest request, User user);
-
-    /**
-     * ユーザーのメールアドレスを更新
-     * 
-     * @param request ユーザーメールアドレス更新リクエスト
-     * @param user    ユーザーエンティティ
-     */
-    void updateUserEmail(UpdateUserEmailRequest request, User user);
-
-    /**
-     * ユーザーのパスワードを更新
-     * 
-     * @param request ユーザーパスワード更新リクエスト
-     * @param user    ユーザーエンティティ
-     */
-    void updateUserPassword(UpdateUserPasswordRequest request, User user);
-}
-
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-
